@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Tq4jTbnkvAY=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Windows\\Documents\\dự án\\Quản lý nhà hàng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\QLNH_API.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Windows\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.2\\microsoft.aspnetcore.openapi.9.0.2.nupkg.sha512",
+    "C:\\Users\\Windows\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
