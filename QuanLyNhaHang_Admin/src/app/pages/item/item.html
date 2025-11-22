@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Quản lý nhà hàng Admin</title>
+        <base href="/">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://unpkg.com/primeicons/primeicons.css" rel="stylesheet" />
+        <link href="https://unpkg.com/quill@1.3.7/dist/quill.snow.css" rel="stylesheet" />
+        <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
+        
+    </head>
+    <body>
+        <div class="card">
+            <p-toast />
+            <p-confirmDialog></p-confirmDialog>
+            
+            <p-toolbar class="mb-4">
+                <ng-template pTemplate="start">
+                    <p-button icon="pi pi-plus" label="Thêm món" class="mr-2" [rounded]="true" [outlined]="true" (click)="openNew()" />
+                    <p-button icon="pi pi-trash" label="Xóa đã chọn" [rounded]="true" [outlined]="true" severity="danger" 
+                             [disabled]="!selectedItems || selectedItems.length === 0" (click)="deleteSelectedItems()" />
+                </ng-template>
+        
+                <ng-template pTemplate="end">
+                    <div class="p-inputgroup">
+                        
+                            
+                                <p-autocomplete 
+                                    [(ngModel)]="selectedCategory" 
+                                    [suggestions]="filteredCategries"
+                                    (completeMethod)="searchCategory($event)"
+                                    (onSelect)="onCategoryFilterSelect($event)"
+                                    (onClear)="onCategoryFilterClear()"
+                                    optionLabel="name"
+                                    [dropdown]="true"
+                                    [forceSelection]="true"
+                                    placeholder="Tất cả danh mục"
+                                    [inputStyle]="{'min-width': '150px'}"
+                                    >
+                                    <ng-template let-category pTemplate="item">
+                                        <div>{{category.name}}</div>
+                                    </ng-template>
+                                </p-autocomplete>
+                            </div>
+                        
+                    
+                </ng-template>
+                
+            </p-toolbar>
+        
+            <p-table #dt [value]="items" [(selection)]="selectedItems" dataKey="id" [paginator]="true" [rows]="10" 
+                     [rowsPerPageOptions]="[5,10,25]" [loading]="false" [globalFilterFields]="['name','description']"
+                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                     currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} món">
+                     <ng-template pTemplate="caption">
+                        <div class="flex items-center justify-between">
+                          <div class="p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Tìm kiếm..." />
+                          </div>
+                        </div>
+                      </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox />
+                        </th>
+                       
+                        <th pSortableColumn="name">Tên món <p-sortIcon field="name" /></th>
+                        <th pSortableColumn="image">Hình ảnh <p-sortIcon field="image" /></th>
+                        <th pSortableColumn="description">Mô tả <p-sortIcon field="description" /></th>
+                        <th pSortableColumn="price">Giá <p-sortIcon field="price" /></th>
+                        <th pSortableColumn="discount">Giảm giá <p-sortIcon field="discount" /></th>
+                        <th pSortableColumn="quantity">Số lượng <p-sortIcon field="quantity" /></th>
+                        <th>Đơn vị</th>
+                        <th>Danh mục</th>
+                        <th pSortableColumn="created">Ngày tạo <p-sortIcon field="created" /></th>
+                        <th>Hành động</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="item" />
+                        </td>
+                        <td>{{item.name}}</td>  
+                        <td><img [src]="item.itemImages.data" width="80" height="80" /></td>
+                        
+                        <td>{{item.description}}</td>
+                        <td>{{formatCurrency(item.price)}}</td>
+                        <td>
+                            <p-badge *ngIf="item.discount > 0" [value]="item.discount + '%'" severity="success" />
+                            <span *ngIf="item.discount === 0">0%</span>
+                        </td>
+                        <td>
+                          {{item.quantity}}
+                        </td>
+                        <td>{{item.unit?.name}}</td>
+                        <td>{{item.category?.name}}</td>
+                        <td>{{item.created | date:'dd/MM/yyyy HH:mm'}}</td>
+                        <td>
+                            <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" 
+                                    (click)="editItem(item)"></button>
+                            <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-danger" 
+                                    (click)="deleteItem(item)"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="10" class="text-center">Không có món nào được tìm thấy</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        
+            <!-- Dialog thêm/sửa món -->
+            <p-dialog [(visible)]="itemDialog" [style]="{ width: '450px' }" header="Thêm món ăn " [modal]="true" >
+                <div class="flex flex-col gap-6">
+                    <div >
+                        <label for="name" class="p-field">Tên món </label>
+                        <input type="text" pInputText id="name" [(ngModel)]="item.name" required autofocus fluid />
+                        <small class="text-red-500" *ngIf="submitted && !item.name">Tên là bắt buộc.</small>
+                    </div>
+                    <div>
+                        <label class="p-field">Hình ảnh</label>
+                        <p-button label="Chọn từ thư viện ảnh" icon="pi pi-images" (click)="imageLibraryDialog = true"></p-button>
+
+                        <div class="flex flex-wrap gap-3 mt-3">
+                            <div *ngFor="let img of selectedImages; let i = index" class="relative">
+                              <img [src]="'data:' + img.data + ';base64,' + img.data" width="80" height="80" style="object-fit: cover; border-radius: 6px;" />
+                              <button pButton type="button" icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm"
+                                      style="position:absolute; top:-8px; right:-8px;" (click)="removeImage(i)"></button>
+                            </div>
+                          </div>
+                    </div>
+        
+                    <div>
+                        <label for="price" class="p-field">Giá</label><br>
+                        <p-inputNumber id="price" [(ngModel)]="item.price" mode="currency" currency="VND" locale="vi-VN" [min]="0" required style="width: 100%;"></p-inputNumber>
+                    </div>
+                    <div >
+                        <label for="description" class="p-field">Chú thích</label>
+                        <textarea  pInputText id="description" pTextarea [(ngModel)]="item.description"   fluid></textarea>
+                    </div>
+        
+                    <div>
+                        <label for="discount" class="p-field">Giảm giá (%)</label><br>
+                        <p-inputNumber id="discount" [(ngModel)]="item.discount" [min]="0" [max]="100" [useGrouping]="false" [suffix]="'%'" required style="width: 100%;" [class]="{'ng-invalid ng-dirty': submitted && (item.discount < 0 || item.discount > 100)}"></p-inputNumber>
+                    </div>
+                    
+        
+                    <div >
+                        <label for="quantity"  class="p-field">Số lượng </label>
+                        <input type="number" pInputText id="quantity" [(ngModel)]="item.quantity" required autofocus fluid [min]="0" [class]="{'ng-invalid ng-dirty': submitted && item.quantity < 0}"/>
+                        <small *ngIf="submitted && item.quantity < 0" class="text-red-500">Số lượng phải lớn hơn hoặc bằng 0</small>
+                    </div>
+        
+                    <div >
+                        <label class="p-field">Đơn vị</label>
+                        <br>
+                        <p-autoComplete [(ngModel)]="selectedUnit"  [suggestions]="filteredUnits" (completeMethod)="searchUnits($event)"
+                                       optionLabel="name" placeholder="Chọn đơn vị" [dropdown]="true" appendTo="body">
+                            <ng-template let-unit pTemplate="item">
+                                <div>{{unit.name}}</div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </div>
+        
+                    <div >
+                        <label class="p-field">Danh mục</label>
+                        <br>
+                        <p-autoComplete  [(ngModel)]="selectedCategory" [suggestions]="filteredCategries" (completeMethod)="searchCategory($event)"
+                                       optionLabel="name" placeholder="Chọn danh mục" [dropdown]="true" appendTo="body">
+                            <ng-template let-category pTemplate="item">
+                                <div>{{category.name}}</div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </div>
+        
+                    <!-- Hiển thị giá sau giảm -->
+                    <div class="col-12" *ngIf="item.price && item.discount">
+                        <p-card>
+                            <div class="flex justify-content-between align-items-center">
+                                <span>Giá gốc:</span>
+                                <s class="text-500">{{formatCurrency(item.price)}}</s>
+                            </div>
+                            <div class="flex justify-content-between align-items-center mt-2">
+                                <span>Giá sau giảm:</span>
+                                <span class="text-green-600 font-bold text-xl">
+                                    {{formatCurrency(item.price * (1 - item.discount/100))}}
+                                </span>
+                            </div>
+                        </p-card>
+                    </div>
+                </div>
+        
+                <ng-template pTemplate="footer">
+                    <button pButton pRipple icon="pi pi-times" label="Hủy" class="p-button-text" 
+                            (click)="hideDialog()"></button>
+                    <button pButton pRipple icon="pi pi-check" label="Lưu" (click)="saveItem()"></button>
+                </ng-template>
+                <p-dialog header="Chọn ảnh từ thư viện" [(visible)]="imageLibraryDialog" [modal]="true" [style]="{width: '600px'}" [closable]="true">
+                    <div class="grid grid-nogutter">
+                      <div class="col-3" *ngFor="let img of itemImages" style="padding:5px;">
+                        <img [src]="'data:' + img.data + ';base64,' + img.data" width="100%" style="object-fit: cover; cursor:pointer;" (click)="selectImageFromLibrary(img)" />
+                      </div>
+                    </div>
+                  </p-dialog>
+            </p-dialog>
+        </div>
+    </body>
+</html>

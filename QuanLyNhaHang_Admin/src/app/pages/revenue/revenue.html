@@ -1,0 +1,24 @@
+<h2 class="title">📊 Thống kê doanh thu</h2>
+
+<div class="summary-box">
+  <div>
+    <p class="label">Tổng doanh thu:</p>
+    <p class="value">{{ totalRevenue }} ₫</p>
+  </div>
+ 
+</div>
+
+<div class="filter-buttons">
+  <button class="btn" [class.active]="isDaily" 
+          (click)="loadDailyRevenue()">
+    Hàng ngày
+  </button>
+  <button class="btn" [class.active]="!isDaily" 
+          (click)="loadMonthlyRevenue()">
+    Hàng tháng
+  </button>
+</div>
+
+<div *ngIf="loading">Đang tải dữ liệu...</div>
+
+<canvas id="revenueChart"></canvas>

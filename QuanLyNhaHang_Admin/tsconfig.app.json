@@ -8,7 +8,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "themeswitcher.ts"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]

@@ -4,7 +4,7 @@ export interface Restaurant {
     address: string;
     phone: string;
     description: string;
-    createdAt: Date;
-    updatedAt: Date;
+    created: Date;
+    updated: Date;
     deleted: boolean;
 }

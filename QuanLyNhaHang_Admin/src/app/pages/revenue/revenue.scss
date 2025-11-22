@@ -1,0 +1,41 @@
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .summary-box {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 16px;
+  
+    .label {
+      font-size: 13px;
+      color: #555;
+    }
+  
+    .value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #007bff;
+    }
+  }
+  
+  .filter-buttons {
+    margin-bottom: 16px;
+  
+    .btn {
+      padding: 7px 14px;
+      margin-right: 10px;
+      border-radius: 6px;
+      border: 1px solid #007bff;
+      background: none;
+      cursor: pointer;
+    }
+  
+    .active {
+      background: #007bff;
+      color: white;
+    }
+  }
+  

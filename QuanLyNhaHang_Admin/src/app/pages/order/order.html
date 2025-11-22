@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Quản lý nhà hàng Admin</title>
+        <base href="/">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://unpkg.com/primeicons/primeicons.css" rel="stylesheet" />
+        <link href="https://unpkg.com/quill@1.3.7/dist/quill.snow.css" rel="stylesheet" />
+        <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
+        
+    </head>
+    <body>
+        <!-- <theme-switcher /> -->
+        <div class="card">
+            <p-toast />
+            <p-confirmDialog></p-confirmDialog>
+            
+            <p-toolbar class="mb-4">
+                <ng-template pTemplate="start">
+                    <p-button icon="pi pi-plus" label="Thêm đơn hàng" class="mr-2" [rounded]="true" [outlined]="true" (click)="openNew()" />
+                    <p-button icon="pi pi-trash" label="Xóa đã chọn" [rounded]="true" [outlined]="true" severity="danger" 
+                             [disabled]="!selectedOrders || selectedOrders.length === 0" (click)="deleteSelectedOrders()" />
+                </ng-template>
+        
+                <ng-template pTemplate="end">
+                    <p-button icon="pi pi-external-link" label="Export" (onClick)="customExportCSV()"  />
+                    <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
+                </ng-template>
+            </p-toolbar>
+        
+            <p-table #dt [value]="orders" [(selection)]="selectedOrders" dataKey="id" [paginator]="true" [rows]="10" 
+                     [rowsPerPageOptions]="[5,10,25]" [loading]="false" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                     currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} đơn hàng">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem">
+                            <p-tableHeaderCheckbox />
+                        </th>
+                        <th pSortableColumn="orderNumber">Số đơn hàng <p-sortIcon field="orderNumber" /></th>
+                        <th pSortableColumn="guesttable">Bàn<p-sortIcon field="guesttable" /></th>
+                        <th pSortableColumn="totalPrice">Tổng tiền <p-sortIcon field="totalPrice" /></th>
+                        <th pSortableColumn="paidAmount">Đã trả <p-sortIcon field="paidAmount" /></th>
+                        <th pSortableColumn="changeAmount">Tiền thừa<p-sortIcon field="changeAmount" /></th>
+                        <th pSortableColumn="status">Trạng thái <p-sortIcon field="status" /></th>
+                        <th pSortableColumn="created">Ngày tạo <p-sortIcon field="created" /></th>
+
+                        <th>Hành động</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-order>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="order" />
+                        </td>
+                        <td>{{order.orderNumber}}</td>
+                        <td>{{order.guestTable?.name}}</td>
+                        <td>{{order.totalPrice | number}} VND</td>
+                        <td>{{order.paidAmount | number}} VND</td>
+                        <td>{{order.changeAmount | number}} VND</td>
+                        <td>{{order.status.name}}</td>
+                        <td>{{convertToLocalTime(order.created) | date:'dd/MM/yyyy HH:mm'}}</td>
+                        <td>
+                            <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editOrder(order)"></button>
+                            <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-danger" (click)="deleteOrder(order)"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        
+            <!-- Dialog thêm/sửa đơn hàng -->
+            <p-dialog [(visible)]="orderDialog" [style]="{width: '90vw', maxWidth: '1200px'}" [header]="order.id ? 'Sửa đơn hàng' : 'Thêm đơn hàng'" [modal]="true" class="p-fluid">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <label for="orderNumber">Số đơn hàng</label>
+                        <input pInputText id="orderNumber" [(ngModel)]="order.orderNumber" required />
+                    </div>
+                    <div class="col-12">
+                        <label for="itemAutoComplete">Bàn trống</label>
+                        <p-autoComplete 
+                            id="tableAutoComplete"
+                            [(ngModel)]="selectedGuestTable"
+                            [suggestions]="filterGuestTable"
+                            (completeMethod)="searchGuestTable($event)"
+                            
+                            optionLabel="name"
+                            [dropdown]="true"
+                            placeholder="Nhập tên bàn..."
+                            appendTo="body">
+                            
+                            <ng-template let-table pTemplate="item">
+                                <div class="flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="font-bold">{{table.name}}</div>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </div>
+                    <div class="col-12 md:col-6">
+                        <label for="paidAmount">Số tiền đã trả</label>
+                        <p-inputNumber id="paidAmount" [(ngModel)]="order.paidAmount" mode="currency" currency="VND" locale="vi-VN"></p-inputNumber>
+                    </div>
+                    <div >
+                        <label for="description" class="p-field">Chú thích</label>
+                        <textarea  pInputText id="description" pTextarea [(ngModel)]="order.description"   fluid></textarea>
+                    </div>
+                </div>
+        
+                <div class="col-12 mt-4">
+                    <div class="flex justify-content-between align-items-center mb-3">
+                        <h3>Danh sách món ăn</h3>
+                        <p-button icon="pi pi-plus" label="Thêm món" (click)="openAddItemDialog()"></p-button>
+                    </div>
+        
+                    <p-table [value]="orderItems" [tableStyle]="{'min-width': '60rem'}">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Tên món</th>
+                                <th>Đơn giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item let-i="index">
+                            <tr>
+                                <td>
+                                    <div>
+                                        <div class="font-bold">{{item.name}}</div>
+                                        <small class="text-500" *ngIf="item.description">{{item.description}}</small>
+                                    </div>
+                                </td>
+                                <td>{{item.salePrice | number}} VND</td>
+                                <td style="width: 120px">
+                                    <p-inputNumber [(ngModel)]="item.quantity" [min]="1" [max]="item.item?.quantity" (onInput)="updateQuantity(item, $event)"></p-inputNumber>
+                                </td>
+                                <td class="font-bold">{{getItemTotal(item) | number}} VND</td>
+                                <td>
+                                    <button pButton pRipple icon="pi pi-trash" class="p-button-danger p-button-text" (click)="removeOrderItem(i)"></button>
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="3" class="text-right font-bold">Tổng cộng:</td>
+                                <td class="font-bold">{{order.totalPrice | number}} VND</td>
+                                <td></td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+        
+                <ng-template pTemplate="footer">
+                    <button pButton pRipple icon="pi pi-times" label="Hủy" class="p-button-text" (click)="hideDialog()"></button>
+                    <button pButton pRipple icon="pi pi-check" label="Lưu" (click)="saveOrder()" [disabled]="orderItems.length === 0"></button>
+                </ng-template>
+            </p-dialog>
+        
+            <!-- Dialog thêm món ăn với AutoComplete -->
+            <p-dialog [(visible)]="addItemDialog" header="Thêm món vào đơn hàng" [modal]="true" [style]="{width: '500px'}">
+                <div class="grid p-fluid">
+                    <div class="col-12">
+                        <label for="itemAutoComplete">Tìm món ăn</label>
+                        <p-autoComplete 
+                            id="itemAutoComplete"
+                            [(ngModel)]="selectedItem"
+                            [suggestions]="filteredItems"
+                            (completeMethod)="filterItems($event)"
+                            (onSelect)="onItemSelect($event)"
+                            (onClear)="onItemClear()"
+                            optionLabel="name"
+                            [dropdown]="true"
+                            placeholder="Nhập tên món ăn..."
+                            [minLength]="1"
+                            [forceSelection]="true"
+                            appendTo="body">
+                            
+                            <ng-template let-item pTemplate="item">
+                                <div class="flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="font-bold">{{item.name}}</div>
+                                        <small class="text-500">{{item.description}}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold">{{calculateSalePrice(item) | number}} VND</div>
+                                        <small class="text-500">Còn: {{item.quantity}}</small>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </div>
+               
+                    <div class="col-12" *ngIf="selectedItem">
+                        <div class="p-3 border-round surface-card">
+                            <div class="flex justify-content-between align-items-center mb-2">
+                                <span class="font-bold">{{selectedItem.name}}</span>
+                                <span class="text-green-600 font-bold">{{calculateSalePrice(selectedItem) | number}} VND</span>
+                            </div>
+                            <div >
+                                <label for="description" class="p-field">Chú thích</label>
+                                <textarea  pInputText id="description" pTextarea [(ngModel)]="selectedItem.description"   fluid></textarea>
+                            </div>
+                            <div class="flex justify-content-between text-sm">
+                                <span>Giá gốc: <s>{{selectedItem.price | number}} VND </s></span>
+                                <span>Giảm: {{selectedItem.discount}}%</span>
+                            </div>
+                            <div class="text-sm mt-1">Tồn kho: {{selectedItem.quantity}}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="quantity">Số lượng</label>
+                        <p-inputNumber id="quantity" [(ngModel)]="itemQuantity" [min]="1" [max]="selectedItem?.quantity || 999"></p-inputNumber>
+                        <small *ngIf="selectedItem" class="text-500">Còn {{selectedItem.quantity}} trong kho</small>
+                    </div>
+                </div>
+              
+                <ng-template pTemplate="footer">
+                    <button pButton pRipple icon="pi pi-times" label="Hủy" class="p-button-text" (click)="hideDialog()"></button>
+                    <button pButton pRipple icon="pi pi-plus" label="Thêm" (click)="addItemToOrder()" 
+                            [disabled]="!selectedItem || itemQuantity < 1 || itemQuantity > (selectedItem?.quantity || 0)"></button>
+                </ng-template>
+            </p-dialog>
+        </div>
+    </body>
+</html>

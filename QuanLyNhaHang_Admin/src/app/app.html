@@ -11,10 +11,9 @@
         <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
     </head>
     <body>
-        <p-menubar [model]="items">
-            <ng-template pTemplate="start">
-                <input type="text" pInputText placeholder="Search" />
-            </ng-template>
+        <theme-switcher />
+        <p-menubar *ngIf="showMenu" [model]="items">
+            
         </p-menubar>
         <router-outlet></router-outlet>
 
