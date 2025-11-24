@@ -86,8 +86,18 @@
                             <p-tableCheckbox [value]="item" />
                         </td>
                         <td>{{item.name}}</td>  
-                        <td><img [src]="item.itemImages.data" width="80" height="80" /></td>
-                        
+                        <td>
+                            <div class="flex gap-2">
+                                <img *ngFor="let img of item.itemImages" 
+                                     [src]="'data:image/jpeg;base64,' + img.data" 
+                                     width="auto" height="auto" style="max-width: 100; max-height: 100;"
+                                     class="border-round shadow-2" 
+                                     alt="ảnh món" />
+                                <span *ngIf="!item.itemImages || item.itemImages.length === 0" class="text-500">
+                                    Chưa có ảnh
+                                </span>
+                            </div>
+                        </td>                        
                         <td>{{item.description}}</td>
                         <td>{{formatCurrency(item.price)}}</td>
                         <td>
@@ -123,17 +133,53 @@
                         <input type="text" pInputText id="name" [(ngModel)]="item.name" required autofocus fluid />
                         <small class="text-red-500" *ngIf="submitted && !item.name">Tên là bắt buộc.</small>
                     </div>
-                    <div>
-                        <label class="p-field">Hình ảnh</label>
-                        <p-button label="Chọn từ thư viện ảnh" icon="pi pi-images" (click)="imageLibraryDialog = true"></p-button>
-
-                        <div class="flex flex-wrap gap-3 mt-3">
+                    <div class="col-12">
+                        <label class="block text-900 font-medium mb-2">Hình ảnh món ăn</label>
+                    
+                        <div class="flex gap-3 mb-4">
+                            <!-- Nút upload ảnh mới -->
+                            <p-fileUpload 
+                                mode="basic" 
+                                chooseLabel="Upload ảnh mới" 
+                                [auto]="true" 
+                                accept="image/*" 
+                                [multiple]="true" 
+                                customUpload="true"
+                                (uploadHandler)="onImageSelect($event)"
+                                class="mr-2">
+                            </p-fileUpload>
+                    
+                            <!-- Nút mở thư viện ảnh -->
+                            <p-button 
+                                label="Chọn từ thư viện" 
+                                icon="pi pi-images" 
+                                severity="secondary" 
+                                (click)="openImageLibrary()">
+                            </p-button>
+                        </div>
+                    
+                        <!-- Preview các ảnh đã chọn (mới + cũ) -->
+                        <div class="flex flex-wrap gap-3" *ngIf="selectedImages.length > 0">
                             <div *ngFor="let img of selectedImages; let i = index" class="relative">
-                              <img [src]="'data:' + img.data + ';base64,' + img.data" width="80" height="80" style="object-fit: cover; border-radius: 6px;" />
-                              <button pButton type="button" icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm"
-                                      style="position:absolute; top:-8px; right:-8px;" (click)="removeImage(i)"></button>
+                                <img 
+                                    [src]="'data:image/jpeg;base64,' + img.data" 
+                                    class="border-round shadow-2" 
+                                    width="120" 
+                                    height="120" 
+                                    style="object-fit: cover;" 
+                                    alt="{{img.name}}" />
+                    
+                                <button pButton 
+                                        icon="pi pi-times" 
+                                        class="p-button-rounded p-button-danger p-button-sm absolute -top-2 -right-2"
+                                        (click)="removeImage(i)">
+                                </button>
                             </div>
-                          </div>
+                        </div>
+                    
+                        <small class="text-500" *ngIf="selectedImages.length === 0">
+                            Chưa có ảnh nào được chọn
+                        </small>
                     </div>
         
                     <div>
@@ -201,14 +247,35 @@
                             (click)="hideDialog()"></button>
                     <button pButton pRipple icon="pi pi-check" label="Lưu" (click)="saveItem()"></button>
                 </ng-template>
-                <p-dialog header="Chọn ảnh từ thư viện" [(visible)]="imageLibraryDialog" [modal]="true" [style]="{width: '600px'}" [closable]="true">
-                    <div class="grid grid-nogutter">
-                      <div class="col-3" *ngFor="let img of itemImages" style="padding:5px;">
-                        <img [src]="'data:' + img.data + ';base64,' + img.data" width="100%" style="object-fit: cover; cursor:pointer;" (click)="selectImageFromLibrary(img)" />
-                      </div>
+                <p-dialog 
+                header="Thư viện ảnh - Click để chọn (có thể chọn nhiều lần)" 
+                [(visible)]="imageLibraryDialog" 
+                [modal]="true" 
+                [style]="{ width: '90vw', 'max-width': '800px' }" 
+                (onHide)="imageLibraryDialog = false">
+                
+                <div class="grid">
+                    <div class="col-6 sm:col-4 md:col-3 lg:col-2 p-3" *ngFor="let img of itemImages">
+                        <div class="border-round overflow-hidden shadow-2 cursor-pointer hover:shadow-8 transition-duration-200"
+                             (click)="selectImageFromLibrary(img)">
+                            <img 
+                                [src]="'data:image/jpeg;base64,' + img.data" 
+                                class="w-full" 
+                                style="height: 140px; object-fit: cover;" 
+                                [alt]="img.name" />
+                            <div class="p-2 bg-white text-center text-sm font-medium text-600">
+                                {{ img.name | slice:0:15 }}{{ img.name.length > 15 ? '...' : '' }}
+                            </div>
+                        </div>
                     </div>
-                  </p-dialog>
+                </div>
+            
+                <ng-template pTemplate="footer">
+                    <p-button label="Đóng" icon="pi pi-times" severity="secondary" (click)="imageLibraryDialog = false"></p-button>
+                </ng-template>
+            </p-dialog>
             </p-dialog>
         </div>
+
     </body>
 </html>
