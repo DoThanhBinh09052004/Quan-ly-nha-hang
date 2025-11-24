@@ -1,148 +1,100 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QLNH_API.Data;
 using QLNH_API.DTO;
 using QLNH_API.Model;
-using AutoMapper; // <-- Thêm
-using Microsoft.EntityFrameworkCore; // <-- Thêm
-using Microsoft.AspNetCore.Authorization; // <-- Thêm
-using System.IO; // <-- Thêm
-using System.Linq; // <-- Thêm
-using AutoMapper.QueryableExtensions; // <-- Thêm
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
-[ApiController]
-[Route("[controller]")]
-[Authorize(Roles = "Manager")] // <-- Bảo vệ controller
-public class ItemImageController : ControllerBase
+namespace QLNH_API.Controllers
 {
-    private readonly ApplicationDbcontext _context;
-    private readonly IMapper _mapper; // <-- Sử dụng AutoMapper
-
-    public ItemImageController(ApplicationDbcontext context, IMapper mapper) // <-- Inject
+    [ApiController]
+    [Route("[controller]")]
+    [Authorize(Roles = "Manager")]
+    public class ItemImageController : ControllerBase
     {
-        _context = context;
-        _mapper = mapper;
-    }
+        private readonly ApplicationDbcontext _context;
+        private readonly IMapper _mapper;
 
-    // GET: /ItemImage
-    [HttpGet]
-    public IActionResult GetAllItemImage()
+        public ItemImageController(ApplicationDbcontext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
+        }
 
-    {
+        // GET: /ItemImage → lấy tất cả ảnh trong thư viện
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var images = await _context.ItemImage
+                .Where(i => !i.Deleted)
+                .OrderByDescending(i => i.Created)
+                .ProjectTo<ItemImageDTO>(_mapper.ConfigurationProvider)
+                .ToListAsync();
 
-        var images = _context.ItemImage
+            return Ok(images);
+        }
 
-            .Select(i => new ItemImageDTO
+        // POST: /ItemImage → upload ảnh (dù từ máy hay từ thư viện đều dùng chung)
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Upload([FromForm] CreateItemImageDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return BadRequest("Tên ảnh là bắt buộc");
 
+            if (dto.File == null || dto.File.Length == 0)
+                return BadRequest("File ảnh không được để trống");
+
+            if (!dto.File.ContentType.StartsWith("image/"))
+                return BadRequest("Chỉ chấp nhận file ảnh");
+
+            if (dto.File.Length > 5 * 1024 * 1024) // Giới hạn 5MB
+                return BadRequest("File ảnh không được quá 5MB");
+
+            try
             {
+                using var ms = new MemoryStream();
+                await dto.File.CopyToAsync(ms);
 
-                Id = i.Id,
+                var image = new ItemImage
+                {
+                    Name = dto.Name.Trim(),
+                    Description = dto.Description?.Trim(),
+                    Data = Convert.ToBase64String(ms.ToArray()),
+                    Created = DateTime.Now,
+                    Updated = DateTime.Now,
+                    Deleted = false
+                };
 
-                Name = i.Name,
+                _context.ItemImage.Add(image);
+                await _context.SaveChangesAsync();
 
-                Description = i.Description,
-
-                Data = i.Data,
-
-                Created = i.Created,
-
-                Updated = i.Updated
-
-            }).ToList();
-
-
-
-        return Ok(images);
-
-    }
-
-    // GET: /ItemImage/5
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetImageById(int id)
-    {
-        try
-        {
-            var image = await _context.ItemImage
-                            .FirstOrDefaultAsync(i => i.Id == id && !i.Deleted);
-
-            if (image == null) return NotFound();
-
-            var dto = _mapper.Map<ItemImageDTO>(image); // <-- Dùng AutoMapper
-            return Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
-        }
-    }
-
-    // POST: /ItemImage
-    [HttpPost]
-    [Consumes("multipart/form-data")]
-    public async Task<IActionResult> CreateImage([FromForm] CreateItemImageDTO dto)
-    {
-        if (dto.File == null || dto.File.Length == 0)
-        {
-            return BadRequest("Không có file nào được tải lên.");
-        }
-
-        try
-        {
-            using var ms = new MemoryStream();
-            await dto.File.CopyToAsync(ms); // <-- Dùng async
-
-            var image = new ItemImage
-            {
-                Name = dto.Name,
-                Description = dto.Description,
-                Data = Convert.ToBase64String(ms.ToArray()), // Convert file sang base64
-                Created = DateTime.Now, // Dùng Now hoặc UtcNow tùy cấu hình
-                Updated = DateTime.Now,
-                Deleted = false,
-                ItemId = null // <-- Quan trọng: Ảnh mới chưa gán
-            };
-
-            _context.ItemImage.Add(image);
-            await _context.SaveChangesAsync(); // <-- Dùng async
-
-            var result = _mapper.Map<ItemImageDTO>(image); // <-- Dùng AutoMapper
-
-            return CreatedAtAction(nameof(GetImageById), new { id = image.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "Lỗi khi tải lên file: " + ex.Message);
-        }
-    }
-
-    // DELETE: /ItemImage/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteImage(int id)
-    {
-        try
-        {
-            var image = await _context.ItemImage.FirstOrDefaultAsync(i => i.Id == id);
-
-            if (image == null)
-                return NotFound(new { message = "Không tìm thấy ảnh" });
-
-            // Kiểm tra xem ảnh có đang được dùng không
-            if (image.ItemId.HasValue)
-            {
-                return BadRequest("Không thể xóa ảnh đang được gán cho một Item.");
+                var result = _mapper.Map<ItemImageDTO>(image);
+                return CreatedAtAction(nameof(GetAll), null, result);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi server: " + ex.Message);
+            }
+        }
 
-            // Sử dụng Xóa Mềm (Soft Delete) thay vì xóa vĩnh viễn
+        // DELETE: /ItemImage/5 → xóa mềm
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var image = await _context.ItemImage.FirstOrDefaultAsync(x => x.Id == id);
+            if (image == null || image.Deleted) return NotFound();
+
+            if (image.ItemId.HasValue)
+                return BadRequest("Không thể xóa ảnh đang được dùng trong món ăn");
+
             image.Deleted = true;
             image.Updated = DateTime.Now;
+            await _context.SaveChangesAsync();
 
-            _context.Entry(image).State = EntityState.Modified;
-            await _context.SaveChangesAsync(); // <-- Dùng async
-
-            return Ok(new { message = "Đã xóa (mềm) thành công" });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
+            return Ok(new { message = "Xóa ảnh thành công" });
         }
     }
 }

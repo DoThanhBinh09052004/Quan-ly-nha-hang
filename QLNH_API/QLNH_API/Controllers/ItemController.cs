@@ -1,234 +1,133 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QLNH_API.Data;
-using QLNH_API.Model;
 using QLNH_API.DTO;
+using QLNH_API.Model;
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 
 namespace QLNH_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-
     public class ItemController : ControllerBase
     {
         private readonly ApplicationDbcontext _context;
         private readonly IMapper _mapper;
 
-        // Hàm khởi tạo, inject DbContext và AutoMapper
         public ItemController(ApplicationDbcontext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        /// <summary>
-        /// Lấy danh sách tất cả item (chỉ lấy item chưa bị xóa mềm)
-        /// </summary>
         [HttpGet]
         [Authorize(Roles = "Manager, Cashier")]
-
         public async Task<ActionResult<IEnumerable<ItemDTO>>> GetItems()
         {
-            try
-            {
-                var items = await _context.Item
-                    .Include(i => i.Unit)
-                    .Include(i => i.Category)
-                    .Include(i => i.ItemImages)
-                     .Where(i => !i.Deleted)
-                    .ToListAsync();
+            var items = await _context.Item
+                .Include(i => i.Unit)
+                .Include(i => i.Category)
+                .Include(i => i.ItemImages)
+                .Where(i => !i.Deleted)
+                .ToListAsync();
 
-                // Dùng AutoMapper để ánh xạ sang DTO
-                var itemDTOs = _mapper.Map<List<ItemDTO>>(items);
-
-                return Ok(itemDTOs);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
-            }
+            return Ok(_mapper.Map<List<ItemDTO>>(items));
         }
 
-        /// <summary>
-        /// Lấy chi tiết một item theo ID
-        /// </summary>
         [HttpGet("{id}")]
         [Authorize(Roles = "Manager, Cashier")]
-
-        public async Task<ActionResult<ItemDTO>> GetItemById(int id)
+        public async Task<ActionResult<ItemDTO>> GetItem(int id)
         {
-            try
-            {
-                var item = await _context.Item
-                    .Include(i => i.Unit)
-                    .Include(i => i.Category)
-                    .Include(i => i.ItemImages)
-                    .FirstOrDefaultAsync(i => i.Id == id && !i.Deleted);
+            var item = await _context.Item
+                .Include(i => i.Unit).Include(i => i.Category).Include(i => i.ItemImages)
+                .FirstOrDefaultAsync(i => i.Id == id && !i.Deleted);
 
-                if (item == null)
-                {
-                    return NotFound($"Không tìm thấy Item với ID {id}");
-                }
-
-                var itemDTO = _mapper.Map<ItemDTO>(item);
-                return Ok(itemDTO);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
-            }
+            if (item == null) return NotFound();
+            return Ok(_mapper.Map<ItemDTO>(item));
         }
 
-        /// <summary>
-        /// Tạo mới một item
-        /// </summary>
         [HttpPost]
         [Authorize(Roles = "Manager")]
+        public async Task<ActionResult<ItemDTO>> Create([FromBody] ItemRequestDTO dto)
 
-        public async Task<ActionResult<ItemDTO>> Post([FromBody] Item item)
         {
-            try
-            {
-                if (item == null)
-                    return BadRequest("Dữ liệu Item rỗng");
+            if (string.IsNullOrWhiteSpace(dto.Name)) return BadRequest("Tên món bắt buộc");
+            if (dto.Price < 0) return BadRequest("Giá không hợp lệ");
 
-                if (string.IsNullOrWhiteSpace(item.Name))
-                    return BadRequest("Tên Item là bắt buộc");
+            var item = _mapper.Map<Item>(dto);
+            item.Created = item.Updated = DateTime.Now;
+            item.Deleted = false;
 
-                if (item.Price < 0)
-                    return BadRequest("Giá không được âm");
+            await AttachImagesAsync(item, dto.ImageIds);
+            _context.Item.Add(item);
+            await _context.SaveChangesAsync();
 
-                // Đặt lại các trường hệ thống
-                item.Created = DateTime.Now;
-                item.Updated = DateTime.Now;
-                item.Deleted = false;
-
-                // Nếu có UnitId, kiểm tra Unit tồn tại
-                if (item.UnitId.HasValue)
-                {
-                    var unit = await _context.Unit.FindAsync(item.UnitId.Value);
-                    if (unit == null || unit.Deleted)
-                        return BadRequest("Unit ID không hợp lệ");
-                }
-
-                // Nếu có CategoryId, kiểm tra Category tồn tại
-                if (item.CategoryId.HasValue)
-                {
-                    var category = await _context.Category.FindAsync(item.CategoryId.Value);
-                    if (category == null || category.Deleted)
-                        return BadRequest("Category ID không hợp lệ");
-                }
-
-
-                _context.Item.Add(item);
-                await _context.SaveChangesAsync();
-
-                // Load lại item với các thông tin liên quan
-                var createdItem = await _context.Item
-                    .Include(i => i.Unit)
-                    .Include(i => i.Category)
-                    .Include(i => i.ItemImages)
-                    .FirstOrDefaultAsync(i => i.Id == item.Id);
-
-                var itemDTO = _mapper.Map<ItemDTO>(createdItem);
-                return CreatedAtAction(nameof(GetItemById), new { id = itemDTO.Id }, itemDTO);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
-            }
+            return CreatedAtAction(nameof(GetItem), new { id = item.Id }, _mapper.Map<ItemDTO>(item));
         }
 
-        /// <summary>
-        /// Cập nhật thông tin một item
-        /// </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "Manager")]
-
-        public async Task<IActionResult> UpdateItem(int id, Item item)
+        public async Task<IActionResult> Update(int id, [FromBody] ItemRequestDTO dto)
         {
-            try
-            {
-                if (id != item.Id)
-                    return BadRequest("ID không khớp");
+            if (id != dto.Id) return BadRequest("ID không khớp");
 
-                var existingItem = await _context.Item.FirstOrDefaultAsync(i => i.Id == id && !i.Deleted);
+            var item = await _context.Item
+                .Include(i => i.ItemImages)
+                .FirstOrDefaultAsync(i => i.Id == id && !i.Deleted);
 
-                if (existingItem == null)
-                    return NotFound($"Không tìm thấy Item với ID {id}");
+            if (item == null) return NotFound();
 
-                if (string.IsNullOrWhiteSpace(item.Name))
-                    return BadRequest("Tên Item là bắt buộc");
+            _mapper.Map(dto, item);
+            item.Updated = DateTime.Now;
 
-                if (item.Price < 0)
-                    return BadRequest("Giá không được âm");
+            // Xóa ảnh cũ
+            if (item.ItemImages != null)
+                foreach (var img in item.ItemImages.ToList())
+                    img.ItemId = null;
 
-                // Kiểm tra Unit nếu có
-                if (item.UnitId.HasValue)
-                {
-                    var unit = await _context.Unit.FindAsync(item.UnitId.Value);
-                    if (unit == null || unit.Deleted)
-                        return BadRequest("Unit ID không hợp lệ");
-                }
+            // Gắn ảnh mới
+            await AttachImagesAsync(item, dto.ImageIds);
+            await _context.SaveChangesAsync();
 
-                // Kiểm tra Category nếu có
-                if (item.CategoryId.HasValue)
-                {
-                    var category = await _context.Category.FindAsync(item.CategoryId.Value);
-                    if (category == null || category.Deleted)
-                        return BadRequest("Category ID không hợp lệ");
-                }
-
-                // Gán lại giá trị
-                existingItem.Name = item.Name;
-                existingItem.Description = item.Description;
-                existingItem.Price = item.Price;
-                existingItem.Discount = item.Discount;
-                existingItem.Quantity = item.Quantity;
-                existingItem.UnitId = item.UnitId;
-                existingItem.CategoryId = item.CategoryId;
-                existingItem.Updated = DateTime.Now;
-
-                _context.Entry(existingItem).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
-            }
+            return NoContent();
         }
 
-        /// <summary>
-        /// Xóa mềm một item
-        /// </summary>
+        private async Task AttachImagesAsync(Item item, List<int> imageIds)
+        {
+            if (imageIds == null || !imageIds.Any())
+            {
+                item.ItemImages = new List<ItemImage>();
+                return;
+            }
+
+            var images = await _context.ItemImage
+                .Where(img => imageIds.Contains(img.Id) && !img.Deleted)
+                .ToListAsync();
+
+            if (images.Count != imageIds.Distinct().Count())
+                throw new Exception("Một số ảnh không tồn tại hoặc đã bị xóa");
+
+            item.ItemImages = images;
+            foreach (var img in images)
+                img.ItemId = item.Id;
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "Manager")]
-
-        public async Task<IActionResult> DeleteItem(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                var item = await _context.Item.FindAsync(id);
+            var item = await _context.Item.Include(i => i.ItemImages).FirstOrDefaultAsync(i => i.Id == id);
+            if (item == null || item.Deleted) return NotFound();
 
-                if (item == null || item.Deleted)
-                    return NotFound($"Không tìm thấy Item với ID {id}");
+            item.Deleted = true;
+            item.Updated = DateTime.Now;
+            if (item.ItemImages != null)
+                foreach (var img in item.ItemImages)
+                    img.ItemId = null;
 
-                item.Deleted = true;
-                item.Updated = DateTime.Now;
-
-                _context.Entry(item).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
-            }
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

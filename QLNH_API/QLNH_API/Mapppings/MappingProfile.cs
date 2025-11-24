@@ -46,9 +46,18 @@ namespace QLNH_API.Mapppings
             CreateMap<UnitType, UnitTypeDTO>();
             CreateMap<Category, CategoryDTO>();
             CreateMap<Item, ItemDTO>()
-            .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit))
-            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
-            .ForMember(dest => dest.ItemImages, opt => opt.MapFrom(src => src.ItemImages.Where(img => !img.Deleted)));
+                .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+                .ForMember(dest => dest.ItemImages, opt => opt.MapFrom(src =>
+                    src.ItemImages != null
+                        ? src.ItemImages.Where(img => !img.Deleted).ToList()
+                        : new List<ItemImage>()));
+
+            CreateMap<ItemImage, ItemImageDTO>();
+
+            // Dùng để upload ảnh (không cần map ngược)
+            CreateMap<ItemImage, CreateItemImageDTO>().ReverseMap();
+            CreateMap<ItemRequestDTO, Item>();
         }
     }
 }

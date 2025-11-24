@@ -489,17 +489,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Item"
+                "$ref": "#/components/schemas/ItemRequestDTO"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Item"
+                "$ref": "#/components/schemas/ItemRequestDTO"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Item"
+                "$ref": "#/components/schemas/ItemRequestDTO"
               }
             }
           }
@@ -586,17 +586,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Item"
+                "$ref": "#/components/schemas/ItemRequestDTO"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Item"
+                "$ref": "#/components/schemas/ItemRequestDTO"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Item"
+                "$ref": "#/components/schemas/ItemRequestDTO"
               }
             }
           }
@@ -664,27 +664,6 @@
       }
     },
     "/ItemImage/{id}": {
-      "get": {
-        "tags": [
-          "ItemImage"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
       "delete": {
         "tags": [
           "ItemImage"
@@ -2508,6 +2487,55 @@
         },
         "additionalProperties": false
       },
+      "ItemRequestDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unitId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "categoryId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "imageIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "LoginRequest": {
         "type": "object",
         "properties": {
@@ -3244,7 +3272,7 @@
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "description": "Nhập token JWT. Format: Bearer {token}",
+        "description": "Nhập token JWT. Ví dụ: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...",
         "scheme": "Bearer",
         "bearerFormat": "JWT"
       }
