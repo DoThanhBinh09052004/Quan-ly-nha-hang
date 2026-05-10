@@ -1,41 +1,72 @@
-<html>
-  <head>
-    <title>Đăng nhập</title>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập • Quán Ăn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background">
+    <div class="login-wrapper">
+      <div class="login-card">
 
-  </head>
-  <body>
-    <div class="login-container">
-      <h2>Đăng nhập</h2>
-
-      <form (ngSubmit)="onLogin()">
-        <div class="form-group">
-          <label for="username">Tên đăng nhập</label>
-          <input
-            type="text"
-            id="username"
-            [(ngModel)]="username"
-            name="username"
-            required
-          />
+        <!-- Logo quán ăn tông tối -->
+        <div class="restaurant-header">
+          <div class="logo-icon">🍲</div>
+          <h1>QUÁN ĂN 1989</h1>
+          <p class="slogan">Hệ thống quản lý nội bộ</p>
         </div>
 
-        <div class="form-group">
-          <label for="password">Mật khẩu</label>
-          <input
-            type="password"
-            id="password"
-            [(ngModel)]="password"
-            name="password"
-            required
-          />
+        <h2>Đăng nhập hệ thống</h2>
+
+        <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+          <div class="input-group">
+            <input
+              type="text"
+              [(ngModel)]="username"
+              name="username"
+              required
+              placeholder=" "
+              autocomplete="username"
+            />
+            <label>Tên đăng nhập</label>
+            <span class="icon">👤</span>
+          </div>
+
+          <div class="input-group">
+            <input
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              required
+              placeholder=" "
+              autocomplete="current-password"
+            />
+            <label>Mật khẩu</label>
+            <span class="icon">🔒</span>
+          </div>
+
+          <button type="submit" class="btn-login" [disabled]="!loginForm.valid">
+            <span>Đăng nhập ngay</span>
+          </button>
+          <div class="forgot-password">
+            <a routerLink="/change-password" class="forgot-link">
+              🔑 Đổi mật khẩu của bạn
+            </a>
+          </div>
+
+          <p *ngIf="errorMessage" class="error-message">
+            {{ errorMessage }}
+          </p>
+        </form>
+       
+
+        <div class="footer">
+          <small>© 2025 Quán Ăn 1989 • Phần mềm quản lý nhân viên</small>
         </div>
-
-        <button type="submit">Đăng nhập</button>
-
-        <p *ngIf="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </p>
-      </form>
+      </div>
     </div>
-  </body>
+  </div>
+</body>
 </html>

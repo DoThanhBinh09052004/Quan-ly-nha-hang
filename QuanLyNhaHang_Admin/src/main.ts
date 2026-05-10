@@ -13,6 +13,10 @@ import { UserComponent } from './app/pages/user/user';
 import { LoginComponent } from './app/pages/login/login';
 import { RevenueComponent } from './app/pages/revenue/revenue';
 import { ItemimageComponent } from './app/itemimage/itemimage';
+import { ChangePasswordComponent } from './app/pages/change-password/change-password';
+import { GuestComponent } from './app/pages/guest/guest';
+import { RecipeComponent } from './app/pages/recipe/recipe';
+import { IngredientComponent } from './app/pages/ingredient/ingredient';
 
 const routes: Routes = [
   {path: 'login', component: LoginComponent},
@@ -26,6 +30,10 @@ const routes: Routes = [
    {path:'user',component:UserComponent},
    {path:'item-image',component:ItemimageComponent},
    {path:'revenue-chart',component:RevenueComponent},
+   {path:'change-password',component:ChangePasswordComponent},
+   {path:'guest',component:GuestComponent},
+   { path:'recipe',component:RecipeComponent},
+   { path:'ingredient',component:IngredientComponent},
 
 ];
 

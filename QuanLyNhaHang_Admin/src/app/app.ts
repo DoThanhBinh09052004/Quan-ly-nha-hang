@@ -8,12 +8,13 @@ import { Router } from '@angular/router';
 import { ThemeSwitcher } from "../../themeswitcher";
 import { CommonModule } from '@angular/common';
 import { ProgressBar } from 'primeng/progressbar';
+import { Toast } from "primeng/toast";
 
 
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [MenuModule, MenubarModule, RouterOutlet, RouterModule, ThemeSwitcher, CommonModule, ProgressBar],
+    imports: [MenuModule, MenubarModule, RouterOutlet, RouterModule, ThemeSwitcher, CommonModule],
     templateUrl: './app.html',
     styleUrl: './app.scss'
 })
@@ -21,7 +22,7 @@ export class App {
     protected title = 'QuanLyNhaHang_Admin';
     items: MenuItem[] = [];
     get showMenu(): boolean {
-        return this.router.url !== '/login';
+        return this.router.url !== '/login' && this.router.url !=='/change-password';
     }
     constructor(public router: Router) {}
 
@@ -70,6 +71,27 @@ export class App {
                 icon: 'pi pi-chart-bar',
                 command: () => {
                     this.router.navigate(['/revenue-chart']);
+                }
+            },
+            {
+                label: 'Khách hàng',
+                icon: 'pi pi-users',
+                command: () => {
+                    this.router.navigate(['/guest']);
+                }
+            },
+            {
+                label: 'Nguyên liệu',
+                icon: 'pi pi-box',
+                command: () => {
+                    this.router.navigate(['/ingredient']);
+                }
+            },
+            {
+                label: 'Công thức',
+                icon: 'pi pi-book',
+                command: () => {
+                    this.router.navigate(['/recipe']);
                 }
             },
             {

@@ -1,95 +1,198 @@
-<div class="card">
-    <p-toast></p-toast>
-    <p-confirmDialog></p-confirmDialog>
-  
-    <p-toolbar class="mb-4">
-      <ng-template pTemplate="start">
-        <p-button icon="pi pi-plus" label="Thêm ảnh" class="mr-2" [rounded]="true" [outlined]="true" (click)="openNew()" />
-      </ng-template>
-  
-      <ng-template pTemplate="end">
-        <p-fileUpload
-          #fileUpload
-          mode="basic"
-          accept="image/*"
-          [auto]="true"
-          [customUpload]="true"
-          chooseLabel="Chọn ảnh"
-          (uploadHandler)="uploadImage($event)">
-        </p-fileUpload>
-      </ng-template>
-    </p-toolbar>
-  
-    <p-table
-      #dt
-      [value]="images"
-      [paginator]="true"
-      [rows]="10"
-      [rowHover]="true"
-      dataKey="id"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-      [showCurrentPageReport]="true">
-      
-      <ng-template pTemplate="caption">
-        <div class="flex items-center justify-between">
-          <h5 class="m-0">Quản lý hình ảnh</h5>
-          
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Quản lý hình ảnh</title>
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css" />
+    <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
+</head>
+<body>
+    <div class="item-management-container">
+        <p-toast />
+        <p-confirmDialog></p-confirmDialog>
+        
+        <!-- Header -->
+        <div class="management-card">
+            <div class="header-section">
+                <div class="header-title">
+                    <h1>Quản lý hình ảnh</h1>
+                    <p>Upload và quản lý tất cả hình ảnh trong hệ thống</p>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="management-toolbar">
+                <div class="toolbar-left">
+                    <p-button icon="pi pi-plus" label="Thêm ảnh" 
+                             [rounded]="true" severity="primary" (click)="openNew()" />
+                </div>
+                
+                <div class="toolbar-right">
+                    <p-button icon="pi pi-refresh" label="Tải lại" 
+                             [text]="true" (click)="loadData()" />
+                </div>
+            </div>
         </div>
-      </ng-template>
-  
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Ảnh</th>
-          <th>Tên</th>
-          <th>Mô tả</th>
-          <th>Ngày tạo</th>
-          <th>Hành động</th>
-        </tr>
-      </ng-template>
-  
-      <ng-template pTemplate="body" let-img>
-        <tr>
-          <td>
-            <img [src]="'data:image/png;base64,' + img.data" width="80" class="rounded" />
-          </td>
-          <td>{{ img.name }}</td>
-          <td>{{ img.description }}</td>
-          <td>{{ convertToLocalTime(img.created) | date:'HH:mm dd/MM/yyyy' }}</td>
-          <td>
-            <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteImage(img)"></p-button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  
-    <!-- Dialog upload hình -->
-    <p-dialog [(visible)]="ImageDialog" [style]="{ width: '450px' }" header="Upload ảnh" [modal]="true">
-      <ng-template pTemplate="content">
-        <div class="flex flex-col gap-4">
-          <div>
-            <label for="name" class="p-field">Tên ảnh</label>
-            <input type="text" pInputText id="name" [(ngModel)]="image.name" required />
-          </div>
-          <div>
-            <label for="description" class="p-field">Mô tả</label>
-            <textarea pInputText pTextarea id="description" [(ngModel)]="image.description"></textarea>
-          </div>
-          <p-fileUpload
-            #fileUpload
-            mode="basic"
-            accept="image/*"
-            [auto]="true"
-            [customUpload]="true"
-            chooseLabel="Chọn ảnh"
-            (uploadHandler)="uploadImage($event)">
-          </p-fileUpload>
+
+        <!-- Main table -->
+        <div class="management-card">
+            <div class="table-header">
+                <div class="search-section">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Tìm kiếm hình ảnh..." />
+                </div>
+                <div class="selection-info">
+                    <span>Tổng: {{images?.length || 0}} ảnh</span>
+                </div>
+            </div>
+            
+            <p-table #dt [value]="images" 
+                     [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50]" 
+                     [loading]="false" [showCurrentPageReport]="true"
+                     currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} ảnh"
+                     [globalFilterFields]="['name','description']"
+                     styleClass="custom-table">
+                
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 100px">
+                            <div class="column-header">
+                                <span>Ảnh</span>
+                            </div>
+                        </th>
+                        <th pSortableColumn="name" style="width: 200px">
+                            <div class="column-header">
+                                <span>Tên ảnh</span>
+                                <p-sortIcon field="name" />
+                            </div>
+                        </th>
+                        <th style="width: 300px">
+                            <div class="column-header">
+                                <span>Mô tả</span>
+                            </div>
+                        </th>
+                        <th pSortableColumn="created" style="width: 150px">
+                            <div class="column-header">
+                                <span>Ngày tạo</span>
+                                <p-sortIcon field="created" />
+                            </div>
+                        </th>
+                        <th style="width: 100px">Hành động</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-img>
+                    <tr>
+                        <td>
+                            <div class="image-preview">
+                                <img [src]="'data:image/jpeg;base64,' + img.data" 
+                                     [alt]="img.name"
+                                     class="item-thumbnail" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="item-name">{{img.name}}</div>
+                        </td>
+                        <td>
+                            <div class="item-description" *ngIf="img.description">
+                                {{img.description | slice:0:80}}{{img.description.length > 80 ? '...' : ''}}
+                            </div>
+                            <span *ngIf="!img.description" class="no-description">Chưa có mô tả</span>
+                        </td>
+                        <td>
+                            <div class="date-cell">
+                                <span>{{convertToLocalTime(img.created) | date:'dd/MM/yyyy'}}</span>
+                                <small>{{convertToLocalTime(img.created) | date:'HH:mm'}}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button pButton pRipple icon="pi pi-trash" 
+                                        class="btn-delete"
+                                        (click)="deleteImage(img)"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div class="empty-content">
+                                <i class="pi pi-image empty-icon"></i>
+                                <h3>Không có hình ảnh nào</h3>
+                                <p>Bắt đầu bằng cách upload hình ảnh mới</p>
+                                <p-button icon="pi pi-plus" label="Thêm ảnh mới" 
+                                         (click)="openNew()" />
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
         </div>
-      </ng-template>
-  
-      <ng-template pTemplate="footer">
-        <p-button label="Hủy" icon="pi pi-times" text (click)="hideDialog()"></p-button>
-        <p-button label="Upload" icon="pi pi-check" (click)="uploadImage($event)"></p-button>
-      </ng-template>
-    </p-dialog>
-  </div>
-  
+
+        <!-- Dialog upload ảnh -->
+        <p-dialog [(visible)]="ImageDialog" [style]="{width: '500px'}" 
+                 header="Upload hình ảnh mới" 
+                 [modal]="true" [draggable]="false" [resizable]="false">
+            
+            <div class="dialog-form">
+                <div class="form-field">
+                    <label for="name">
+                        Tên ảnh <span class="required">*</span>
+                    </label>
+                    <input pInputText id="name" [(ngModel)]="image.name" 
+                           placeholder="Nhập tên ảnh..." />
+                    <small class="text-red-500" *ngIf="submitted && !image.name">
+                        Tên ảnh là bắt buộc
+                    </small>
+                </div>
+
+                <div class="form-field">
+                    <label for="description">Mô tả</label>
+                    <textarea pInputTextarea id="description" [(ngModel)]="image.description" 
+                             rows="3" placeholder="Mô tả về hình ảnh..."></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label>Chọn ảnh <span class="required">*</span></label>
+                    <div class="upload-section">
+                        <p-fileUpload 
+                            #fileUpload
+                            mode="basic" 
+                            chooseLabel="Chọn ảnh" 
+                            [auto]="true" 
+                            accept="image/*" 
+                            [customUpload]="true"
+                            (uploadHandler)="uploadImage($event)"
+                            styleClass="upload-btn" />
+                        
+                        <small class="text-gray-500 block mt-2">
+                            Hỗ trợ định dạng: JPG, PNG, GIF (tối đa 5MB)
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Preview nếu có -->
+                <div *ngIf="previewImage" class="preview-section">
+                    <label>Xem trước:</label>
+                    <div class="preview-image">
+                        <img [src]="previewImage" alt="Preview" class="image-preview" />
+                    </div>
+                </div>
+            </div>
+
+            <ng-template pTemplate="footer">
+                <div class="dialog-footer">
+                    <button pButton pRipple icon="pi pi-times" label="Hủy" 
+                            class="btn-cancel" (click)="hideDialog()"></button>
+                    <button pButton pRipple icon="pi pi-check" label="Upload" 
+                            severity="primary" (click)="uploadImage($event)"></button>
+                </div>
+            </ng-template>
+        </p-dialog>
+    </div>
+</body>
+</html>

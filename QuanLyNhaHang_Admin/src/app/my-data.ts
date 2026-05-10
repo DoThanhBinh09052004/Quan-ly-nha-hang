@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { environment } from "../environments/environment.development";
+import { environment } from "../environments/environment";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { catchError, Observable, tap, throwError } from "rxjs";
 import { Restaurant } from "../model/restaurant.model";
@@ -12,6 +12,9 @@ import { OrderItem } from "../model/orderitem.model";
 import { Unit } from "../model/unit.model";
 import { Category } from "../model/category.model";
 import { User } from "../model/user.model";
+import { Guest } from "../model/guest.model";
+import { AiIngredientRestockRow, Ingredient } from "../model/ingredient.model";
+import { Recipe } from "../model/recipe.model";
 
 @Injectable({
   providedIn: 'root'
@@ -157,7 +160,7 @@ export class MyData {
     const url = `${this.REST_API_SERVER}/item/${id}`;
     return this.httpClient.get<Item>(url, this.httpOptions);
   }
-  public createItem(item: any): Observable<Item> {  // SỬA THÀNH any HOẶC TẠO INTERFACE RIÊNG
+  public createItem(item: any): Observable<Item> {
     const url = `${this.REST_API_SERVER}/item`;
     return this.httpClient.post<Item>(url, item, this.httpOptions);
   }
@@ -183,23 +186,25 @@ export class MyData {
     const url = `${this.REST_API_SERVER}/orderitem/${id}`;
     return this.httpClient.get<OrderItem>(url, this.httpOptions);
   }
+
   // Trong my-data.service.ts
-public createOrderItem(orderItem: Omit<OrderItem, 'id'>): Observable<OrderItem> {
-  const url = `${this.REST_API_SERVER}/orderitem`;
-  
-  console.log('🚀 Sending order item to server:', orderItem);
-  
-  return this.httpClient.post<OrderItem>(url, orderItem, this.httpOptions).pipe(
-    tap(response => {
-      console.log('✅ Order item created successfully:', response);
-    }),
-    catchError(error => {
-      console.error('❌ Error creating order item:', error);
-      console.error('❌ Error details:', error.error);
-      return throwError(() => error);
-    })
-  );
-}
+  public createOrderItem(orderItem: Omit<OrderItem, 'id'>): Observable<OrderItem> {
+    const url = `${this.REST_API_SERVER}/orderitem`;
+
+    console.log('🚀 Sending order item to server:', orderItem);
+
+    return this.httpClient.post<OrderItem>(url, orderItem, this.httpOptions).pipe(
+      tap(response => {
+        console.log('✅ Order item created successfully:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error creating order item:', error);
+        console.error('❌ Error details:', error.error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   public updateOrderItem(id: number, orderItem: Partial<OrderItem>): Observable<OrderItem> {
     const url = `${this.REST_API_SERVER}/orderitem/${id}`;
     return this.httpClient.put<OrderItem>(url, orderItem, this.httpOptions);
@@ -212,6 +217,7 @@ public createOrderItem(orderItem: Omit<OrderItem, 'id'>): Observable<OrderItem> 
     const url = `${this.REST_API_SERVER}/orderitem/order/${orderId}`;
     return this.httpClient.delete<void>(url, this.httpOptions);
   }
+
   // ===== ĐƠN VỊ TÍNH (UNIT) =====
   public getAllUnits(): Observable<Unit[]> {
     const url = `${this.REST_API_SERVER}/unit`;
@@ -229,6 +235,7 @@ public createOrderItem(orderItem: Omit<OrderItem, 'id'>): Observable<OrderItem> 
     const url = `${this.REST_API_SERVER}/unit/${id}`;
     return this.httpClient.delete<void>(url, this.httpOptions);
   }
+
   // ===== Category =====
   public getAllCategories(): Observable<Category[]> {
     const url = `${this.REST_API_SERVER}/category`;
@@ -246,14 +253,24 @@ public createOrderItem(orderItem: Omit<OrderItem, 'id'>): Observable<OrderItem> 
     const url = `${this.REST_API_SERVER}/category/${id}`;
     return this.httpClient.put<Category>(url, category, this.httpOptions);
   }
+
   public deleteCategory(id: number): Observable<void> {
     const url = `${this.REST_API_SERVER}/category/${id}`;
     return this.httpClient.delete<void>(url, this.httpOptions);
   }
-   // ===== User =====
-  public getAllUsers(): Observable<User[]> { // Assuming you have a User model
+
+  // ===== User =====
+  public getAllUsers(): Observable<User[]> {
     const url = `${this.REST_API_SERVER}/user`;
     return this.httpClient.get<User[]>(url, this.httpOptions);
+  }
+  public changeMyPassword(data: { username: string; oldPassword: string; newPassword: string }): Observable<any> {
+    const url = `${this.REST_API_SERVER}/api/auth/change-my-password`;
+    return this.httpClient.put(url, {
+      Username: data.username,
+      OldPassword: data.oldPassword,
+      NewPassword: data.newPassword
+    }, this.httpOptions);
   }
 
   public getUserById(id: number): Observable<User> {
@@ -275,7 +292,7 @@ public createOrderItem(orderItem: Omit<OrderItem, 'id'>): Observable<OrderItem> 
     const url = `${this.REST_API_SERVER}/user/${id}`;
     return this.httpClient.delete<void>(url, this.httpOptions);
   }
-  
+
   // ===== DOANH THU (REVENUE) =====
   public getRevenueDaily(): Observable<any[]> {
     const url = `${this.REST_API_SERVER}/revenue/daily`;
@@ -285,33 +302,200 @@ public createOrderItem(orderItem: Omit<OrderItem, 'id'>): Observable<OrderItem> 
   public getRevenueMonthly(): Observable<any[]> {
     const url = `${this.REST_API_SERVER}/revenue/monthly`;
     return this.httpClient.get<any[]>(url, this.httpOptions);
-}
- // ===== IMAGE =====
-public getAllImages(): Observable<any[]> {
-  const url = `${this.REST_API_SERVER}/ItemImage`;
-  return this.httpClient.get<any[]>(url, this.httpOptions);
-}
+  }
 
-public getImageById(id: number): Observable<any> {
-  const url = `${this.REST_API_SERVER}/ItemImage/${id}`;
-  return this.httpClient.get<any>(url, this.httpOptions);
-}
+  public predictRevenueByAi(date: string): Observable<{ date: string; predictedRevenue: number }> {
+    const url = `${this.REST_API_SERVER}/revenue/ai-predict`;
+    return this.httpClient.post<{ date: string; predictedRevenue: number }>(
+      url,
+      { date },
+      this.httpOptions
+    );
+  }
 
-public createImage(image: FormData): Observable<any> {
-  const url = `${this.REST_API_SERVER}/ItemImage`;
-  const httpOptions = { headers: new HttpHeaders({}) }; // multipart/form-data sẽ tự set
-  return this.httpClient.post<any>(url, image, httpOptions);
-}
+  public getRevenueByHour(days = 30): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/revenue/by-hour?days=${days}`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
 
-public updateImage(id: number, image: FormData): Observable<any> {
-  const url = `${this.REST_API_SERVER}/ItemImage/${id}`;
-  const httpOptions = { headers: new HttpHeaders({}) };
-  return this.httpClient.put<any>(url, image, httpOptions);
-}
+  public getRevenueByDayOfWeek(days = 90): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/revenue/by-day-of-week?days=${days}`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
 
-public deleteImage(id: number): Observable<void> {
-  const url = `${this.REST_API_SERVER}/ItemImage/${id}`;
-  return this.httpClient.delete<void>(url, this.httpOptions);
-}
+  public getRevenueBestSellers(days = 30, top = 10): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/revenue/best-sellers?days=${days}&top=${top}`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
 
+  public getRevenueTableTurnover(days = 30): Observable<any> {
+    const url = `${this.REST_API_SERVER}/revenue/table-turnover?days=${days}`;
+    return this.httpClient.get<any>(url, this.httpOptions);
+  }
+
+  public getRevenueByPartySize(days = 90): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/revenue/by-party-size?days=${days}`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
+
+  public getRevenueForecast(days = 7): Observable<any> {
+    const url = `${this.REST_API_SERVER}/revenue/forecast?days=${days}`;
+    return this.httpClient.get<any>(url, this.httpOptions);
+  }
+
+  // ===== IMAGE =====
+  public getAllImages(): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/ItemImage`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
+
+  public getImageById(id: number): Observable<any> {
+    const url = `${this.REST_API_SERVER}/ItemImage/${id}`;
+    return this.httpClient.get<any>(url, this.httpOptions);
+  }
+
+  public createImage(image: FormData): Observable<any> {
+    const url = `${this.REST_API_SERVER}/ItemImage`;
+    const httpOptions = { headers: new HttpHeaders({}) };
+    return this.httpClient.post<any>(url, image, httpOptions);
+  }
+
+  public updateImage(id: number, image: FormData): Observable<any> {
+    const url = `${this.REST_API_SERVER}/ItemImage/${id}`;
+    const httpOptions = { headers: new HttpHeaders({}) };
+    return this.httpClient.put<any>(url, image, httpOptions);
+  }
+
+  public deleteImage(id: number): Observable<void> {
+    const url = `${this.REST_API_SERVER}/ItemImage/${id}`;
+    return this.httpClient.delete<void>(url, this.httpOptions);
+  }
+
+  // ===== KHÁCH HÀNG (GUEST) =====
+  public getAllGuests(): Observable<Guest[]> {
+    const url = `${this.REST_API_SERVER}/guest`;
+    return this.httpClient.get<Guest[]>(url, this.httpOptions);
+  }
+
+  public createGuest(guest: Omit<Guest, 'id'>): Observable<Guest> {
+    const url = `${this.REST_API_SERVER}/guest`;
+    return this.httpClient.post<Guest>(url, guest, this.httpOptions);
+  }
+
+  public updateGuest(id: number, guest: Partial<Guest>): Observable<Guest> {
+    const url = `${this.REST_API_SERVER}/guest/${id}`;
+    return this.httpClient.put<Guest>(url, guest, this.httpOptions);
+  }
+
+  public deleteGuest(id: number): Observable<void> {
+    const url = `${this.REST_API_SERVER}/guest/${id}`;
+    return this.httpClient.delete<void>(url, this.httpOptions);
+  }
+
+  public getOrdersByGuestId(guestId: number): Observable<Order[]> {
+    const url = `${this.REST_API_SERVER}/order/guest/${guestId}`;
+    return this.httpClient.get<Order[]>(url, this.httpOptions);
+  }
+  public getGuestByPhone(phone: string): Observable<Guest> {
+    const url = `${this.REST_API_SERVER}/guest/search?phone=${encodeURIComponent(phone)}`;
+    return this.httpClient.get<Guest>(url, this.httpOptions);
+  }
+  usePoints(orderId: number, pointsToUse: number): Observable<any> {
+    const url = `${this.REST_API_SERVER}/order/${orderId}/use-points`;
+    return this.httpClient.put<any>(url, { pointsToUse }, this.httpOptions);
+  }
+
+  // ===== NGUYÊN LIỆU (INGREDIENT) =====
+  public getAllIngredients(): Observable<Ingredient[]> {
+    const url = `${this.REST_API_SERVER}/ingredient`;
+    return this.httpClient.get<Ingredient[]>(url, this.httpOptions);
+  }
+
+  public getIngredientById(id: number): Observable<Ingredient> {
+    const url = `${this.REST_API_SERVER}/ingredient/${id}`;
+    return this.httpClient.get<Ingredient>(url, this.httpOptions);
+  }
+
+  public createIngredient(ingredient: Omit<Ingredient, 'id'>): Observable<Ingredient> {
+    const url = `${this.REST_API_SERVER}/ingredient`;
+    return this.httpClient.post<Ingredient>(url, ingredient, this.httpOptions);
+  }
+
+  public updateIngredient(id: number, ingredient: Partial<Ingredient>): Observable<Ingredient> {
+    const url = `${this.REST_API_SERVER}/ingredient/${id}`;
+    return this.httpClient.put<Ingredient>(url, ingredient, this.httpOptions);
+  }
+
+  public deleteIngredient(id: number): Observable<void> {
+    const url = `${this.REST_API_SERVER}/ingredient/${id}`;
+    return this.httpClient.delete<void>(url, this.httpOptions);
+  }
+
+  public getLowStockIngredients(): Observable<Ingredient[]> {
+    const url = `${this.REST_API_SERVER}/ingredient/low-stock`;
+    return this.httpClient.get<Ingredient[]>(url, this.httpOptions);
+  }
+
+  // ===== CÔNG THỨC (RECIPE) =====
+  public getAllRecipes(): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/recipe`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
+
+  public getRecipesByItem(itemId: number): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/recipe/by-item/${itemId}`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
+
+  public createRecipe(recipe: any): Observable<any> {
+    const url = `${this.REST_API_SERVER}/recipe`;
+    return this.httpClient.post<any>(url, recipe, this.httpOptions);
+  }
+
+  public updateRecipe(id: number, recipe: any): Observable<any> {
+    const url = `${this.REST_API_SERVER}/recipe/${id}`;
+    return this.httpClient.put<any>(url, recipe, this.httpOptions);
+  }
+
+  public deleteRecipe(id: number): Observable<void> {
+    const url = `${this.REST_API_SERVER}/recipe/${id}`;
+    return this.httpClient.delete<void>(url, this.httpOptions);
+  }
+
+  // ===== AI SERVICE RECOMMENDATIONS =====
+  public getRecommendations(currentItems: string[], topN: number = 5): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/order/ai-recommendations`;
+    return this.httpClient.post<any[]>(url, { currentItems, topN }, this.httpOptions);
+  }
+
+  public analyzeMarketBasket(items: string[], topN: number = 5): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/order/ai-market-basket`;
+    return this.httpClient.post<any[]>(url, { items, topN }, this.httpOptions);
+  }
+
+  // ===== AI SERVICE CUSTOMER SEGMENTATION =====
+  public getCustomerSegment(guestId: number): Observable<any> {
+    const url = `${this.REST_API_SERVER}/guest/${guestId}/ai-segment`;
+    return this.httpClient.get<any>(url, this.httpOptions);
+  }
+
+  public getAiIngredientRestock(days: number = 14): Observable<AiIngredientRestockRow[]> {
+    const url = `${this.REST_API_SERVER}/Ingredient/ai-restock?days=${days}`;
+    return this.httpClient.get<AiIngredientRestockRow[]>(url, this.httpOptions);
+  }
+
+  // ===== CHATBOT BUSINESS =====
+  public chatbotBusiness(payload: {
+    message: string;
+    daysHour?: number;
+    daysDow?: number;
+    daysBest?: number;
+    daysTurnover?: number;
+    daysParty?: number;
+    daysForecast?: number;
+    topBest?: number;
+  }): Observable<any> {
+    const url = `${this.REST_API_SERVER}/chatbot/business`;
+    return this.httpClient.post<any>(url, payload, this.httpOptions);
+  }
 }

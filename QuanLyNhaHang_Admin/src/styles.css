@@ -1,1 +1,144 @@
-/* You can add global styles to this file, and also import other style files *//*# sourceMappingURL=styles.css.map */
+/* styles.css - Dark Theme Global */
+body {
+    margin: 0;
+    padding: 0;
+    background: #0a0f1e;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* PrimeNG Dark Theme Overrides */
+  .p-component {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+  
+  .p-button {
+    font-weight: 600;
+  }
+  
+  .p-datatable .p-paginator {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 12px;
+    
+    .p-paginator-pages .p-paginator-page {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      
+      &.p-highlight {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border-color: #2563eb;
+        color: white;
+      }
+      
+      &:not(.p-highlight):hover {
+        background: #475569;
+      }
+    }
+    
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      
+      &:hover {
+        background: #475569;
+      }
+    }
+  }
+  
+  /* Toast Messages */
+  .p-toast {
+    .p-toast-message {
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      
+      &.p-toast-message-success {
+        border-left: 4px solid #34d399;
+      }
+      
+      &.p-toast-message-error {
+        border-left: 4px solid #f87171;
+      }
+      
+      &.p-toast-message-warn {
+        border-left: 4px solid #fbbf24;
+      }
+      
+      &.p-toast-message-info {
+        border-left: 4px solid #60a5fa;
+      }
+      
+      .p-toast-message-icon {
+        color: inherit;
+      }
+      
+      .p-toast-summary {
+        font-weight: 700;
+      }
+    }
+  }
+  
+  /* Confirm Dialog */
+  .p-confirm-dialog {
+    .p-dialog-content {
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid #334155;
+      
+      .p-confirm-dialog-message {
+        color: #e2e8f0;
+      }
+    }
+    
+    .p-dialog-footer {
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border-top: 1px solid #334155;
+    }
+  }
+  
+  /* Global Hover Effects */
+  .p-element {
+    transition: all 0.2s ease;
+  }
+  
+  /* Responsive Typography */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 24px;
+    }
+    
+    h2 {
+      font-size: 20px;
+    }
+    
+    h3 {
+      font-size: 18px;
+    }
+  }
+  
+  /* Selection */
+  ::selection {
+    background: rgba(96, 165, 250, 0.3);
+    color: #ffffff;
+  }
+  :host ::ng-deep .p-datatable {
+    &.management-table {
+      .p-datatable-tbody > tr > td {
+        &.empty-cell {
+          color: #94a3b8;
+          font-style: italic;
+          opacity: 0.7;
+        }
+      }
+    }
+  }

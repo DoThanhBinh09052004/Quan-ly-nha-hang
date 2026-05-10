@@ -13,4 +13,9 @@ export interface Order {
     orderItems?: OrderItem[]; 
     guestTableId?: number;
     guestTable?: GuestTable;
+    guestPhone?: string;
+    guestId?: number;
+    discount?: number;
+    pointsUsed?: number; 
+    finalPrice?: number;
 }

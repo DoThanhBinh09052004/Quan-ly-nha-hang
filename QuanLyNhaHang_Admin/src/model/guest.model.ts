@@ -6,4 +6,5 @@ export interface Guest {
     created: Date;
     updated: Date;
     deleted: boolean;
+    points: number;
 }

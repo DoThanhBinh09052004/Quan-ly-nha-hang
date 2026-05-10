@@ -1,1 +1,846 @@
-/* You can add global styles to this file, and also import other style files */
+@import "primeicons/primeicons.css";
+
+/* Container chính */
+.management-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #0f172a;
+  min-height: 100vh;
+}
+
+/* Card quản lý */
+.management-card {
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Header Section */
+.management-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #334155;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.header-title {
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+  }
+  
+  p {
+    font-size: 14px;
+    color: #94a3b8;
+    margin: 0;
+  }
+}
+
+/* Toolbar Section */
+.management-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ===== CUSTOM TABLE STYLES (GIỐNG ITEM) ===== */
+
+/* Table Header - Giống Item */
+.table-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 8px;
+  border: 1px solid #334155;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.search-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  
+  @media (min-width: 768px) {
+    margin-bottom: 0;
+  }
+  
+  i {
+    color: #60a5fa;
+    font-size: 18px;
+  }
+  
+  input {
+    width: 300px;
+    padding: 10px 16px;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #1e293b;
+    color: #e2e8f0;
+    transition: all 0.3s ease;
+    
+    &::placeholder {
+      color: #64748b;
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+    }
+  }
+}
+
+.selection-info {
+  font-size: 14px;
+  color: #94a3b8;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Table Styles - GIỐNG ITEM COMPONENT */
+:host ::ng-deep .p-datatable.custom-table {
+  width: 100%;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  overflow: hidden;
+  
+  .p-datatable-thead {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    
+    > tr > th {
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      font-weight: 600;
+      color: #e2e8f0;
+      border-color: #334155;
+      padding: 16px 12px;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      
+      .p-sortable-column-icon {
+        color: #60a5fa;
+      }
+    }
+  }
+  
+  .p-datatable-tbody > tr {
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #2d3748;
+      transform: translateX(2px);
+    }
+    
+    &:nth-child(even) {
+      background: #1a2438;
+      
+      &:hover {
+        background: #2d3748;
+      }
+    }
+    
+    > td {
+      padding: 16px 12px;
+      border-color: #334155;
+      color: #e2e8f0;
+      vertical-align: middle;
+    }
+  }
+  
+  /* Paginator giống Item */
+  .p-paginator {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 12px;
+    
+    .p-paginator-pages .p-paginator-page {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      
+      &.p-highlight {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border-color: #2563eb;
+        color: white;
+      }
+      
+      &:not(.p-highlight):hover {
+        background: #475569;
+      }
+    }
+    
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      
+      &:hover {
+        background: #475569;
+      }
+    }
+    
+    .p-paginator-current {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+  }
+  
+  /* Checkbox styling */
+  .p-checkbox {
+    .p-checkbox-box {
+      border: 1px solid #475569;
+      background: #1e293b;
+      
+      &.p-highlight {
+        background: #2563eb;
+        border-color: #2563eb;
+      }
+      
+      &:not(.p-disabled):hover {
+        border-color: #60a5fa;
+      }
+    }
+  }
+}
+
+/* Column Header - Giống Item */
+.column-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  span {
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  
+  .p-sortable-column-icon {
+    color: #60a5fa;
+    font-size: 12px;
+  }
+}
+
+/* ===== TABLE CELLS STYLES ===== */
+
+/* ID Cell */
+.id-cell {
+  font-weight: 600;
+  color: #60a5fa;
+  font-family: 'Courier New', monospace;
+}
+
+/* Name Cell */
+.name-cell {
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 4px;
+}
+
+/* Password Cell */
+.password-cell {
+  .password-mask {
+    font-family: 'Courier New', monospace;
+    color: #94a3b8;
+    letter-spacing: 2px;
+    font-size: 14px;
+  }
+}
+
+/* Description Cell */
+.description-cell {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Date Cell */
+.date-cell {
+  display: flex;
+  flex-direction: column;
+  
+  span {
+    font-weight: 500;
+    color: #e2e8f0;
+    font-size: 13px;
+  }
+  
+  small {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+}
+
+/* Tag Styles */
+.category-tag,
+.role-tag {
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+  font-weight: 600 !important;
+}
+
+/* ===== BUTTON STYLES ===== */
+
+/* Action Buttons - Giống Item */
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  
+  button {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.btn-edit {
+  color: #60a5fa;
+  
+  &:hover {
+    background: rgba(96, 165, 250, 0.2);
+    border-color: #60a5fa;
+  }
+}
+
+.btn-delete {
+  color: #f87171;
+  
+  &:hover {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+  }
+}
+
+.btn-view {
+  color: #34d399;
+  
+  &:hover {
+    background: rgba(52, 211, 153, 0.2);
+    border-color: #34d399;
+  }
+}
+
+/* ===== EMPTY STATE ===== */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 16px !important;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 0 0 12px 12px;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 72px;
+  color: rgba(255, 255, 255, 0.1);
+  opacity: 0.5;
+}
+
+.empty-content h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.empty-content p {
+  color: #94a3b8;
+  margin: 0;
+  font-size: 15px;
+}
+
+/* ===== DIALOG STYLES ===== */
+
+:host ::ng-deep .p-dialog {
+  .p-dialog-header {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border-bottom: 1px solid #334155;
+    padding: 24px;
+    color: #e2e8f0;
+    
+    .p-dialog-title {
+      font-weight: 700;
+      font-size: 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .p-dialog-header-icon {
+      color: #94a3b8;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+  
+  .p-dialog-content {
+    background: #0f172a;
+    padding: 0;
+    color: #e2e8f0;
+  }
+  
+  .p-dialog-footer {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border-top: 1px solid #334155;
+    padding: 20px 24px;
+  }
+}
+
+/* Form trong Dialog */
+.dialog-form {
+  padding: 24px;
+}
+
+.form-field {
+  margin-bottom: 20px;
+  
+  label {
+    display: block;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    
+    .required {
+      color: #f87171;
+    }
+  }
+  
+  input,
+  textarea,
+  .p-autocomplete,
+  .p-inputnumber,
+  .p-password {
+    width: 100%;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    color: #e2e8f0;
+    padding: 10px 14px;
+    transition: all 0.3s ease;
+    
+    &:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+    }
+    
+    &::placeholder {
+      color: #64748b;
+    }
+  }
+  
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  
+  .text-red-500 {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+  }
+  
+  .text-gray-500 {
+    color: #94a3b8;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+  }
+}
+
+/* Dialog Footer */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #e2e8f0;
+  }
+}
+
+/* ===== PRIMENG COMPONENT OVERRIDES ===== */
+
+/* Button Overrides */
+:host ::ng-deep .p-button {
+  font-weight: 600;
+  transition: all 0.3s ease;
+  
+  &.p-button-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      transform: translateY(-1px);
+    }
+  }
+  
+  &.p-button-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+      transform: translateY(-1px);
+    }
+  }
+  
+  &.p-button-outlined {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  &.p-button-text {
+    background: transparent;
+    border: none;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
+
+/* AutoComplete Customization */
+:host ::ng-deep .p-autocomplete {
+  .p-autocomplete-input {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #e2e8f0;
+    
+    &:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+    }
+  }
+  
+  .p-autocomplete-panel {
+    background: #1e293b;
+    border: 1px solid #334155;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    
+    .p-autocomplete-items {
+      .p-autocomplete-item {
+        color: #e2e8f0;
+        background: #1e293b;
+        border-bottom: 1px solid #334155;
+        
+        &:hover {
+          background: #2d3748;
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}
+
+/* Tag Customization */
+:host ::ng-deep .p-tag {
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: none;
+  
+  &.p-tag-success {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    color: white;
+  }
+  
+  &.p-tag-warning {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+  }
+  
+  &.p-tag-danger {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    color: white;
+  }
+  
+  &.p-tag-info {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: white;
+  }
+  
+  &.p-tag-secondary {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    color: white;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+.text-red-500 { color: #f87171; }
+.text-gray-500 { color: #94a3b8; }
+.block { display: block; }
+
+/* ===== STATS CARDS ===== */
+
+.header-stats {
+  margin-top: 20px;
+  
+  @media (min-width: 768px) {
+    margin-top: 0;
+  }
+}
+
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  min-width: 220px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  i {
+    font-size: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+  }
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.stat-blue {
+  i {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.15);
+  }
+  
+  border-left: 4px solid #60a5fa;
+}
+
+.stat-green {
+  i {
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.15);
+  }
+  
+  border-left: 4px solid #34d399;
+}
+
+.stat-orange {
+  i {
+    color: #fb923c;
+    background: rgba(251, 146, 60, 0.15);
+  }
+  
+  border-left: 4px solid #fb923c;
+}
+
+/* ===== GLOBAL STYLES ===== */
+
+/* Global Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #64748b;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .management-container {
+    padding: 12px;
+  }
+  
+  .management-card {
+    padding: 16px;
+  }
+  
+  .search-section input {
+    width: 100%;
+  }
+  
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .stats-grid {
+    justify-content: center;
+  }
+  
+  .stat-card {
+    min-width: 100%;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.management-card,
+.table-header,
+:host ::ng-deep .custom-table .p-datatable-tbody > tr {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Selection Highlight */
+:host ::ng-deep .p-datatable-tbody > tr.p-highlight {
+  background: rgba(96, 165, 250, 0.2) !important;
+  border-left: 4px solid #60a5fa;
+}
+
+/* Loading States */
+:host ::ng-deep .p-datatable-loading-overlay {
+  background: rgba(15, 23, 42, 0.9) !important;
+  
+  .p-datatable-loading-icon {
+    color: #60a5fa;
+    font-size: 32px;
+  }
+}

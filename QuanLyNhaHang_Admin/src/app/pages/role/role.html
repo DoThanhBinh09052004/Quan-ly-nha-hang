@@ -1,128 +1,194 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>Quản lý nhà hàng Admin</title>
-        <base href="/">
-
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="https://unpkg.com/primeicons/primeicons.css" rel="stylesheet" />
-        <link href="https://unpkg.com/quill@1.3.7/dist/quill.snow.css" rel="stylesheet" />
-        <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
+<head>
+    <meta charset="utf-8">
+    <title>Quản lý nhà hàng Admin</title>
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css" />
+    <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
+</head>
+<body>
+    <div class="management-container">
+        <p-toast></p-toast>
+        <p-confirmDialog></p-confirmDialog>
         
-    </head>
-    <body>
-        <!-- <theme-switcher /> -->
-        <div class="card">
-            <p-toast />
-            <p-confirmDialog></p-confirmDialog>
-            <p-toolbar class="mb-6">
-                <ng-template #start>
-                    <p-button icon="pi pi-plus" class="mr-2" [rounded]="true" [outlined]="true" label="Thêm vai trò" (click)="openNew()" />
-                </ng-template>
-        
-                <ng-template #end>
-                    <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
-                </ng-template>
-            </p-toolbar>
-            <p-table
-        #dt
-        [value]="Roles"
-        [rows]="10"
-        [columns]="cols"
-        [paginator]="true"
-        [tableStyle]="{ 'min-width': '75rem' }"
-        [(selection)]="selectedRoles"
-        [rowHover]="true"
-        dataKey="id"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-        [showCurrentPageReport]="true"
-    >
-        <ng-template #caption>
-            <div class="flex items-center justify-between">
-                <h5 class="m-0">Quản lý vai trò</h5>
-                <p-iconfield>
-                    <p-inputicon class="pi pi-search" />
-                    <!-- <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Search..." /> -->
-                </p-iconfield>
-            </div>
-        </ng-template>
-        <ng-template #header>
-            <tr>
-                <th style="width: 3rem">
-                    <p-tableHeaderCheckbox />
-                </th>
-                <th style="min-width: 16rem">Mã</th>
-                <th pSortableColumn="name" style="min-width:16rem">
-                    <div class="flex items-center gap-2">
-                        Tên
-                        <p-sortIcon field="name" />
-                    </div>
-                </th>
-                <!-- <th>Image</th> -->
-                <th pSortableColumn="description" style="min-width: 12rem">
-                    <div class="flex items-center gap-2">
-                        Chú thích
-                        <p-sortIcon field="description" />
-                    </div>
-                </th>
-                <th pSortableColumn="created" style="min-width: 12rem">
-                    <div class="flex items-center gap-2">
-                        Ngày tạo
-                        <p-sortIcon field="created" />
-                    </div>
-                </th>
-                <th pSortableColumn="updated" style="min-width: 12rem">
-                    <div class="flex items-center gap-2">
-                        Ngày chỉnh sửa
-                        <p-sortIcon field="updated" />
-                    </div>
-                </th>
-                <th style="min-width: 12rem"></th>
-            </tr>
-        </ng-template>
-        <ng-template #body let-Role let-columns="columns">
-            <tr>
-                <td style="width: 3rem">
-                    <p-tableCheckbox [value]="Role" />
-                </td>
-                <td style="min-width: 16rem">{{ Role.id }}</td>
-                <td style="min-width: 16rem">{{ Role.name }}</td>
-                <!-- <td>
-                    <img [src]="'https://primefaces.org/cdn/primeng/images/demo/Role/' + Role.image" [alt]="Role.name" style="width: 64px" class="rounded" />
-                </td> -->
-                <td>{{ Role.description }}</td>
-                <td>{{ Role.created}}</td>
-                <td>{{ Role.updated}}</td>
-                <td>
-                    <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editRole(Role)" />
-                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteRole(Role)" />
-                </td>
-         
-        </ng-template>
-    </p-table>
-    <p-dialog [(visible)]="RoleDialog" [style]="{ width: '450px' }" header="Thông tin nhà hàng" [modal]="true">
-        <ng-template #content>
-            <div class="flex flex-col gap-6">
-                <div>
-                    <label for="name" class="p-field">Tên vai trò</label>
-                    <input type="text" pInputText id="name" [(ngModel)]="Role.name" required autofocus fluid />
-                    <small class="text-red-500" *ngIf="submitted && !Role.name">Tên là bắt buộc.</small>
+        <!-- Header -->
+        <div class="management-card">
+            <div class="management-header">
+                <div class="header-title">
+                    <h1>Quản lý vai trò</h1>
+                    <p>Quản lý thông tin các vai trò trong hệ thống</p>
                 </div>
-                <div>
-                    <label for="description" class="p-field">Chú thích</label>
-                    <textarea  pInputText id="description" pTextarea [(ngModel)]="Role.description"   fluid></textarea>
+                
+          
+            </div>
+
+            <!-- Toolbar -->
+            <div class="management-toolbar">
+                <div class="toolbar-left">
+                    <p-button icon="pi pi-plus" label="Thêm vai trò" 
+                             [rounded]="true" severity="primary" (click)="openNew()" />
+                    <p-button icon="pi pi-trash" label="Xóa đã chọn" 
+                             [rounded]="true" severity="danger" outlined
+                             [disabled]="!selectedRoles || selectedRoles.length === 0" 
+                             (click)="deleteSelectedRoles(selectedRoles)" />
+                </div>
+                
+                <div class="toolbar-right">
+                    <p-button icon="pi pi-refresh" label="Tải lại" 
+                             [text]="true" (click)="loadData()" />
+                    <p-button icon="pi pi-download" label="Xuất CSV" 
+                             [text]="true" (click)="exportCSV()" />
                 </div>
             </div>
-        </ng-template>
-
-        <ng-template #footer>
-            <p-button label="Hủy" icon="pi pi-times" text (click)="hideDialog()" />
-            <p-button label="Lưu" icon="pi pi-check" (click)="saveRole()" />
-        </ng-template>
-    </p-dialog>
         </div>
-        
 
-    </body>
+        <!-- Main table -->
+        <div class="management-card">
+            <div class="table-header">
+                <div class="search-section">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Tìm kiếm nhà hàng..." />
+                </div>
+                <div class="selection-info">
+                    <span>Đã chọn: {{selectedRoles?.length || 0}}</span>
+                </div>
+            </div>
+            
+            <p-table #dt [value]="Roles" [(selection)]="selectedRoles" dataKey="id" 
+                     [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50]" 
+                     [loading]="false" [showCurrentPageReport]="true"
+                     currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} vai trò"
+                     [globalFilterFields]="['name','description']"
+                     styleClass="custom-table">
+                
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 50px">
+                            <p-tableHeaderCheckbox />
+                        </th>
+                        <th pSortableColumn="id" style="width: 100px">
+                            <div class="column-header">
+                                <span>MÃ</span>
+                                <p-sortIcon field="id" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="name" style="width: 200px">
+                            <div class="column-header">
+                                <span>TÊN VAI TRÒ</span>
+                                <p-sortIcon field="name" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="description" style="width: 250px">
+                            <div class="column-header">
+                                <span>CHÚ THÍCH</span>
+                                <p-sortIcon field="description" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="created" style="width: 150px">
+                            <div class="column-header">
+                                <span>NGÀY TẠO</span>
+                                <p-sortIcon field="created" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="updated" style="width: 150px">
+                            <div class="column-header">
+                                <span>CẬP NHẬT</span>
+                                <p-sortIcon field="updated" />
+                            </div>
+                        </th>
+                        <th style="width: 120px">HÀNH ĐỘNG</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-role>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="role" />
+                        </td>
+                        <td class="id-cell">{{role.id}}</td>
+                        <td>
+                            <div class="name-cell">{{role.name}}</div>
+                        </td>
+                        <td class="description-cell">
+                            {{role.description || '-'}}
+                        </td>
+                        <td class="">
+                            <span>{{role.created | date:'dd/MM/yyyy'}}</span>
+                        </td>
+                        <td class="">
+                            <span>{{role.updated | date:'dd/MM/yyyy'}}</span>
+                        </td>
+                       
+                        <td>
+                            <div class="action-buttons">
+                                <button pButton pRipple icon="pi pi-pencil" 
+                                        class="btn-edit"
+                                        (click)="editRole(role)"></button>
+                                <button pButton pRipple icon="pi pi-trash" 
+                                        class="btn-delete"
+                                        (click)="deleteRole(role)"></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <div class="empty-content">
+                                <i class="pi pi-shield empty-icon"></i>
+                                <h3>Không có vai trò nào</h3>
+                                <p>Bắt đầu bằng cách thêm vai trò mới cho hệ thống</p>
+                                <p-button icon="pi pi-plus" label="Thêm vai trò" 
+                                         severity="primary"
+                                         (click)="openNew()" />
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- Dialog vai trò -->
+        <p-dialog [(visible)]="RoleDialog" [style]="{width: '500px'}" 
+                 [header]="Role.id ? 'Chỉnh sửa vai trò' : 'Thêm vai trò mới'" 
+                 [modal]="true" [draggable]="false" [resizable]="false">
+            
+            <div class="dialog-form">
+                <div class="form-field">
+                    <label for="name">
+                        Tên vai trò <span class="required">*</span>
+                    </label>
+                    <input pInputText id="name" [(ngModel)]="Role.name" 
+                           placeholder="Nhập tên vai trò..." />
+                    <small class="text-red-500 block" *ngIf="submitted && !Role.name">
+                        Tên vai trò là bắt buộc
+                    </small>
+                </div>
+
+                <div class="form-field">
+                    <label for="description">Chú thích</label>
+                    <textarea pInputTextarea id="description" [(ngModel)]="Role.description" 
+                             rows="4" placeholder="Nhập mô tả chi tiết về vai trò..."></textarea>
+                    <small class="text-gray-500 block">
+                        Mô tả các quyền và chức năng của vai trò này
+                    </small>
+                </div>
+
+               
+            </div>
+
+            <ng-template pTemplate="footer">
+                <div class="dialog-footer">
+                    <button pButton pRipple icon="pi pi-times" label="Hủy" 
+                            class="btn-cancel" (click)="hideDialog()"></button>
+                    <button pButton pRipple icon="pi pi-check" label="Lưu" 
+                            severity="primary" (click)="saveRole()"></button>
+                </div>
+            </ng-template>
+        </p-dialog>
+    </div>
+</body>
 </html>

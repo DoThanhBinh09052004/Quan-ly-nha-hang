@@ -121,7 +121,10 @@ export class Statuscomponent {
     }));
   }
 
-
+  onGlobalFilter(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.dt.filterGlobal(input.value, 'contains');
+  }
   openNew() {
     this.Status = {
       id: 0,

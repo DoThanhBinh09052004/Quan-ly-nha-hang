@@ -89,6 +89,10 @@ throw new Error('Method not implemented.');
     updated: new Date(),
     deleted: false,
   };
+  onGlobalFilter(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.dt.filterGlobal(input.value, 'contains');
+  }
 
   selectedRoles!: Role[]; // Danh sách Role được chọn
 

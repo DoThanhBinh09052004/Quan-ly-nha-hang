@@ -63,9 +63,17 @@ interface ExportColumn {
 ],
   providers: [MessageService, ConfirmationService, MyData],
   templateUrl: './guesttable.html',
-  styleUrl: './guesttable.scss',
+  styleUrls: ['./guesttable.scss',],
 })
  export class GuesttableComponent {
+  
+  onGlobalFilter(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.dt.filterGlobal(input.value, 'contains');
+  }
+getStatusSeverity(arg0: any): string|null|undefined {
+throw new Error('Method not implemented.');
+}
   GuestTableDialog: boolean = false;
     GuestTables!: GuestTable[];
     GuestTable: GuestTable = {

@@ -22,6 +22,8 @@ import { RippleModule } from 'primeng/ripple';
 import { Restaurant } from '../../../model/restaurant.model';
 import { Role } from '../../../model/role.model';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
+import { TagModule } from 'primeng/tag';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 interface Column {
   field: string;
@@ -52,11 +54,12 @@ interface ExportColumn {
     IconFieldModule,
     InputIconModule,
     RippleModule,
-    AutoCompleteModule,
+    AutoCompleteModule,TagModule,
   ],
   providers: [MessageService, ConfirmationService, MyData],
   templateUrl: './User.html',
   styleUrl: './User.scss',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class UserComponent implements OnInit {
   UserDialog: boolean = false;

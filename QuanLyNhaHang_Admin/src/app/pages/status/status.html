@@ -1,121 +1,179 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>Quản lý nhà hàng Admin</title>
-        <base href="/">
-
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="https://unpkg.com/primeicons/primeicons.css" rel="stylesheet" />
-        <link href="https://unpkg.com/quill@1.3.7/dist/quill.snow.css" rel="stylesheet" />
-        <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
+<head>
+    <meta charset="utf-8">
+    <title>Quản lý nhà hàng Admin</title>
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css" />
+    <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
+</head>
+<body>
+    <div class="management-container">
+        <p-toast></p-toast>
+        <p-confirmDialog></p-confirmDialog>
         
-    </head>
-    <body>
-        <!-- <theme-switcher /> -->
-        <div class="card">
-            <p-toast />
-            <p-confirmDialog></p-confirmDialog>
-            <p-toolbar class="mb-6">
-                <ng-template pTemplate="start">
-                    <p-button icon="pi pi-plus" class="mr-2" [rounded]="true" [outlined]="true" label="Thêm tình trạng" (click)="openNew()" />
+        <!-- Header -->
+        <div class="management-card">
+            <div class="management-header">
+                <div class="header-title">
+                    <h1>Quản lý trạng thái</h1>
+                    <p>Quản lý thông tin các trạng thái trong hệ thống</p>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="management-toolbar">
+                <div class="toolbar-left">
+                    <p-button icon="pi pi-plus" label="Thêm trạng thái" 
+                             [rounded]="true" severity="primary" (click)="openNew()" />
+                    <p-button icon="pi pi-trash" label="Xóa đã chọn" 
+                             [rounded]="true" severity="danger" outlined
+                             [disabled]="!selectedStatues || selectedStatues.length === 0" 
+                             (click)="deleteSelectedStatues(selectedStatues)" />
+                </div>
+                
+                <div class="toolbar-right">
+                    <p-button icon="pi pi-refresh" label="Tải lại" 
+                             [text]="true" (click)="loadData()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Main table -->
+        <div class="management-card">
+            <div class="table-header">
+                <div class="search-section">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Tìm kiếm nhà hàng..." />
+                </div>
+                <div class="selection-info">
+                    <span>Đã chọn: {{selectedStatues?.length || 0}}</span>
+                </div>
+            </div>
+            
+            <p-table #dt [value]="Statues" [(selection)]="selectedStatues" dataKey="id" 
+                     [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50]" 
+                     [loading]="false" [showCurrentPageReport]="true"
+                     currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} trạng thái"
+                     [globalFilterFields]="['name','description']"
+                     styleClass="custom-table">
+                
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 50px">
+                            <p-tableHeaderCheckbox />
+                        </th>
+                        <th pSortableColumn="id" style="width: 100px">
+                            <div class="column-header">
+                                <span>MÃ</span>
+                                <p-sortIcon field="id" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="name" style="width: 200px">
+                            <div class="column-header">
+                                <span>TÊN TRẠNG THÁI</span>
+                                <p-sortIcon field="name" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="description" style="width: 300px">
+                            <div class="column-header">
+                                <span>MÔ TẢ</span>
+                                <p-sortIcon field="description" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="created" style="width: 150px">
+                            <div class="column-header">
+                                <span>NGÀY TẠO</span>
+                                <p-sortIcon field="created" />
+                            </div>
+                        </th>
+                        <th pSortableColumn="updated" style="width: 150px">
+                            <div class="column-header">
+                                <span>CẬP NHẬT</span>
+                                <p-sortIcon field="updated" />
+                            </div>
+                        </th>
+                        <th style="width: 120px">HÀNH ĐỘNG</th>
+                    </tr>
                 </ng-template>
 
-                <ng-template pTemplate="end">
-                    <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
+                <ng-template pTemplate="body" let-status>
+                    <tr>
+                        <td>
+                            <p-tableCheckbox [value]="status" />
+                        </td>
+                        <td class="id-cell">{{status.id}}</td>
+                        <td class="name-cell">{{status.name}}</td>
+                        <td class="description-cell">{{status.description}}</td>
+                        <td class="">
+                            <span>{{status.created | date:'dd/MM/yyyy'}}</span>
+                        </td>
+                        <td class="">
+                            <span>{{status.updated | date:'dd/MM/yyyy'}}</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button pButton pRipple icon="pi pi-pencil" 
+                                        class="btn-edit"
+                                        (click)="editStatus(status)"></button>
+                                <button pButton pRipple icon="pi pi-trash" 
+                                        class="btn-delete"
+                                        (click)="deleteStatus(status)"></button>
+                            </div>
+                        </td>
+                    </tr>
                 </ng-template>
-                
-            </p-toolbar>
-            <p-table
-            #dt
-            [value]="Statues"
-            [rows]="10"
-            [columns]="cols"
-            [paginator]="true"
-            [tableStyle]="{ 'min-width': '75rem' }"
-            [(selection)]="selectedStatues"
-            [rowHover]="true"
-            dataKey="id"
-            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-            [showCurrentPageReport]="true"
-        >
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-content">
+                                <i class="pi pi-shield empty-icon"></i>
+                                <h3>Không có trạng thái nào</h3>
+                                <p>Bắt đầu bằng cách thêm trạng thái mới</p>
+                                <p-button icon="pi pi-plus" label="Thêm trạng thái" 
+                                         (click)="openNew()" />
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- Dialog trạng thái -->
+        <p-dialog [(visible)]="StatusDialog" [style]="{width: '500px'}" 
+                 [header]="Status.id ? 'Chỉnh sửa trạng thái' : 'Thêm trạng thái mới'" 
+                 [modal]="true" [draggable]="false" [resizable]="false">
             
-            <ng-template pTemplate="header">
-                <tr>
-                    <th style="width: 3rem">
-                        <p-tableHeaderCheckbox />
-                    </th>
-                    <th style="min-width: 16rem">Mã</th>
-                    <th pSortableColumn="name" style="min-width:16rem">
-                        <div class="flex items-center gap-2">
-                            Tên
-                            <p-sortIcon field="name" />
-                        </div>
-                    </th>
-                    <!-- <th>Image</th> -->
-                    <th pSortableColumn="description" style="min-width: 12rem">
-                        <div class="flex items-center gap-2">
-                            Chú thích
-                            <p-sortIcon field="description" />
-                        </div>
-                    </th>
-                    <th pSortableColumn="createdAt" style="min-width: 12rem">
-                        <div class="flex items-center gap-2">
-                            Ngày tạo
-                            <p-sortIcon field="createdAt" />
-                        </div>
-                    </th>
-                    <th pSortableColumn="updatedAt" style="min-width: 12rem">
-                        <div class="flex items-center gap-2">
-                            Ngày chỉnh sửa
-                            <p-sortIcon field="updatedAt" />
-                        </div>
-                    </th>
-                    <th style="min-width: 12rem"></th>
-                </tr>
-            </ng-template>
-            <ng-template #body let-Status let-columns="columns">
-                <tr>
-                    <td style="width: 3rem">
-                        <p-tableCheckbox [value]="Status" />
-                    </td>
-                    <td style="min-width: 16rem">{{ Status.id }}</td>
-                    <td style="min-width: 16rem">{{ Status.name }}</td>
-                    <!-- <td>
-                        <img [src]="'https://primefaces.org/cdn/primeng/images/demo/Status/' + Status.image" [alt]="Status.name" style="width: 64px" class="rounded" />
-                    </td> -->
-                    <td>{{ Status.description }}</td>
-                    <td>{{ Status.created}}</td>
-                    <td>{{ Status.updated}}</td>
-                    <td>
-                        <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editStatus(Status)" />
-                        <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteStatus(Status)" />
-                    </td>
-             
-            </ng-template>
-        </p-table>
-        <p-dialog [(visible)]="StatusDialog" [style]="{ width: '450px' }" header="Thông tin trạng thái" [modal]="true">
-            <ng-template #content>
-                <div class="flex flex-col gap-6">
-                    <div>
-                        <label for="name" class="p-field">Tình trạng</label>
-                        <input type="text" pInputText id="name" [(ngModel)]="Status.name" required autofocus fluid />
-                        <small class="text-red-500" *ngIf="submitted && !Status.name">Tên là bắt buộc.</small>
-                    </div>
-                    <div>
-                        <label for="description" class="p-field">Chú thích</label>
-                        <textarea  pInputText id="description" pTextarea [(ngModel)]="Status.description"   fluid></textarea>
-                    </div>
+            <div class="dialog-form">
+                <div class="form-field">
+                    <label for="name">
+                        Tên trạng thái <span class="required">*</span>
+                    </label>
+                    <input pInputText id="name" [(ngModel)]="Status.name" 
+                           placeholder="Nhập tên trạng thái..." />
+                    <small class="text-red-500" *ngIf="submitted && !Status.name">
+                        Tên trạng thái là bắt buộc
+                    </small>
+                </div>
+
+                <div class="form-field">
+                    <label for="description">Mô tả</label>
+                    <textarea pInputTextarea id="description" [(ngModel)]="Status.description" 
+                             rows="3" placeholder="Nhập mô tả..."></textarea>
+                </div>
+            </div>
+
+            <ng-template pTemplate="footer">
+                <div class="dialog-footer">
+                    <button pButton pRipple icon="pi pi-times" label="Hủy" 
+                            class="btn-cancel" (click)="hideDialog()"></button>
+                    <button pButton pRipple icon="pi pi-check" label="Lưu" 
+                            severity="primary" (click)="saveStatus()"></button>
                 </div>
             </ng-template>
-    
-            <ng-template #footer>
-                <p-button label="Hủy" icon="pi pi-times" text (click)="hideDialog()" />
-                <p-button label="Lưu" icon="pi pi-check" (click)="saveStatus()" />
-            </ng-template>
         </p-dialog>
-        </div>
-       
-
-    </body>
+    </div>
+</body>
 </html>

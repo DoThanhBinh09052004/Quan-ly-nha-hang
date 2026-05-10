@@ -1,24 +1,307 @@
-<h2 class="title">📊 Thống kê doanh thu</h2>
-
-<div class="summary-box">
-  <div>
-    <p class="label">Tổng doanh thu:</p>
-    <p class="value">{{ totalRevenue }} ₫</p>
+<div class="revenue-dashboard">
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1 class="dashboard-title">
+        <span class="icon">📊</span>
+        Thống kê doanh thu
+      </h1>
+      <span class="api-hint">Tất cả endpoint <code>/revenue/*</code></span>
+    </div>
+    <div class="header-actions">
+      <span class="current-date">{{ currentDate }}</span>
+      <button type="button" class="refresh-btn" (click)="refreshDashboard()" [disabled]="loading">
+        Làm mới
+      </button>
+    </div>
   </div>
- 
+
+  <div *ngIf="loadError" class="inline-error">{{ loadError }}</div>
+
+  <div *ngIf="loading" class="full-page-loading">
+    <div class="spinner"></div>
+    <p>Đang tải toàn bộ dữ liệu doanh thu…</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="summary-section">
+      <div class="summary-card total-revenue">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+          <h3 class="card-label">Tổng (khung đang xem)</h3>
+          <p class="card-value">{{ formatMoney(totalRevenue) }}</p>
+          <div class="card-subtext">
+            <span *ngIf="isDaily">Hôm nay {{ formatMoney(thisdayRevenue) }}</span>
+            <span *ngIf="!isDaily">Tháng này {{ formatMoney(thismonthRevenue) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card total-orders">
+        <div class="card-icon">📦</div>
+        <div class="card-content">
+          <h3 class="card-label">Đơn hàng</h3>
+          <p class="card-value">{{ formatNumber(totalOrdersToday) }}</p>
+          <div class="card-subtext">{{ getOrdersDisplayText() }}</div>
+        </div>
+      </div>
+
+      <div class="summary-card avg-order">
+        <div class="card-icon">📈</div>
+        <div class="card-content">
+          <h3 class="card-label">TB / đơn (khung đang xem)</h3>
+          <p class="card-value">{{ formatMoney(averageOrder) }}</p>
+          <div class="card-subtext">Theo biểu đồ chính</div>
+        </div>
+      </div>
+
+      <div class="summary-card ai-forecast">
+        <div class="card-icon">🤖</div>
+        <div class="card-content">
+          <h3 class="card-label">Dự đoán AI · POST /revenue/ai-predict</h3>
+          <div class="ai-controls">
+            <input
+              class="ai-date-input"
+              type="date"
+              [value]="aiInputDate"
+              (change)="aiInputDate = $any($event.target).value"
+            />
+            <button type="button" class="ai-submit-btn" (click)="submitAiPrediction()" [disabled]="aiLoading">
+              Dự đoán
+            </button>
+          </div>
+          <p class="card-value" *ngIf="!aiLoading && predictedRevenue !== null">{{ formatMoney(predictedRevenue) }}</p>
+          <p class="card-value muted" *ngIf="aiLoading">Đang tải…</p>
+          <p class="card-value muted" *ngIf="!aiLoading && predictedRevenue === null && !aiError">—</p>
+          <div class="card-subtext" *ngIf="predictedDateLabel">{{ predictedDateLabel }}</div>
+          <div class="card-subtext error" *ngIf="aiError">{{ aiError }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="revenue-panels">
+      <section class="panel panel-span-2">
+        <div class="panel-head">
+          <div>
+            <h2>Biểu đồ chính</h2>
+            <p class="endpoint">GET /revenue/monthly · GET /revenue/daily</p>
+          </div>
+          <div class="filter-buttons">
+            <button type="button" class="filter-btn" [class.active]="isDaily" (click)="setMainView(true)">Hàng ngày</button>
+            <button type="button" class="filter-btn" [class.active]="!isDaily" (click)="setMainView(false)">Hàng tháng</button>
+          </div>
+        </div>
+        <div class="panel-body chart-panel" *ngIf="(isDaily ? dailyData.length : monthlyData.length) > 0">
+          <div class="chart-wrap tall"><canvas id="chartMain"></canvas></div>
+        </div>
+        <div class="panel-empty" *ngIf="(isDaily ? dailyData.length : monthlyData.length) === 0">Chưa có dữ liệu</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Theo giờ</h2>
+          <p class="endpoint">GET /revenue/by-hour?days={{ queryDays.hour }}</p>
+        </div>
+        <div class="panel-body chart-panel" *ngIf="byHourData.length > 0">
+          <div class="chart-wrap"><canvas id="chartByHour"></canvas></div>
+        </div>
+        <div class="panel-empty" *ngIf="byHourData.length === 0">Chưa có dữ liệu</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Theo thứ</h2>
+          <p class="endpoint">GET /revenue/by-day-of-week?days={{ queryDays.dow }}</p>
+        </div>
+        <div class="panel-body chart-panel" *ngIf="byDayOfWeekData.length > 0">
+          <div class="chart-wrap"><canvas id="chartByDow"></canvas></div>
+        </div>
+        <div class="panel-empty" *ngIf="byDayOfWeekData.length === 0">Chưa có dữ liệu</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Theo số khách</h2>
+          <p class="endpoint">GET /revenue/by-party-size?days={{ queryDays.party }}</p>
+        </div>
+        <div class="panel-body chart-panel" *ngIf="byPartySizeData.length > 0">
+          <div class="chart-wrap"><canvas id="chartParty"></canvas></div>
+        </div>
+        <div class="panel-empty" *ngIf="byPartySizeData.length === 0">Chưa có dữ liệu</div>
+      </section>
+
+      <section class="panel panel-span-2">
+        <div class="panel-head">
+          <h2>Bán chạy</h2>
+          <p class="endpoint">GET /revenue/best-sellers?days={{ queryDays.best }}&amp;top=10</p>
+        </div>
+        <div class="panel-body chart-panel" *ngIf="bestSellersData.length > 0">
+          <div class="chart-wrap wide"><canvas id="chartBest"></canvas></div>
+        </div>
+        <div class="panel-empty" *ngIf="bestSellersData.length === 0">Chưa có dữ liệu</div>
+      </section>
+
+      <section class="panel panel-span-2">
+        <div class="panel-head">
+          <h2>Dự báo (Web API)</h2>
+          <p class="endpoint">GET /revenue/forecast (history) + POST /revenue/ai-predict x {{ queryDays.forecast }}</p>
+        </div>
+        <div class="panel-body chart-panel" *ngIf="forecastData?.historicalData?.length || forecastData?.forecast?.length">
+          <div class="chart-wrap tall"><canvas id="chartForecast"></canvas></div>
+        </div>
+        <div class="panel-empty" *ngIf="!forecastData?.historicalData?.length && !forecastData?.forecast?.length">Chưa có dữ liệu</div>
+      </section>
+
+      <section class="panel panel-span-2 turnover-panel">
+        <div class="panel-head">
+          <h2>Luân chuyển bàn</h2>
+          <p class="endpoint">GET /revenue/table-turnover?days={{ queryDays.turnover }}</p>
+        </div>
+        <div class="panel-body" *ngIf="tableTurnover">
+          <div class="turnover-kpis">
+            <div class="kpi">
+              <span class="kpi-label">Trung bình</span>
+              <span class="kpi-value">{{ formatMinutes(tableTurnover.averageTurnoverMinutes) }}</span>
+            </div>
+            <div class="kpi">
+              <span class="kpi-label">Ngắn nhất</span>
+              <span class="kpi-value">{{ formatMinutes(tableTurnover.minTurnoverMinutes) }}</span>
+            </div>
+            <div class="kpi">
+              <span class="kpi-label">Dài nhất</span>
+              <span class="kpi-value">{{ formatMinutes(tableTurnover.maxTurnoverMinutes) }}</span>
+            </div>
+          </div>
+          <div class="table-wrap" *ngIf="turnoverDetails().length > 0">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Bàn</th>
+                  <th>Vào</th>
+                  <th>Ra</th>
+                  <th>Phút</th>
+                  <th>Khách</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of turnoverDetails()">
+                  <td>{{ row.tableName }}</td>
+                  <td>{{ row.checkIn | date : 'dd/MM HH:mm' }}</td>
+                  <td>{{ row.checkOut | date : 'dd/MM HH:mm' }}</td>
+                  <td>{{ formatNumber(row.durationMinutes) }}</td>
+                  <td>{{ row.partySize }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-empty subtle" *ngIf="turnoverDetails().length === 0">Không có chi tiết bàn trong khoảng thời gian này</div>
+        </div>
+        <div class="panel-empty" *ngIf="!tableTurnover">Không tải được dữ liệu</div>
+      </section>
+
+      <!-- ===== Floating Chatbot Widget (Right side) ===== -->
+      <div class="chat-float">
+        <!-- Minimized bubble -->
+        <button
+          *ngIf="chatMinimized"
+          type="button"
+          class="chat-bubble"
+          (click)="openChat()"
+          title="Mở chatbot"
+        >
+          ✨
+        </button>
+
+        <!-- Expanded panel -->
+        <div *ngIf="!chatMinimized" class="chat-panel">
+          <div class="chat-panel-head">
+            <div class="chat-title">
+              <span class="icon">✨</span> AI Agent
+              <span class="chat-endpoint">Trợ lý kinh doanh</span>
+            </div>
+
+            <div class="chat-head-actions">
+              <button type="button" class="chat-head-btn" (click)="toggleChat()" title="Thu gọn">_</button>
+              <button type="button" class="chat-head-btn danger" (click)="closeChat()" title="Đóng">×</button>
+            </div>
+          </div>
+
+          <div class="chat-message-list">
+            <div *ngFor="let msg of chatMessages" class="chat-message" [ngClass]="msg.role">
+              <div class="msg-avatar" *ngIf="msg.role === 'agent'">✨</div>
+              <div class="msg-content-wrapper">
+                <div class="msg-bubble">
+                  <!-- User text or Agent text -->
+                  <div *ngIf="msg.content" class="msg-text" [class.error-text]="msg.isError">{{ msg.content }}</div>
+                  
+                  <!-- Agent loading state -->
+                  <div *ngIf="msg.isLoading" class="typing-indicator">
+                    <span></span><span></span><span></span>
+                  </div>
+
+                  <!-- Agent structured result -->
+                  <div *ngIf="msg.result" class="chatbot-result">
+                    <div class="chat-section">
+                      <div class="chat-section-title">Tóm tắt</div>
+                      <div class="chat-summary">{{ msg.result.summary }}</div>
+                    </div>
+
+                    <div class="chat-section">
+                      <div class="chat-section-title">Insights</div>
+                      <ul class="chat-list">
+                        <li *ngFor="let s of msg.result.insights">{{ s }}</li>
+                      </ul>
+                    </div>
+
+                    <div class="chat-section" *ngIf="msg.result.answerText">
+                      <div class="chat-section-title">Câu trả lời</div>
+                      <div class="chat-answer-text">{{ msg.result.answerText }}</div>
+                    </div>
+
+                    <div class="chat-section">
+                      <div class="chat-section-title">Actions</div>
+                      <div *ngFor="let a of msg.result.actions" class="action-item">
+                        <div class="action-title">{{ a?.title }}</div>
+                        <div class="action-why">{{ a?.why }}</div>
+                        <ul class="chat-list">
+                          <li *ngFor="let h of (a?.how || [])">{{ h }}</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <details class="chat-section kpi-details">
+                      <summary class="chat-section-title">KPI (xem chi tiết)</summary>
+                      <pre class="json-box">{{ msg.result.kpis | json }}</pre>
+                    </details>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-panel-footer">
+            <div class="chat-suggestions" *ngIf="!chatInput">
+              <button type="button" class="suggestion-chip" (click)="fillChatSuggestion()">
+                💡 Đánh giá kinh doanh 30 ngày qua
+              </button>
+            </div>
+            <div class="chat-input-area">
+              <textarea
+                class="chatbot-input"
+                rows="1"
+                [(ngModel)]="chatInput"
+                (keydown.enter)="!$any($event).shiftKey && submitBusinessChat(); $event.preventDefault()"
+                placeholder="Nhập câu hỏi cho AI..."
+                [disabled]="chatLoading"
+              ></textarea>
+              <button type="button" class="chat-send-btn" (click)="submitBusinessChat()" [disabled]="chatLoading || !chatInput.trim()">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+<!-- ===== End Floating Chatbot Widget ===== -->
+
+    </div>
+  </ng-container>
 </div>
-
-<div class="filter-buttons">
-  <button class="btn" [class.active]="isDaily" 
-          (click)="loadDailyRevenue()">
-    Hàng ngày
-  </button>
-  <button class="btn" [class.active]="!isDaily" 
-          (click)="loadMonthlyRevenue()">
-    Hàng tháng
-  </button>
-</div>
-
-<div *ngIf="loading">Đang tải dữ liệu...</div>
-
-<canvas id="revenueChart"></canvas>

@@ -101,6 +101,7 @@ export class RestaurantComponent {
     this.mydata.getAllRestaurants().subscribe((data) => {
       this.Restaurants = data;
       this.cd.detectChanges();
+      console.log(this.Restaurants);
     });
 
     this.cols = [
@@ -218,9 +219,9 @@ export class RestaurantComponent {
     });
   }
   
-  onGlobalFilter(event: Event, table: Table) {
-    const input = (event.target as HTMLInputElement).value;
-    table.filterGlobal(input, 'contains');
+  onGlobalFilter(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.dt.filterGlobal(input.value, 'contains');
   }
   // Chuyển đổi thời gian từ UTC sang giờ địa phương
   convertToLocalTime(utcTime: string): Date {
