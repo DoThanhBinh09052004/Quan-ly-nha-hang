@@ -1,0 +1,202 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Migrations\\20260510091837_AddUniqueUsername.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:QLNH_API\\Migrations\\20260510091837_AddUniqueUsername.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\model\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\model\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\dto\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\dto\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\controllers\\unittypecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\unittypecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\dto\\businesschatdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\dto\\businesschatdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\controllers\\itemcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\itemcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\controllers\\chatbotcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\chatbotcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\services\\revenueservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\services\\revenueservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\project\\restaurant managment\\web api\\quan-ly-nha-hang\\qlnh_api\\services\\aiclientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\services\\aiclientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "20260510091837_AddUniqueUsername.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Migrations\\20260510091837_AddUniqueUsername.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Migrations\\20260510091837_AddUniqueUsername.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Migrations\\20260510091837_AddUniqueUsername.cs",
+              "RelativeToolTip": "QLNH_API\\Migrations\\20260510091837_AddUniqueUsername.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T09:18:37.727Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Model\\User.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Model\\User.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Model\\User.cs",
+              "RelativeToolTip": "QLNH_API\\Model\\User.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T09:14:44.302Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "UserDTO.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\DTO\\UserDTO.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\DTO\\UserDTO.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\DTO\\UserDTO.cs",
+              "RelativeToolTip": "QLNH_API\\DTO\\UserDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T09:14:35.342Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "UserController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\UserController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\UserController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\UserController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\UserController.cs",
+              "ViewState": "AgIAAFgAAAAAAAAAAAAkwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T09:11:17.889Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UnitTypeController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\UnitTypeController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\UnitTypeController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\UnitTypeController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\UnitTypeController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T09:11:17.201Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "OrderController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\OrderController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\OrderController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\OrderController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\OrderController.cs",
+              "ViewState": "AgIAAPAAAAAAAAAAAAAAwAMBAABfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-09T13:30:26.162Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ItemController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\ItemController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\ItemController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\ItemController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\ItemController.cs",
+              "ViewState": "AgIAAI4AAAAAAAAAAADwv6AAAABIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-05T06:57:56.436Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "BusinessChatDTOS.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\DTO\\BusinessChatDTOS.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\DTO\\BusinessChatDTOS.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\DTO\\BusinessChatDTOS.cs",
+              "RelativeToolTip": "QLNH_API\\DTO\\BusinessChatDTOS.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAqwCsAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-04T03:35:56.584Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "RevenueService.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Services\\RevenueService.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Services\\RevenueService.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Services\\RevenueService.cs",
+              "RelativeToolTip": "QLNH_API\\Services\\RevenueService.cs",
+              "ViewState": "AgIAAKAAAAAAAAAAAADwvw0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-04T03:33:09.856Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "AiClientService.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Services\\AiClientService.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Services\\AiClientService.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Services\\AiClientService.cs",
+              "RelativeToolTip": "QLNH_API\\Services\\AiClientService.cs",
+              "ViewState": "AgIAAKMAAAAAAAAAAADwv7AAAABBAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-04T03:33:08.847Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ChatbotController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\ChatbotController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\ChatbotController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\project\\Restaurant Managment\\Web API\\Quan-ly-nha-hang\\QLNH_API\\Controllers\\ChatbotController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\ChatbotController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAABSAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-04T03:33:07.727Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

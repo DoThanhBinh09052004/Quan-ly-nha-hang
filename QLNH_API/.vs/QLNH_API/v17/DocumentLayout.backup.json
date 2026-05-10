@@ -3,36 +3,52 @@
   "WorkspaceRootPath": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\controllers\\itemcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\itemcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\dto\\itemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\dto\\itemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\mapppings\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\mapppings\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\dto\\itemrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\dto\\itemrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\controllers\\itemimagecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\itemimagecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\controllers\\guesttablecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\guesttablecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\qlnh_api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\qlnh_api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\qlnh_api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\qlnh_api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\weatherforecast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\weatherforecast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\services\\formfileoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\services\\formfileoperationfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\services\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\services\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\services\\revenueservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\services\\revenueservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|c:\\users\\windows\\documents\\d\u1EF1 \u00E1n\\qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\web api\\quan-ly-nha-hang\\qlnh_api\\qlnh_api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A49EF12B-FA43-4E81-960D-A30EFEFDB8DE}|QLNH_API\\QLNH_API.csproj|solutionrelative:qlnh_api\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,111 +58,156 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ItemDTO.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\DTO\\ItemDTO.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\DTO\\ItemDTO.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\DTO\\ItemDTO.cs",
-              "RelativeToolTip": "QLNH_API\\DTO\\ItemDTO.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "CategoryController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\CategoryController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\CategoryController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\CategoryController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\CategoryController.cs",
+              "ViewState": "AgIAAFoAAAAAAAAAAAAmwHAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T06:31:57.847Z",
+              "WhenOpened": "2025-12-08T02:14:08.684Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "ItemRequestDTO.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\DTO\\ItemRequestDTO.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\DTO\\ItemRequestDTO.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\DTO\\ItemRequestDTO.cs",
-              "RelativeToolTip": "QLNH_API\\DTO\\ItemRequestDTO.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAA4AAAAAAAAAA==",
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\AuthController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T06:28:39.77Z",
+              "WhenOpened": "2025-12-08T02:08:32.33Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Program.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\Program.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Program.cs",
-              "RelativeToolTip": "QLNH_API\\Program.cs",
-              "ViewState": "AgIAAHkAAAAAAAAAAAAwwJsAAAAKAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T06:25:15.22Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "ItemImageController.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\ItemImageController.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\ItemImageController.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\ItemImageController.cs",
-              "RelativeToolTip": "QLNH_API\\Controllers\\ItemImageController.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAAAAA0AAAAEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T06:23:03.146Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ApplicationDbcontext.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Data\\ApplicationDbcontext.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\Data\\ApplicationDbcontext.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Data\\ApplicationDbcontext.cs",
-              "RelativeToolTip": "QLNH_API\\Data\\ApplicationDbcontext.cs",
-              "ViewState": "AgIAAH0AAAAAAAAAAAAAAI8AAAA9AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T06:08:06.38Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "MappingProfile.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Mapppings\\MappingProfile.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\Mapppings\\MappingProfile.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Mapppings\\MappingProfile.cs",
-              "RelativeToolTip": "QLNH_API\\Mapppings\\MappingProfile.cs",
-              "ViewState": "AgIAACgAAAAAAAAAAAAQwDsAAAAuAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T06:07:57.923Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ItemController.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\ItemController.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\ItemController.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\ItemController.cs",
-              "RelativeToolTip": "QLNH_API\\Controllers\\ItemController.cs",
-              "ViewState": "AgIAACcAAAAAAAAAAAAYwDQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T05:57:13.645Z",
+              "Title": "QLNH_API",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\QLNH_API.csproj",
+              "RelativeDocumentMoniker": "QLNH_API\\QLNH_API.csproj",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\QLNH_API.csproj",
+              "RelativeToolTip": "QLNH_API\\QLNH_API.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-07T12:18:10.66Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 7,
-              "Title": "GuestTableController.cs",
-              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\GuestTableController.cs",
-              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\GuestTableController.cs",
-              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\GuestTableController.cs",
-              "RelativeToolTip": "QLNH_API\\Controllers\\GuestTableController.cs",
+              "Title": "WeatherForecast.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\WeatherForecast.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\WeatherForecast.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\WeatherForecast.cs",
+              "RelativeToolTip": "QLNH_API\\WeatherForecast.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-24T05:57:28.475Z",
+              "WhenOpened": "2025-12-07T12:17:25.291Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "QLNH_API\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Properties\\launchSettings.json",
+              "RelativeToolTip": "QLNH_API\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-12-07T12:15:27.144Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "FormFileOperationFilter.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Services\\FormFileOperationFilter.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Services\\FormFileOperationFilter.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Services\\FormFileOperationFilter.cs",
+              "RelativeToolTip": "QLNH_API\\Services\\FormFileOperationFilter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T12:15:18.274Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "AuthService.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Services\\AuthService.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Services\\AuthService.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Services\\AuthService.cs",
+              "RelativeToolTip": "QLNH_API\\Services\\AuthService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T12:15:17.384Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "RevenueService.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Services\\RevenueService.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Services\\RevenueService.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Services\\RevenueService.cs",
+              "RelativeToolTip": "QLNH_API\\Services\\RevenueService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T12:15:16.553Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "QLNH_API.http",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\QLNH_API.http",
+              "RelativeDocumentMoniker": "QLNH_API\\QLNH_API.http",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\QLNH_API.http",
+              "RelativeToolTip": "QLNH_API\\QLNH_API.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-12-07T12:15:12.883Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\appsettings.json",
+              "RelativeDocumentMoniker": "QLNH_API\\appsettings.json",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\appsettings.json",
+              "RelativeToolTip": "QLNH_API\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAABqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-12-07T12:13:44.798Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Program.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Program.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Program.cs",
+              "RelativeToolTip": "QLNH_API\\Program.cs",
+              "ViewState": "AgIAAIQAAAAAAAAAAAAUwJsAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T12:13:43.863Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "OrderController.cs",
+              "DocumentMoniker": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\OrderController.cs",
+              "RelativeDocumentMoniker": "QLNH_API\\Controllers\\OrderController.cs",
+              "ToolTip": "C:\\Users\\Windows\\Documents\\d\u1EF1 \u00E1n\\Qu\u1EA3n l\u00FD nh\u00E0 h\u00E0ng\\Web API\\Quan-ly-nha-hang\\QLNH_API\\QLNH_API\\Controllers\\OrderController.cs",
+              "RelativeToolTip": "QLNH_API\\Controllers\\OrderController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-06T03:23:57.295Z"
             }
           ]
         }
