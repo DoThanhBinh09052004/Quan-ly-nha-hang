@@ -100,6 +100,9 @@ namespace QLNH_API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime(6)");
 
@@ -109,15 +112,15 @@ namespace QLNH_API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
+                    b.Property<int>("Floor")
+                        .HasColumnType("int");
+
                     b.Property<int?>("GuestId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<int>("RestaurantId")
-                        .HasColumnType("int");
 
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
@@ -128,8 +131,6 @@ namespace QLNH_API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GuestId");
-
-                    b.HasIndex("RestaurantId");
 
                     b.HasIndex("StatusId");
 
@@ -362,6 +363,12 @@ namespace QLNH_API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CookingStatusId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime(6)");
 
@@ -373,6 +380,9 @@ namespace QLNH_API.Migrations
 
                     b.Property<int?>("ItemId")
                         .HasColumnType("int");
+
+                    b.Property<string>("KitchenNote")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -395,11 +405,73 @@ namespace QLNH_API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CookingStatusId");
+
                     b.HasIndex("ItemId");
 
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderItem");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.Payment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AccountName")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("AccountNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("AddInfo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("double");
+
+                    b.Property<string>("BankCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("QrText")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Payment");
                 });
 
             modelBuilder.Entity("QLNH_API.Model.Recipe", b =>
@@ -521,6 +593,41 @@ namespace QLNH_API.Migrations
                     b.ToTable("Role");
                 });
 
+            modelBuilder.Entity("QLNH_API.Model.Shift", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time(6)");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Shift");
+                });
+
             modelBuilder.Entity("QLNH_API.Model.Status", b =>
                 {
                     b.Property<int>("Id")
@@ -596,6 +703,9 @@ namespace QLNH_API.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("FullName")
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("OffDuty")
                         .HasColumnType("tinyint(1)");
 
@@ -634,6 +744,44 @@ namespace QLNH_API.Migrations
                     b.ToTable("User");
                 });
 
+            modelBuilder.Entity("QLNH_API.Model.WorkShift", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ShiftId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("WorkDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShiftId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WorkShift");
+                });
+
             modelBuilder.Entity("QLNH_API.Model.Category", b =>
                 {
                     b.HasOne("QLNH_API.Model.Category", null)
@@ -648,19 +796,11 @@ namespace QLNH_API.Migrations
                         .WithMany()
                         .HasForeignKey("GuestId");
 
-                    b.HasOne("QLNH_API.Model.Restaurant", "Restaurant")
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("QLNH_API.Model.Status", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId");
 
                     b.Navigation("Guest");
-
-                    b.Navigation("Restaurant");
 
                     b.Navigation("Status");
                 });
@@ -705,7 +845,7 @@ namespace QLNH_API.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("QLNH_API.Model.GuestTable", "GuestTable")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("GuestTableId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -732,6 +872,11 @@ namespace QLNH_API.Migrations
 
             modelBuilder.Entity("QLNH_API.Model.OrderItem", b =>
                 {
+                    b.HasOne("QLNH_API.Model.Status", "CookingStatus")
+                        .WithMany()
+                        .HasForeignKey("CookingStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("QLNH_API.Model.Item", "Item")
                         .WithMany()
                         .HasForeignKey("ItemId")
@@ -743,7 +888,20 @@ namespace QLNH_API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("CookingStatus");
+
                     b.Navigation("Item");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.Payment", b =>
+                {
+                    b.HasOne("QLNH_API.Model.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
                 });
@@ -830,7 +988,31 @@ namespace QLNH_API.Migrations
                     b.Navigation("role");
                 });
 
+            modelBuilder.Entity("QLNH_API.Model.WorkShift", b =>
+                {
+                    b.HasOne("QLNH_API.Model.Shift", "Shift")
+                        .WithMany()
+                        .HasForeignKey("ShiftId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QLNH_API.Model.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Shift");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("QLNH_API.Model.Guest", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.GuestTable", b =>
                 {
                     b.Navigation("Orders");
                 });

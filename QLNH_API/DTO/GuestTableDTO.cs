@@ -1,4 +1,4 @@
-﻿using QLNH_API.Model;
+using QLNH_API.Model;
 
 namespace QLNH_API.DTO
 {
@@ -10,9 +10,11 @@ namespace QLNH_API.DTO
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
+        public int Capacity { get; set; }
+        public int Floor { get; set; }
         public virtual StatusDTO? Status { get; set; }
         public virtual GuestDTO? Guest { get; set; }
-        public virtual RestaurantSimpleDTO Restaurant {get; set;}
-
+        public double CurrentOrderTotal { get; set; }
+        public string? CurrentGuestName { get; set; }
     }
 }

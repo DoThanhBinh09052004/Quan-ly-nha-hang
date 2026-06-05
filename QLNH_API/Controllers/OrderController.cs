@@ -283,9 +283,30 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                // Nếu đã thanh toán rồi thì không xử lý lại
+                if (order.StatusId == 3) return;
+
                 // Đổi trạng thái Order
                 order.StatusId = 3; // Đã thanh toán
                 order.Updated = DateTime.Now;
+
+                // Cập nhật số lượng item trong kho
+                if (order.OrderItems != null && order.OrderItems.Any())
+                {
+                    foreach (var orderItem in order.OrderItems)
+                    {
+                        if (orderItem.ItemId.HasValue && !orderItem.Voided && !orderItem.Deleted)
+                        {
+                            var item = await _context.Item.FindAsync(orderItem.ItemId.Value);
+                            if (item != null)
+                            {
+                                item.Quantity -= orderItem.Quantity;
+                                item.Updated = DateTime.Now;
+                                Console.WriteLine($"Cập nhật tồn kho món {item.Name}: {item.Quantity + orderItem.Quantity} -> {item.Quantity}");
+                            }
+                        }
+                    }
+                }
 
                 // Tích điểm khi thanh toán (chỉ tích khi thanh toán thành công)
                 if (order.GuestId.HasValue)

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,9 +30,9 @@ namespace QLNH_API.Controllers
             {
 
                 var GuestTable = await _context.GuestTable
-                                         .Include(u => u.Restaurant)
                                          .Include(u => u.Status)
                                           .Include(gt => gt.Guest)
+                                          .Include(gt => gt.Orders)
                                           .ToListAsync();
 
                 if (GuestTable == null || !GuestTable.Any())
@@ -61,9 +61,9 @@ namespace QLNH_API.Controllers
                 // Sử dụng .Include() để tải eager loading các đối tượng liên quan
 
                 var GuestTable = await _context.GuestTable
-                                         .Include(u => u.Restaurant)
                                          .Include(u => u.Status)
                                           .Include(gt => gt.Guest)
+                                          .Include(gt => gt.Orders)
                                           .Where(gt => gt.Status.Id == 1)
                                           .ToListAsync();
 
@@ -91,9 +91,9 @@ namespace QLNH_API.Controllers
         public async Task<ActionResult<GuestTableDTO>> GetGuestTableByid(int id)
         {
             var guestTable = await _context.GuestTable
-                                           .Include(gt => gt.Restaurant) // Tải dữ liệu của Restaurant
                                            .Include(gt => gt.Status)     // Tải dữ liệu của Status
                                            .Include(gt => gt.Guest)      // Tải dữ liệu của Guest
+                                           .Include(gt => gt.Orders)
                                            .FirstOrDefaultAsync(gt => gt.Id == id);
             if (guestTable == null)
             {

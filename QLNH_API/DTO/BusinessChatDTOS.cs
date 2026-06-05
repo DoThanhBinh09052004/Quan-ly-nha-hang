@@ -44,8 +44,10 @@ namespace QLNH_API.DTO
         public string AnswerText { get; set; } = "";
         public JsonElement Kpis { get; set; } // giữ flexible
         public JsonElement Insights { get; set; } // array
-        public JsonElement Actions { get; set; } // array
-        public JsonElement Risks { get; set; } // array
+        //public JsonElement Actions { get; set; } // array
+        /// <summary>
+        //public JsonElement Risks { get; set; } // array
+        /// </summary>
         public JsonElement FollowUpQuestions { get; set; } // array
     }
 }

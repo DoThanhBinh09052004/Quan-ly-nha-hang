@@ -238,5 +238,173 @@ namespace QLNH_API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        // 1. Lấy danh sách món đang chờ & đang chế biến (cho bếp)
+        [HttpGet("kitchen/pending")]
+        [Authorize(Roles = "Manager, Cashier, Kitchen")]
+        public async Task<ActionResult<IEnumerable<OrderItemStatusDTO>>> GetPendingKitchenItems()
+        {
+            try
+            {
+                // Các trạng thái cần hiển thị cho bếp: Chờ chế biến(9) và Đang chế biến(6)
+                var cookingStatusIds = new[] { 9, 6 };
+
+                var items = await _context.OrderItem
+                    .Include(oi => oi.Order)
+                        .ThenInclude(o => o.GuestTable)
+                    .Include(oi => oi.CookingStatus)
+                    .Where(oi => !oi.Deleted && !oi.Voided
+                        && cookingStatusIds.Contains(oi.CookingStatusId ?? 9)
+                        && oi.CookingStatusId != 7) // Chưa hoàn thành
+                    .OrderBy(oi => oi.Created)
+                    .Select(oi => new OrderItemStatusDTO
+                    {
+                        Id = oi.Id,
+                        Name = oi.Name,
+                        Quantity = oi.Quantity,
+                        CookingStatusId = oi.CookingStatusId ?? 9,
+                        CompletedAt = oi.CompletedAt,
+                        KitchenNote = oi.KitchenNote,
+                        OrderId = oi.OrderId,
+                        OrderNumber = oi.Order.OrderNumber,
+                        GuestTableId = oi.Order.GuestTableId,
+                        TableName = oi.Order.GuestTable != null ? oi.Order.GuestTable.Name : null
+                    })
+                    .ToListAsync();
+
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // 2. Bếp cập nhật trạng thái món ăn
+        [HttpPut("kitchen/update-status")]
+        [Authorize(Roles = "Manager, Kitchen")]
+        public async Task<IActionResult> UpdateCookingStatus([FromBody] UpdateCookingStatusDTO dto)
+        {
+            try
+            {
+                var orderItem = await _context.OrderItem
+                    .Include(oi => oi.CookingStatus)
+                    .FirstOrDefaultAsync(oi => oi.Id == dto.OrderItemId && !oi.Deleted);
+
+                if (orderItem == null)
+                {
+                    return NotFound($"Không tìm thấy món với ID {dto.OrderItemId}");
+                }
+
+                // Lưu trạng thái cũ để kiểm tra
+                int oldStatusId = orderItem.CookingStatusId ?? 9;
+
+                // Cập nhật trạng thái
+                orderItem.CookingStatusId = dto.CookingStatusId;
+                orderItem.KitchenNote = dto.KitchenNote;
+                orderItem.Updated = DateTime.Now;
+
+                // Nếu chuyển sang trạng thái "Chế biến hoàn thành" (7), ghi nhận thời gian
+                if (dto.CookingStatusId == 7 && oldStatusId != 7)
+                {
+                    orderItem.CompletedAt = DateTime.Now;
+                }
+
+                // Nếu chuyển sang "Hủy món" (8)
+                if (dto.CookingStatusId == 8)
+                {
+                    orderItem.Voided = true; // Đồng bộ với flag Voided
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Lấy tên trạng thái mới
+                var newStatus = await _context.Status.FindAsync(dto.CookingStatusId);
+
+                return Ok(new
+                {
+                    message = "Đã cập nhật trạng thái món ăn",
+                    orderItemId = orderItem.Id,
+                    oldStatusId = oldStatusId,
+                    newStatusId = orderItem.CookingStatusId,
+                    newStatusName = newStatus?.Name,
+                    completedAt = orderItem.CompletedAt
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // 3. Phục vụ lấy danh sách món đã hoàn thành theo order (để lên đồ)
+        [HttpGet("kitchen/completed-by-order/{orderId}")]
+        [Authorize(Roles = "Manager, Cashier, Kitchen")]
+        public async Task<ActionResult<IEnumerable<OrderItemStatusDTO>>> GetCompletedItemsByOrder(int orderId)
+        {
+            try
+            {
+                var completedItems = await _context.OrderItem
+                    .Include(oi => oi.CookingStatus)
+                    .Where(oi => oi.OrderId == orderId
+                        && !oi.Deleted
+                        && !oi.Voided
+                        && oi.CookingStatusId == 7) // Chế biến hoàn thành
+                    .Select(oi => new OrderItemStatusDTO
+                    {
+                        Id = oi.Id,
+                        Name = oi.Name,
+                        Quantity = oi.Quantity,
+                        CookingStatusId = oi.CookingStatusId ?? 0,
+                        CompletedAt = oi.CompletedAt,
+                        KitchenNote = oi.KitchenNote,
+                        OrderId = oi.OrderId
+                    })
+                    .ToListAsync();
+
+                return Ok(completedItems);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+     
+
+        [HttpGet("kitchen/dashboard")]
+        [Authorize(Roles = "Manager, Kitchen")]
+        public async Task<IActionResult> GetKitchenDashboard()
+        {
+            try
+            {
+                var pendingCount = await _context.OrderItem
+                    .CountAsync(oi => !oi.Deleted && !oi.Voided && (oi.CookingStatusId == 9 || oi.CookingStatusId == null));
+
+                var processingCount = await _context.OrderItem
+                    .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == 6);
+
+                var completedCount = await _context.OrderItem
+                    .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == 7);
+
+                var cancelledCount = await _context.OrderItem
+                    .CountAsync(oi => !oi.Deleted && oi.CookingStatusId == 8);
+
+                return Ok(new
+                {
+                    pending = pendingCount,
+                    processing = processingCount,
+                    completed = completedCount,
+                    cancelled = cancelledCount,
+                    lastUpdated = DateTime.Now
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+       
     }
 }

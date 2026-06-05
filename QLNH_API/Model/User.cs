@@ -10,6 +10,7 @@ namespace QLNH_API.Model
         [Key]
         public int Id { get; set; }
         public String Username { get; set; }
+        public String? FullName { get; set; }
         public String? Password { get; set; } = "123456";
         public DateTime Created { get; set; } = DateTime.Now;
         public DateTime Updated { get; set; } = DateTime.Now;

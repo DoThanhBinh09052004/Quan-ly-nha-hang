@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using QLNH_API.DTO;
 using QLNH_API.Model;
 
@@ -8,9 +8,13 @@ namespace QLNH_API.Mapppings
     {
         public MappingProfile()
         {
+            // =================================================================
+            // 1. FUNCTIONAL GROUP: USER & RESTAURANT MANAGEMENT (User, Role, Restaurant)
+            // =================================================================
             CreateMap<User, UserSimpleDTO>();
-            CreateMap<Restaurant, RestaurantSimpleDTO>();
             CreateMap<Role, RoleSimpleDTO>();
+            CreateMap<Restaurant, RestaurantSimpleDTO>();
+            CreateMap<Role, RoleDTO>();
 
             CreateMap<User, UserDTO>()
                 .ForMember(dest => dest.CreatedUser, opt => opt.MapFrom(src => src.CreatedUser))
@@ -18,18 +22,23 @@ namespace QLNH_API.Mapppings
                 .ForMember(dest => dest.restaurant, opt => opt.MapFrom(src => src.restaurant))
                 .ForMember(dest => dest.role, opt => opt.MapFrom(src => src.role));
 
-            CreateMap<Role, RoleDTO>();
-
             CreateMap<Restaurant, RestaurantDTO>()
                 .ForMember(dest => dest.CreatedUser, opt => opt.MapFrom(src => src.CreatedUser))
                 .ForMember(dest => dest.UpdatedUser, opt => opt.MapFrom(src => src.UpdatedUser))
                 .ForMember(dest => dest.Users, opt => opt.MapFrom(src => src.Users));
 
-            CreateMap<GuestTable, GuestTableDTO>();
 
+            // =================================================================
+            // 2. FUNCTIONAL GROUP: TABLES, ORDERS & KITCHEN (Guest, Table, Order, Kitchen)
+            // =================================================================
             CreateMap<Guest, GuestDTO>();
-
             CreateMap<Status, StatusDTO>();
+
+            CreateMap<GuestTable, GuestTableDTO>()
+                .ForMember(dest => dest.CurrentOrderTotal, opt => opt.MapFrom(src =>
+                    (src.StatusId == 1 || src.StatusId == 2) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Sum(o => o.FinalPrice) : 0))
+                .ForMember(dest => dest.CurrentGuestName, opt => opt.MapFrom(src =>
+                    (src.StatusId == 1 || src.StatusId == 2) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Select(o => o.Guest != null ? o.Guest.Name : o.GuestPhone).FirstOrDefault() : null));
 
             CreateMap<Order, OrderDTO>()
                 .ForMember(dest => dest.CreatedUser, opt => opt.MapFrom(src => src.CreatedUser))
@@ -40,30 +49,57 @@ namespace QLNH_API.Mapppings
                 .ForMember(dest => dest.Guest, opt => opt.MapFrom(src => src.Guest));
 
             CreateMap<OrderItem, OrderItemDTO>()
-                .ForMember(dest => dest.Item, opt => opt.MapFrom(src => src.Item));
+                .ForMember(dest => dest.Item, opt => opt.MapFrom(src => src.Item))
+                .ForMember(dest => dest.CookingStatusId, opt => opt.MapFrom(src => src.CookingStatusId))
+                .ForMember(dest => dest.CookingStatusName, opt => opt.MapFrom(src => src.CookingStatus != null ? src.CookingStatus.Name : null))
+                .ForMember(dest => dest.CompletedAt, opt => opt.MapFrom(src => src.CompletedAt))
+                .ForMember(dest => dest.KitchenNote, opt => opt.MapFrom(src => src.KitchenNote));
 
+            // Map OrderItem -> OrderItemStatusDTO (for kitchen use)
+            CreateMap<OrderItem, OrderItemStatusDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+                .ForMember(dest => dest.CookingStatusId, opt => opt.MapFrom(src => src.CookingStatusId))
+                .ForMember(dest => dest.CompletedAt, opt => opt.MapFrom(src => src.CompletedAt))
+                .ForMember(dest => dest.KitchenNote, opt => opt.MapFrom(src => src.KitchenNote))
+                .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.OrderId))
+                .ForMember(dest => dest.OrderNumber, opt => opt.MapFrom(src => src.Order != null ? src.Order.OrderNumber : null))
+                .ForMember(dest => dest.GuestTableId, opt => opt.MapFrom(src => src.Order != null && src.Order.GuestTable != null ? src.Order.GuestTable.Id : (int?)null))
+                .ForMember(dest => dest.TableName, opt => opt.MapFrom(src => src.Order != null && src.Order.GuestTable != null ? src.Order.GuestTable.Name : null))
+                .ForMember(dest => dest.GuestPhone, opt => opt.MapFrom(src => src.Order != null ? src.Order.GuestPhone : null));
+
+
+            // =================================================================
+            // 3. FUNCTIONAL GROUP: MENU, INVENTORY & PAYMENTS (Item, Category, Ingredient, Payment)
+            // =================================================================
             CreateMap<Unit, UnitDTO>();
             CreateMap<UnitType, UnitTypeDTO>();
             CreateMap<Category, CategoryDTO>();
-
-            CreateMap<Item, ItemDTO>()
-                .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
-                .ForMember(dest => dest.ItemImages, opt => opt.MapFrom(src =>
-                    src.ItemImages != null
-                        ? src.ItemImages.Where(img => !img.Deleted).ToList()
-                        : new List<ItemImage>()));
-
+            CreateMap<Ingredient, IngredientDTO>();
+            CreateMap<Payment, PaymentDTO>();
             CreateMap<ItemImage, ItemImageDTO>();
             CreateMap<ItemImage, CreateItemImageDTO>().ReverseMap();
             CreateMap<ItemRequestDTO, Item>();
 
-            CreateMap<Ingredient, IngredientDTO>();
+            CreateMap<Item, ItemDTO>()
+                .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+                .ForMember(dest => dest.ItemImages, opt => opt.MapFrom(src => src.ItemImages != null ? src.ItemImages.Where(img => !img.Deleted).ToList() : new List<ItemImage>()));
 
-            
             CreateMap<Recipe, RecipeDTO>()
                 .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.Item != null ? src.Item.Name : null))
                 .ForMember(dest => dest.IngredientName, opt => opt.MapFrom(src => src.Ingredient != null ? src.Ingredient.Name : null));
+
+
+            // =================================================================
+            // 4. FUNCTIONAL GROUP: SHIFT MANAGEMENT (Shift, WorkShift)
+            // =================================================================
+            CreateMap<Shift, ShiftDTO>().ReverseMap();
+            CreateMap<ShiftRequestDTO, Shift>();
+
+            CreateMap<WorkShift, WorkShiftDTO>();
+            CreateMap<WorkShiftRequestDTO, WorkShift>();
         }
     }
 }

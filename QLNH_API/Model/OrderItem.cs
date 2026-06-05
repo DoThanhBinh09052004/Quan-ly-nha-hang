@@ -17,11 +17,20 @@ namespace QLNH_API.Model
         public double SalePrice { get; set; } = 0;
         public int Quantity { get; set; } = 1;
         public int? ItemId { get; set; }
+        public int? CookingStatusId { get; set; } 
+        public DateTime? CompletedAt { get; set; } 
+        public string? KitchenNote { get; set; }   
+
         [ForeignKey("ItemId")]
         public virtual Item? Item { get; set; }
+
         public int OrderId { get; set; }
+
         [ForeignKey("OrderId")]
         [JsonIgnore]
         public virtual Order Order { get; set; }
+
+        [ForeignKey("CookingStatusId")]
+        public virtual Status? CookingStatus { get; set; }
     }
 }

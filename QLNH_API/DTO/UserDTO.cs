@@ -8,6 +8,7 @@ namespace QLNH_API.DTO
         public int Id { get; set; }
         public String Username { get; set; }
         public String Password { get; set; }
+        public String? FullName { get; set; }
         public DateTime Created { get; set; } 
         public DateTime Updated { get; set; }
         //public bool Deleted { get; set; }

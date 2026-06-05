@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using QLNH_API.Model;
 
 namespace QLNH_API.Data
@@ -22,12 +22,14 @@ namespace QLNH_API.Data
         public DbSet<Role> Role { get; set; }
         public DbSet<Status> Status { get; set; }
         public DbSet<Unit> Unit { get; set; }
-        //public DbSet<UnitType> UnitType { get; set; }
 
           public DbSet<Ingredient> Ingredient { get; set; }
         public DbSet<Recipe> Recipe { get; set; }
 
         public DbSet<Restaurant> Restaurant { get; set; }
+        public DbSet<Payment> Payment { get; set; }
+        public DbSet<Shift> Shift { get; set; }
+        public DbSet<WorkShift> WorkShift { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -83,10 +85,6 @@ namespace QLNH_API.Data
                 .WithMany()
                 .HasForeignKey(gt => gt.GuestId);
 
-            modelBuilder.Entity<GuestTable>()
-                .HasOne(gt => gt.Restaurant)
-                .WithMany()
-                .HasForeignKey(gt => gt.RestaurantId);
 
             // ================== Order ==================
             modelBuilder.Entity<Order>()
@@ -103,7 +101,7 @@ namespace QLNH_API.Data
 
             modelBuilder.Entity<Order>()
                .HasOne(o => o.GuestTable)
-               .WithMany()
+               .WithMany(gt => gt.Orders)
                .HasForeignKey(o => o.GuestTableId)
                .OnDelete(DeleteBehavior.Restrict);
 
@@ -112,6 +110,13 @@ namespace QLNH_API.Data
                 .WithMany()
                 .HasForeignKey(o => o.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ================== Payment ==================
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Order)
+                .WithMany()
+                .HasForeignKey(p => p.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ================== Order - OrderItem ==================
             modelBuilder.Entity<OrderItem>()
@@ -178,6 +183,26 @@ namespace QLNH_API.Data
             modelBuilder.Entity<Recipe>()
                 .HasIndex(r => new { r.ItemId, r.IngredientId })
                 .IsUnique();
+
+            // ================== WorkShift ==================
+            modelBuilder.Entity<WorkShift>()
+                .HasOne(ws => ws.User)
+                .WithMany()
+                .HasForeignKey(ws => ws.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<WorkShift>()
+                .HasOne(ws => ws.Shift)
+                .WithMany()
+                .HasForeignKey(ws => ws.ShiftId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // OrderItem - Status
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.CookingStatus)
+                .WithMany()
+                .HasForeignKey(oi => oi.CookingStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
 
