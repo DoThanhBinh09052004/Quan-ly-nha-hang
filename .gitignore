@@ -1,2 +1,23 @@
-/bin
-/obj
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.backup.json
+
+# Build outputs
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# Migration designer files (optional, có thể push nếu muốn)
+**/*.Designer.cs
+
+# Other
+*.cache
+*.vsidx
+*.bin
+*.db
+*.v2
+ApiEndpoints.json
