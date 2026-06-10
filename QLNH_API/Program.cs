@@ -120,16 +120,15 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// ---------------- DEVELOPMENT ONLY ----------------
-if (app.Environment.IsDevelopment())
+// ---------------- SWAGGER ----------------
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "QLNH API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "QLNH API v1");
+    c.RoutePrefix = "swagger";
+});
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 // ---------------- FIX 401/403 JSON RESPONSE ----------------
 app.Use(async (context, next) =>
