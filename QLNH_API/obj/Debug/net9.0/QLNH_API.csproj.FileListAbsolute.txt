@@ -675,10 +675,10 @@ C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\staticwebassets\msbuild.buildMultiTargeting.QLNH_API.props
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\staticwebassets\msbuild.buildTransitive.QLNH_API.props
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\staticwebassets.pack.json
-C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\QLNH_API.csproj.Up2Date
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\QLNH_API.dll
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\refint\QLNH_API.dll
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\QLNH_API.pdb
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\QLNH_API.genruntimeconfig.cache
 C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\ref\QLNH_API.dll
+C:\Users\Windows\Documents\project\Restaurant Managment\Web API\Quan-ly-nha-hang\QLNH_API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
