@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\QLNH_API.props" />
-</Project>
