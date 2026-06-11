@@ -32,23 +32,7 @@ namespace QLNH_API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Category>().ToTable("category");
-            modelBuilder.Entity<Guest>().ToTable("guest");
-            modelBuilder.Entity<GuestTable>().ToTable("guesttable");
-            modelBuilder.Entity<Ingredient>().ToTable("ingredient");
-            modelBuilder.Entity<Item>().ToTable("item");
-            modelBuilder.Entity<ItemImage>().ToTable("itemimage");
-            modelBuilder.Entity<Order>().ToTable("order");
-            modelBuilder.Entity<OrderItem>().ToTable("orderitem");
-            modelBuilder.Entity<Payment>().ToTable("payment");
-            modelBuilder.Entity<Recipe>().ToTable("recipe");
-            modelBuilder.Entity<Restaurant>().ToTable("restaurant");
-            modelBuilder.Entity<Role>().ToTable("role");
-            modelBuilder.Entity<Shift>().ToTable("shift");
-            modelBuilder.Entity<Status>().ToTable("status");
-            modelBuilder.Entity<Unit>().ToTable("unit");
-            modelBuilder.Entity<User>().ToTable("user");
-            modelBuilder.Entity<WorkShift>().ToTable("workshift");
+          
 
             // User relationships.
             modelBuilder.Entity<User>()
