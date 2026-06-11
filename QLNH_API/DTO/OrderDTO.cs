@@ -7,11 +7,11 @@
         public string? Description { get; set; }
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
-        public double TotalPrice { get; set; }
-        public double Discount { get; set; }
-        public double FinalPrice { get; set; }
-        public double PaidAmount { get; set; }
-        public double ChangeAmount { get; set; }
+        public decimal TotalPrice { get; set; }
+        public decimal Discount { get; set; }
+        public decimal FinalPrice { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal ChangeAmount { get; set; }
         public string? GuestPhone { get; set; }
         public DateTime? CheckInTime { get; set; }
         public DateTime? CheckOutTime { get; set; }

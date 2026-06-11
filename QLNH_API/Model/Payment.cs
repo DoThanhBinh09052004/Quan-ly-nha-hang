@@ -14,7 +14,7 @@ namespace QLNH_API.Model
         [MaxLength(30)]
         public string Provider { get; set; }
         
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         
         [Required]
         [MaxLength(20)]
@@ -37,6 +37,18 @@ namespace QLNH_API.Model
         
         [Required]
         public string QrText { get; set; }
+
+        [MaxLength(100)]
+        public string? TransactionId { get; set; }
+
+        [MaxLength(100)]
+        public string? ReferenceCode { get; set; }
+
+        public string? RawWebhookJson { get; set; }
+
+        public DateTime? ConfirmedAt { get; set; }
+
+        public DateTime? ExpiresAt { get; set; }
         
         public DateTime Created { get; set; } = DateTime.Now;
         public DateTime Updated { get; set; } = DateTime.Now;

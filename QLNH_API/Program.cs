@@ -85,6 +85,7 @@ builder.Services.AddHttpClient("AiService", (sp, client) =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<RevenueService>();
 builder.Services.AddScoped<AiClientService>();
+builder.Services.AddHostedService<PaymentExpiryService>();
 
 // ---------------- SWAGGER ----------------
 builder.Services.AddEndpointsApiExplorer();
@@ -119,6 +120,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+if (builder.Configuration.GetValue<bool>("Database:RunMigrationsOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbcontext>();
+    dbContext.Database.Migrate();
+}
 
 // ---------------- SWAGGER ----------------
 app.UseSwagger();

@@ -46,12 +46,7 @@ namespace QLNH_API.Migrations
                     b.Property<DateTime>("Updated")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("parentId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("parentId");
 
                     b.ToTable("Category");
                 });
@@ -279,8 +274,9 @@ namespace QLNH_API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<double>("ChangeAmount")
-                        .HasColumnType("double");
+                    b.Property<decimal>("ChangeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("CheckInTime")
                         .HasColumnType("datetime(6)");
@@ -300,11 +296,13 @@ namespace QLNH_API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
-                    b.Property<double>("Discount")
-                        .HasColumnType("double");
+                    b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<double>("FinalPrice")
-                        .HasColumnType("double");
+                    b.Property<decimal>("FinalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("GuestId")
                         .HasColumnType("int");
@@ -319,8 +317,9 @@ namespace QLNH_API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<double>("PaidAmount")
-                        .HasColumnType("double");
+                    b.Property<decimal>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("PartySize")
                         .HasColumnType("int");
@@ -328,8 +327,9 @@ namespace QLNH_API.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<double>("TotalPrice")
-                        .HasColumnType("double");
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("Updated")
                         .HasColumnType("datetime(6)");
@@ -436,15 +436,22 @@ namespace QLNH_API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<double>("Amount")
-                        .HasColumnType("double");
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("BankCode")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime>("Created")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("OrderId")
@@ -459,10 +466,21 @@ namespace QLNH_API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("RawWebhookJson")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ReferenceCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<DateTime>("Updated")
                         .HasColumnType("datetime(6)");
@@ -470,6 +488,9 @@ namespace QLNH_API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("TransactionId")
+                        .IsUnique();
 
                     b.ToTable("Payment");
                 });
@@ -780,14 +801,6 @@ namespace QLNH_API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("WorkShift");
-                });
-
-            modelBuilder.Entity("QLNH_API.Model.Category", b =>
-                {
-                    b.HasOne("QLNH_API.Model.Category", null)
-                        .WithMany()
-                        .HasForeignKey("parentId")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("QLNH_API.Model.GuestTable", b =>

@@ -102,7 +102,7 @@ namespace QLNH_API.Controllers
                     if (guest != null)
                     {
                         // Áp dụng giảm giá 3%
-                        order.Discount = order.TotalPrice * 0.03;
+                        order.Discount = order.TotalPrice * 0.03m;
                         order.GuestId = guest.Id;
                     }
                 }
@@ -229,7 +229,7 @@ namespace QLNH_API.Controllers
                     if (guest != null)
                     {
                         // Áp dụng giảm giá 3%
-                        updatedOrder.Discount = updatedOrder.TotalPrice * 0.03;
+                        updatedOrder.Discount = updatedOrder.TotalPrice * 0.03m;
                         updatedOrder.GuestId = guest.Id;
                         existingOrder.GuestPhone = updatedOrder.GuestPhone;
                     }
@@ -474,11 +474,11 @@ namespace QLNH_API.Controllers
                     return BadRequest($"Khách hàng chỉ có {order.Guest.Points} điểm");
 
                 // Tính giá trị giảm giá theo tỷ lệ mới: 50 điểm = 25,000 VND (1 điểm = 500 VND)
-                double discountValue = request.PointsToUse * 500;
+                decimal discountValue = request.PointsToUse * 500m;
 
              
-                double currentDiscount = order.Discount;
-                double maxDiscount = order.FinalPrice; 
+                decimal currentDiscount = order.Discount;
+                decimal maxDiscount = order.FinalPrice; 
 
                 // Debug log để kiểm tra
                 Console.WriteLine($"DEBUG - TotalPrice: {order.TotalPrice}, Discount: {order.Discount}, FinalPrice: {order.FinalPrice}");
@@ -496,7 +496,7 @@ namespace QLNH_API.Controllers
                         return BadRequest("Không thể dùng điểm vì giá trị đơn hàng còn lại quá thấp");
 
                     request.PointsToUse = maxPoints;
-                    discountValue = request.PointsToUse * 500;
+                    discountValue = request.PointsToUse * 500m;
                 }
 
                 // Cập nhật giảm giá và điểm

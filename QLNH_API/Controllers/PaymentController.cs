@@ -1,9 +1,11 @@
-using AutoMapper;
+using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using QLNH_API.Data;
-using QLNH_API.DTO;
 using QLNH_API.Model;
 
 namespace QLNH_API.Controllers
@@ -12,18 +14,57 @@ namespace QLNH_API.Controllers
     [Route("payments")]
     public class PaymentController : ControllerBase
     {
-        private readonly ApplicationDbcontext _context;
-        private readonly IMapper _mapper;
+        private const string PendingStatus = "PENDING";
+        private const string ConfirmedStatus = "CONFIRMED";
+        private const string ExpiredStatus = "EXPIRED";
 
-        public PaymentController(ApplicationDbcontext context, IMapper mapper)
+        private readonly ApplicationDbcontext _context;
+        private readonly IConfiguration _configuration;
+
+        public PaymentController(ApplicationDbcontext context, IConfiguration configuration)
         {
             _context = context;
-            _mapper = mapper;
+            _configuration = configuration;
         }
 
         public class CreateVietQRRequest
         {
             public int OrderId { get; set; }
+        }
+
+        public class ConfirmVietQRRequest
+        {
+            public long PaymentId { get; set; }
+        }
+
+        public class SepayWebhookRequest
+        {
+            [JsonPropertyName("id")]
+            public long Id { get; set; }
+
+            [JsonPropertyName("gateway")]
+            public string? Gateway { get; set; }
+
+            [JsonPropertyName("transactionDate")]
+            public DateTime? TransactionDate { get; set; }
+
+            [JsonPropertyName("accountNumber")]
+            public string? AccountNumber { get; set; }
+
+            [JsonPropertyName("code")]
+            public string? Code { get; set; }
+
+            [JsonPropertyName("content")]
+            public string? Content { get; set; }
+
+            [JsonPropertyName("transferType")]
+            public string? TransferType { get; set; }
+
+            [JsonPropertyName("transferAmount")]
+            public decimal TransferAmount { get; set; }
+
+            [JsonPropertyName("referenceCode")]
+            public string? ReferenceCode { get; set; }
         }
 
         [HttpPost("vietqr/create")]
@@ -32,39 +73,42 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                await ExpireOldPendingPaymentsAsync();
+
                 var order = await _context.Order.FindAsync(request.OrderId);
                 if (order == null)
                 {
-                    return NotFound("Không tìm thấy đơn hàng");
+                    return NotFound("Khong tim thay don hang");
                 }
 
-                double amount = order.FinalPrice - order.PaidAmount;
+                var amount = order.FinalPrice - order.PaidAmount;
                 if (amount <= 0)
                 {
-                    return BadRequest("Đơn hàng này đã được thanh toán đủ");
+                    return BadRequest("Don hang nay da duoc thanh toan du");
                 }
 
-                string addInfo = "Chuyen khoan" + order.Id;
-                string accountNo = "1042555989"; // Replace with real account number
-                string accountName = "DO THANH BINH"; // Replace with real account name
-                string bankCode = "VCB";
-
-                // Generate QR string (Can be VietQR string format or URL to img.vietqr.io)
-                string qrText = $"https://img.vietqr.io/image/{bankCode}-{accountNo}-compact2.png?amount={amount}&addInfo={addInfo}&accountName={accountName}";
+                var accountNo = GetRequiredSepayConfig("AccountNo");
+                var accountName = GetRequiredSepayConfig("AccountName");
+                var bankCode = GetRequiredSepayConfig("BankCode");
+                var timeoutMinutes = GetPaymentTimeoutMinutes();
+                var now = DateTime.Now;
+                var addInfo = $"QLNH-{order.Id}-{now:yyyyMMddHHmmss}";
+                var qrText = BuildSepayQrUrl(bankCode, accountNo, amount, addInfo);
 
                 var payment = new Payment
                 {
                     OrderId = order.Id,
-                    Provider = "VIETQR",
+                    Provider = "SEPAY",
                     Amount = amount,
-                    Status = "PENDING",
+                    Status = PendingStatus,
                     BankCode = bankCode,
                     AccountNo = accountNo,
                     AccountName = accountName,
                     AddInfo = addInfo,
                     QrText = qrText,
-                    Created = DateTime.Now,
-                    Updated = DateTime.Now
+                    ExpiresAt = now.AddMinutes(timeoutMinutes),
+                    Created = now,
+                    Updated = now
                 };
 
                 _context.Payment.Add(payment);
@@ -78,8 +122,13 @@ namespace QLNH_API.Controllers
                     BankCode = payment.BankCode,
                     AccountNo = payment.AccountNo,
                     AccountName = payment.AccountName,
-                    AddInfo = payment.AddInfo
+                    AddInfo = payment.AddInfo,
+                    ExpiresAt = payment.ExpiresAt
                 });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
             }
             catch (Exception ex)
             {
@@ -88,9 +137,80 @@ namespace QLNH_API.Controllers
             }
         }
 
-        public class ConfirmVietQRRequest
+        [HttpPost("sepay/webhook")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SepayWebhook([FromBody] SepayWebhookRequest request)
         {
-            public long PaymentId { get; set; }
+            try
+            {
+                if (!IsValidSepayApiKey())
+                {
+                    return Unauthorized(new { success = false, message = "Invalid API key" });
+                }
+
+                var rawWebhookJson = JsonSerializer.Serialize(request);
+                var transactionId = request.Id.ToString(CultureInfo.InvariantCulture);
+
+                if (await _context.Payment.AnyAsync(p => p.TransactionId == transactionId))
+                {
+                    return Ok(new { success = true, message = "Duplicate transaction ignored" });
+                }
+
+                if (!string.Equals(request.TransferType, "in", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Ok(new { success = true, message = "Only incoming transfers are processed" });
+                }
+
+                await ExpireOldPendingPaymentsAsync();
+
+                var payment = await FindPaymentFromWebhookAsync(request);
+                if (payment == null)
+                {
+                    return NotFound(new { success = false, message = "Payment code not found" });
+                }
+
+                payment.RawWebhookJson = rawWebhookJson;
+                payment.ReferenceCode = request.ReferenceCode;
+
+                if (payment.Status == ExpiredStatus || payment.ExpiresAt < DateTime.Now)
+                {
+                    payment.Status = ExpiredStatus;
+                    payment.Updated = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    return BadRequest(new { success = false, message = "Payment expired" });
+                }
+
+                if (payment.Status != PendingStatus)
+                {
+                    await _context.SaveChangesAsync();
+                    return Ok(new { success = true, message = "Payment is already processed" });
+                }
+
+                if (request.TransferAmount != payment.Amount)
+                {
+                    await _context.SaveChangesAsync();
+                    return BadRequest(new { success = false, message = "Transfer amount does not match payment amount" });
+                }
+
+                await ConfirmPaymentInternalAsync(payment, transactionId, request.ReferenceCode, rawWebhookJson);
+
+                return Ok(new { success = true });
+            }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"Error saving Sepay webhook: {ex.Message}");
+                return Ok(new { success = true, message = "Duplicate transaction ignored" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Invalid Sepay webhook: {ex.Message}");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing Sepay webhook: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
         }
 
         [HttpPost("vietqr/confirm")]
@@ -99,92 +219,204 @@ namespace QLNH_API.Controllers
         {
             try
             {
-                var payment = await _context.Payment
-                    .Include(p => p.Order)
-                        .ThenInclude(o => o.OrderItems) // In case we need to update stock
-                    .Include(p => p.Order.GuestTable)
-                    .Include(p => p.Order.Guest)
-                    .FirstOrDefaultAsync(p => p.Id == request.PaymentId);
+                await ExpireOldPendingPaymentsAsync();
 
+                var payment = await GetPaymentWithOrderAsync(request.PaymentId);
                 if (payment == null)
                 {
-                    return NotFound("Không tìm thấy giao dịch thanh toán");
+                    return NotFound("Khong tim thay giao dich thanh toan");
                 }
 
-                if (payment.Status != "PENDING")
+                if (payment.Status == ExpiredStatus || payment.ExpiresAt < DateTime.Now)
                 {
-                    return BadRequest("Giao dịch thanh toán không ở trạng thái PENDING");
+                    payment.Status = ExpiredStatus;
+                    payment.Updated = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    return BadRequest("Giao dich thanh toan da het han");
                 }
 
-                payment.Status = "CONFIRMED";
-                payment.Updated = DateTime.Now;
-
-                var order = payment.Order;
-                if (order != null)
+                if (payment.Status != PendingStatus)
                 {
-                    order.PaidAmount += payment.Amount;
-                    order.Updated = DateTime.Now;
-
-                    if (order.PaidAmount >= order.FinalPrice)
-                    {
-                        if (order.PaidAmount > order.FinalPrice)
-                        {
-                            order.ChangeAmount = order.PaidAmount - order.FinalPrice;
-                        }
-
-                        order.StatusId = 3; // 3 = Đã thanh toán
-                        order.CheckOutTime = DateTime.Now;
-
-                        // Cập nhật tồn kho
-                        if (order.OrderItems != null && order.OrderItems.Any())
-                        {
-                            foreach (var orderItem in order.OrderItems)
-                            {
-                                if (orderItem.ItemId.HasValue && !orderItem.Voided && !orderItem.Deleted)
-                                {
-                                    var item = await _context.Item.FindAsync(orderItem.ItemId.Value);
-                                    if (item != null)
-                                    {
-                                        item.Quantity -= orderItem.Quantity;
-                                        item.Updated = DateTime.Now;
-                                    }
-                                }
-                            }
-                        }
-
-                        // Tích điểm cho khách hàng
-                        if (order.GuestId.HasValue && order.Guest != null)
-                        {
-                            int pointsEarned = (int)(order.FinalPrice / 10000);
-                            if (pointsEarned < 1 && order.FinalPrice > 0) pointsEarned = 1;
-                            order.Guest.Points += pointsEarned;
-                            order.Guest.Updated = DateTime.Now;
-                        }
-
-                        // Giải phóng bàn
-                        if (order.GuestTable != null)
-                        {
-                            order.GuestTable.StatusId = 1; // 1 = Bàn trống
-                            order.GuestTable.Updated = DateTime.Now;
-                        }
-                    }
+                    return BadRequest("Giao dich thanh toan khong o trang thai PENDING");
                 }
 
-                await _context.SaveChangesAsync();
+                await ConfirmPaymentInternalAsync(payment);
 
                 return Ok(new
                 {
-                    Message = "Xác nhận thanh toán thành công",
+                    Message = "Xac nhan thanh toan thanh cong",
                     PaymentId = payment.Id,
-                    OrderStatus = order?.StatusId,
-                    PaidAmount = order?.PaidAmount
+                    OrderStatus = payment.Order?.StatusId,
+                    PaidAmount = payment.Order?.PaidAmount
                 });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error confirming payment: {ex.Message}");
                 return StatusCode(500, "Internal server error.");
             }
+        }
+
+        private async Task<Payment?> FindPaymentFromWebhookAsync(SepayWebhookRequest request)
+        {
+            var code = request.Code?.Trim();
+            var content = request.Content ?? string.Empty;
+
+            return await _context.Payment
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.OrderItems)
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.GuestTable)
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.Guest)
+                .Where(p => p.Provider == "SEPAY")
+                .FirstOrDefaultAsync(p =>
+                    (!string.IsNullOrEmpty(code) && p.AddInfo == code) ||
+                    content.Contains(p.AddInfo));
+        }
+
+        private async Task<Payment?> GetPaymentWithOrderAsync(long paymentId)
+        {
+            return await _context.Payment
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.OrderItems)
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.GuestTable)
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.Guest)
+                .FirstOrDefaultAsync(p => p.Id == paymentId);
+        }
+
+        private async Task ConfirmPaymentInternalAsync(
+            Payment payment,
+            string? transactionId = null,
+            string? referenceCode = null,
+            string? rawWebhookJson = null)
+        {
+            var now = DateTime.Now;
+            payment.Status = ConfirmedStatus;
+            payment.TransactionId = transactionId;
+            payment.ReferenceCode = referenceCode ?? payment.ReferenceCode;
+            payment.RawWebhookJson = rawWebhookJson ?? payment.RawWebhookJson;
+            payment.ConfirmedAt = now;
+            payment.Updated = now;
+
+            var order = payment.Order;
+            if (order != null)
+            {
+                var remainingAmount = order.FinalPrice - order.PaidAmount;
+                if (remainingAmount != payment.Amount)
+                {
+                    throw new InvalidOperationException("Payment amount no longer matches the order remaining amount.");
+                }
+
+                order.PaidAmount += payment.Amount;
+                order.ChangeAmount = 0;
+                order.StatusId = 3;
+                order.CheckOutTime = now;
+                order.Updated = now;
+
+                if (order.OrderItems != null && order.OrderItems.Any())
+                {
+                    foreach (var orderItem in order.OrderItems)
+                    {
+                        if (orderItem.ItemId.HasValue && !orderItem.Voided && !orderItem.Deleted)
+                        {
+                            var item = await _context.Item.FindAsync(orderItem.ItemId.Value);
+                            if (item != null)
+                            {
+                                item.Quantity -= orderItem.Quantity;
+                                item.Updated = now;
+                            }
+                        }
+                    }
+                }
+
+                if (order.GuestId.HasValue && order.Guest != null)
+                {
+                    var pointsEarned = (int)(order.FinalPrice / 10000m);
+                    if (pointsEarned < 1 && order.FinalPrice > 0)
+                    {
+                        pointsEarned = 1;
+                    }
+
+                    order.Guest.Points += pointsEarned;
+                    order.Guest.Updated = now;
+                }
+
+                if (order.GuestTable != null)
+                {
+                    order.GuestTable.StatusId = 1;
+                    order.GuestTable.Updated = now;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task ExpireOldPendingPaymentsAsync()
+        {
+            var now = DateTime.Now;
+            var expiredPayments = await _context.Payment
+                .Where(p => p.Status == PendingStatus && p.ExpiresAt != null && p.ExpiresAt <= now)
+                .ToListAsync();
+
+            if (!expiredPayments.Any())
+            {
+                return;
+            }
+
+            foreach (var payment in expiredPayments)
+            {
+                payment.Status = ExpiredStatus;
+                payment.Updated = now;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private string BuildSepayQrUrl(string bankCode, string accountNo, decimal amount, string addInfo)
+        {
+            var amountText = amount.ToString("0", CultureInfo.InvariantCulture);
+            var encodedAddInfo = Uri.EscapeDataString(addInfo);
+            return $"https://qr.sepay.vn/img?acc={accountNo}&bank={bankCode}&amount={amountText}&des={encodedAddInfo}&template=compact";
+        }
+
+        private bool IsValidSepayApiKey()
+        {
+            var configuredApiKey = _configuration["Sepay:ApiKey"];
+            if (string.IsNullOrWhiteSpace(configuredApiKey))
+            {
+                return false;
+            }
+
+            var authorization = Request.Headers.Authorization.ToString();
+            var apiKey = Request.Headers["X-Api-Key"].ToString();
+
+            return string.Equals(authorization, $"Apikey {configuredApiKey}", StringComparison.Ordinal) ||
+                   string.Equals(authorization, $"ApiKey {configuredApiKey}", StringComparison.Ordinal) ||
+                   string.Equals(apiKey, configuredApiKey, StringComparison.Ordinal);
+        }
+
+        private string GetRequiredSepayConfig(string key)
+        {
+            var value = _configuration[$"Sepay:{key}"];
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException($"Missing Sepay:{key} configuration.");
+            }
+
+            return value;
+        }
+
+        private int GetPaymentTimeoutMinutes()
+        {
+            var timeout = _configuration.GetValue<int?>("Sepay:PaymentTimeoutMinutes");
+            return timeout.GetValueOrDefault(15);
         }
     }
 }

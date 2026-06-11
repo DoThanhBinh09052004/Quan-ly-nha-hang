@@ -34,7 +34,7 @@ namespace QLNH_API.Migrations
                 {
                     table.PrimaryKey("PK_Category", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Category_Category_parentId",
+                        name: "FK_Category_Parent_CategoryId",
                         column: x => x.parentId,
                         principalTable: "Category",
                         principalColumn: "Id",

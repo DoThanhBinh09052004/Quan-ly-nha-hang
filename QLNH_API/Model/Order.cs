@@ -13,14 +13,14 @@ namespace QLNH_API.Model
         public DateTime Updated { get; set; } = DateTime.Now;
         public bool Deleted { get; set; } = false;
         public bool Voided { get; set; } = false;
-        public double TotalPrice { get; set; } = 0;
-        public double PaidAmount { get; set; } = 0;
-        public double ChangeAmount { get; set; } = 0;
+        public decimal TotalPrice { get; set; } = 0;
+        public decimal PaidAmount { get; set; } = 0;
+        public decimal ChangeAmount { get; set; } = 0;
 
         public string? GuestPhone { get; set; }
         public int? GuestId { get; set; }
-        public double Discount { get; set; } = 0;
-        public double FinalPrice { get; set; } = 0;
+        public decimal Discount { get; set; } = 0;
+        public decimal FinalPrice { get; set; } = 0;
         public DateTime? CheckInTime { get; set; }
         public DateTime? CheckOutTime { get; set; }
         public int PartySize { get; set; } = 1;

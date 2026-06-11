@@ -111,12 +111,40 @@ namespace QLNH_API.Data
                 .HasForeignKey(o => o.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.PaidAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.ChangeAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Discount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.FinalPrice)
+                .HasPrecision(18, 2);
+
             // ================== Payment ==================
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Order)
                 .WithMany()
                 .HasForeignKey(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Payment>()
+                .HasIndex(p => p.TransactionId)
+                .IsUnique();
 
             // ================== Order - OrderItem ==================
             modelBuilder.Entity<OrderItem>()
@@ -150,12 +178,6 @@ namespace QLNH_API.Data
                  .HasForeignKey(img => img.ItemId) // Khóa ngoại là ItemId
                  .OnDelete(DeleteBehavior.SetNull);
 
-            // ================== Category ==================
-            modelBuilder.Entity<Category>()
-                .HasOne<Category>()
-                .WithMany()
-                .HasForeignKey(c => c.parentId)
-                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Guest)
                 .WithMany(g => g.Orders)

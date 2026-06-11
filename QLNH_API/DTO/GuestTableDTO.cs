@@ -14,7 +14,7 @@ namespace QLNH_API.DTO
         public int Floor { get; set; }
         public virtual StatusDTO? Status { get; set; }
         public virtual GuestDTO? Guest { get; set; }
-        public double CurrentOrderTotal { get; set; }
+        public decimal CurrentOrderTotal { get; set; }
         public string? CurrentGuestName { get; set; }
     }
 }
