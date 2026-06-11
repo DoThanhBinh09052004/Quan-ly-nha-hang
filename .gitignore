@@ -13,6 +13,7 @@ obj/
 
 # Migration designer files (optional, có thể push nếu muốn)
 **/*.Designer.cs
+!QLNH_API/Migrations/*.Designer.cs
 
 # Other
 *.cache
