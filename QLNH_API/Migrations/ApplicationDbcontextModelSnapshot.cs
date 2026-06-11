@@ -976,7 +976,8 @@ namespace QLNH_API.Migrations
                 {
                     b.HasOne("QLNH_API.Model.User", "CreatedUser")
                         .WithMany()
-                        .HasForeignKey("CreatedUserId");
+                        .HasForeignKey("CreatedUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("QLNH_API.Model.Restaurant", "restaurant")
                         .WithMany("Users")
@@ -990,7 +991,8 @@ namespace QLNH_API.Migrations
 
                     b.HasOne("QLNH_API.Model.User", "UpdatedUser")
                         .WithMany()
-                        .HasForeignKey("UpdatedUserId");
+                        .HasForeignKey("UpdatedUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CreatedUser");
 
