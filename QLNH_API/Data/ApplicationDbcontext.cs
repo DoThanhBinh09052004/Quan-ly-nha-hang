@@ -10,32 +10,50 @@ namespace QLNH_API.Data
         {
         }
 
-        public DbSet<User> User { get; set; }
-        public DbSet<Item> Item { get; set; }
         public DbSet<Category> Category { get; set; }
         public DbSet<Guest> Guest { get; set; }
         public DbSet<GuestTable> GuestTable { get; set; }
+        public DbSet<Ingredient> Ingredient { get; set; }
+        public DbSet<Item> Item { get; set; }
         public DbSet<ItemImage> ItemImage { get; set; }
         public DbSet<Order> Order { get; set; }
         public DbSet<OrderItem> OrderItem { get; set; }
-
+        public DbSet<Payment> Payment { get; set; }
+        public DbSet<Recipe> Recipe { get; set; }
+        public DbSet<Restaurant> Restaurant { get; set; }
         public DbSet<Role> Role { get; set; }
+        public DbSet<Shift> Shift { get; set; }
         public DbSet<Status> Status { get; set; }
         public DbSet<Unit> Unit { get; set; }
-
-          public DbSet<Ingredient> Ingredient { get; set; }
-        public DbSet<Recipe> Recipe { get; set; }
-
-        public DbSet<Restaurant> Restaurant { get; set; }
-        public DbSet<Payment> Payment { get; set; }
-        public DbSet<Shift> Shift { get; set; }
+        public DbSet<UnitType> UnitType { get; set; }
+        public DbSet<User> User { get; set; }
         public DbSet<WorkShift> WorkShift { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // ================== User - Role ==================
+            // Map entity names to the lowercase MySQL tables used in the deployed database.
+            modelBuilder.Entity<Category>().ToTable("category");
+            modelBuilder.Entity<Guest>().ToTable("guest");
+            modelBuilder.Entity<GuestTable>().ToTable("guesttable");
+            modelBuilder.Entity<Ingredient>().ToTable("ingredient");
+            modelBuilder.Entity<Item>().ToTable("item");
+            modelBuilder.Entity<ItemImage>().ToTable("itemimage");
+            modelBuilder.Entity<Order>().ToTable("order");
+            modelBuilder.Entity<OrderItem>().ToTable("orderitem");
+            modelBuilder.Entity<Payment>().ToTable("payment");
+            modelBuilder.Entity<Recipe>().ToTable("recipe");
+            modelBuilder.Entity<Restaurant>().ToTable("restaurant");
+            modelBuilder.Entity<Role>().ToTable("role");
+            modelBuilder.Entity<Shift>().ToTable("shift");
+            modelBuilder.Entity<Status>().ToTable("status");
+            modelBuilder.Entity<Unit>().ToTable("unit");
+            modelBuilder.Entity<UnitType>().ToTable("unittype");
+            modelBuilder.Entity<User>().ToTable("user");
+            modelBuilder.Entity<WorkShift>().ToTable("workshift");
+
+            // User relationships.
             modelBuilder.Entity<User>()
                 .HasOne(u => u.role)
                 .WithMany(r => r.Users)
@@ -48,7 +66,19 @@ namespace QLNH_API.Data
                 .HasForeignKey(u => u.RestaurantId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ================== Restaurant - User ==================
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.CreatedUser)
+                .WithMany()
+                .HasForeignKey(u => u.CreatedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.UpdatedUser)
+                .WithMany()
+                .HasForeignKey(u => u.UpdatedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Restaurant relationships.
             modelBuilder.Entity<Restaurant>()
                 .HasOne(r => r.CreatedUser)
                 .WithMany()
@@ -61,7 +91,7 @@ namespace QLNH_API.Data
                 .HasForeignKey(r => r.UpdatedUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ================== Role - User ==================
+            // Role relationships.
             modelBuilder.Entity<Role>()
                 .HasOne(r => r.CreatedUser)
                 .WithMany()
@@ -74,7 +104,7 @@ namespace QLNH_API.Data
                 .HasForeignKey(r => r.UpdatedUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ================== GuestTable ==================
+            // Guest table relationships.
             modelBuilder.Entity<GuestTable>()
                 .HasOne(gt => gt.Status)
                 .WithMany()
@@ -85,8 +115,7 @@ namespace QLNH_API.Data
                 .WithMany()
                 .HasForeignKey(gt => gt.GuestId);
 
-
-            // ================== Order ==================
+            // Order relationships.
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.CreatedUser)
                 .WithMany()
@@ -104,6 +133,12 @@ namespace QLNH_API.Data
                .WithMany(gt => gt.Orders)
                .HasForeignKey(o => o.GuestTableId)
                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Guest)
+                .WithMany(g => g.Orders)
+                .HasForeignKey(o => o.GuestId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Status)
@@ -131,7 +166,7 @@ namespace QLNH_API.Data
                 .Property(o => o.FinalPrice)
                 .HasPrecision(18, 2);
 
-            // ================== Payment ==================
+            // Payment relationships.
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Order)
                 .WithMany()
@@ -146,20 +181,7 @@ namespace QLNH_API.Data
                 .HasIndex(p => p.TransactionId)
                 .IsUnique();
 
-            // ================== Order - OrderItem ==================
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Order)
-                .WithMany(o => o.OrderItems)
-                .HasForeignKey(oi => oi.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Item)
-                .WithMany() // Hoặc .WithMany(i => i.OrderItems) nếu bạn có navigation trong Item
-                .HasForeignKey(oi => oi.ItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // ================== Item ==================
+            // Item relationships.
             modelBuilder.Entity<Item>()
                 .HasOne(i => i.Unit)
                 .WithMany()
@@ -173,22 +195,12 @@ namespace QLNH_API.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ItemImage>()
-                 .HasOne(img => img.Item) // ItemImage có MỘT Item
-                 .WithMany(i => i.ItemImages) // Item có NHIỀU ItemImage
-                 .HasForeignKey(img => img.ItemId) // Khóa ngoại là ItemId
-                 .OnDelete(DeleteBehavior.SetNull);
+                .HasOne(img => img.Item)
+                .WithMany(i => i.ItemImages)
+                .HasForeignKey(img => img.ItemId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Guest)
-                .WithMany(g => g.Orders)
-                .HasForeignKey(o => o.GuestId)
-                .OnDelete(DeleteBehavior.Restrict);
-            // === THÊM CẤU HÌNH CHO Ingredient ===
-            modelBuilder.Entity<Ingredient>()
-                .Property(i => i.Unit)
-                .IsRequired();
-
-            // === THÊM CẤU HÌNH CHO Recipe ===
+            // Recipe relationships.
             modelBuilder.Entity<Recipe>()
                 .HasOne(r => r.Item)
                 .WithMany()
@@ -201,12 +213,11 @@ namespace QLNH_API.Data
                 .HasForeignKey(r => r.IngredientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Tạo unique constraint cho cặp ItemId + IngredientId
             modelBuilder.Entity<Recipe>()
                 .HasIndex(r => new { r.ItemId, r.IngredientId })
                 .IsUnique();
 
-            // ================== WorkShift ==================
+            // Work shift relationships.
             modelBuilder.Entity<WorkShift>()
                 .HasOne(ws => ws.User)
                 .WithMany()
@@ -219,14 +230,27 @@ namespace QLNH_API.Data
                 .HasForeignKey(ws => ws.ShiftId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // OrderItem - Status
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Order)
+                .WithMany(o => o.OrderItems)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Item)
+                .WithMany()
+                .HasForeignKey(oi => oi.ItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.CookingStatus)
                 .WithMany()
                 .HasForeignKey(oi => oi.CookingStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.Unit)
+                .IsRequired();
         }
-
-
     }
 }
