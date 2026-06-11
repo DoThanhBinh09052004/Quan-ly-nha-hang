@@ -25,7 +25,6 @@ namespace QLNH_API.Data
         public DbSet<Shift> Shift { get; set; }
         public DbSet<Status> Status { get; set; }
         public DbSet<Unit> Unit { get; set; }
-        public DbSet<UnitType> UnitType { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<WorkShift> WorkShift { get; set; }
 
@@ -33,7 +32,6 @@ namespace QLNH_API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Map entity names to the lowercase MySQL tables used in the deployed database.
             modelBuilder.Entity<Category>().ToTable("category");
             modelBuilder.Entity<Guest>().ToTable("guest");
             modelBuilder.Entity<GuestTable>().ToTable("guesttable");
@@ -49,7 +47,6 @@ namespace QLNH_API.Data
             modelBuilder.Entity<Shift>().ToTable("shift");
             modelBuilder.Entity<Status>().ToTable("status");
             modelBuilder.Entity<Unit>().ToTable("unit");
-            modelBuilder.Entity<UnitType>().ToTable("unittype");
             modelBuilder.Entity<User>().ToTable("user");
             modelBuilder.Entity<WorkShift>().ToTable("workshift");
 
