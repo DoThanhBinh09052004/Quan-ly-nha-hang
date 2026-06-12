@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -16,7 +16,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Category",
+                name: "category",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -36,7 +36,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Guest",
+                name: "guest",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -59,7 +59,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Ingredient",
+                name: "ingredient",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -81,7 +81,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Shift",
+                name: "shift",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -103,7 +103,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Status",
+                name: "status",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -123,7 +123,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Unit",
+                name: "unit",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -143,7 +143,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "GuestTable",
+                name: "guesttable",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -166,18 +166,18 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_GuestTable_Guest_GuestId",
                         column: x => x.GuestId,
-                        principalTable: "Guest",
+                        principalTable: "guest",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_GuestTable_Status_StatusId",
                         column: x => x.StatusId,
-                        principalTable: "Status",
+                        principalTable: "status",
                         principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Item",
+                name: "item",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -205,20 +205,20 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_Item_Category_CategoryId",
                         column: x => x.CategoryId,
-                        principalTable: "Category",
+                        principalTable: "category",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Item_Unit_UnitId",
                         column: x => x.UnitId,
-                        principalTable: "Unit",
+                        principalTable: "unit",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ItemImage",
+                name: "itemimage",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -240,14 +240,14 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_ItemImage_Item_ItemId",
                         column: x => x.ItemId,
-                        principalTable: "Item",
+                        principalTable: "item",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Recipe",
+                name: "recipe",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -264,20 +264,20 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_Recipe_Ingredient_IngredientId",
                         column: x => x.IngredientId,
-                        principalTable: "Ingredient",
+                        principalTable: "ingredient",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Recipe_Item_ItemId",
                         column: x => x.ItemId,
-                        principalTable: "Item",
+                        principalTable: "item",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Order",
+                name: "order",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -312,26 +312,26 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_Order_GuestTable_GuestTableId",
                         column: x => x.GuestTableId,
-                        principalTable: "GuestTable",
+                        principalTable: "guesttable",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Order_Guest_GuestId",
                         column: x => x.GuestId,
-                        principalTable: "Guest",
+                        principalTable: "guest",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Order_Status_StatusId",
                         column: x => x.StatusId,
-                        principalTable: "Status",
+                        principalTable: "status",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "OrderItem",
+                name: "orderitem",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -359,26 +359,26 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_OrderItem_Item_ItemId",
                         column: x => x.ItemId,
-                        principalTable: "Item",
+                        principalTable: "item",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_OrderItem_Order_OrderId",
                         column: x => x.OrderId,
-                        principalTable: "Order",
+                        principalTable: "order",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_OrderItem_Status_CookingStatusId",
                         column: x => x.CookingStatusId,
-                        principalTable: "Status",
+                        principalTable: "status",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Payment",
+                name: "payment",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -416,14 +416,14 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_Payment_Order_OrderId",
                         column: x => x.OrderId,
-                        principalTable: "Order",
+                        principalTable: "order",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Restaurant",
+                name: "restaurant",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -449,7 +449,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Role",
+                name: "role",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -471,7 +471,7 @@ namespace QLNH_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "User",
+                name: "user",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -497,32 +497,32 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_User_Restaurant_RestaurantId",
                         column: x => x.RestaurantId,
-                        principalTable: "Restaurant",
+                        principalTable: "restaurant",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_User_Role_RoleId",
                         column: x => x.RoleId,
-                        principalTable: "Role",
+                        principalTable: "role",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_User_User_CreatedUserId",
                         column: x => x.CreatedUserId,
-                        principalTable: "User",
+                        principalTable: "user",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_User_User_UpdatedUserId",
                         column: x => x.UpdatedUserId,
-                        principalTable: "User",
+                        principalTable: "user",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "WorkShift",
+                name: "workshift",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -542,13 +542,13 @@ namespace QLNH_API.Migrations
                     table.ForeignKey(
                         name: "FK_WorkShift_Shift_ShiftId",
                         column: x => x.ShiftId,
-                        principalTable: "Shift",
+                        principalTable: "shift",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_WorkShift_User_UserId",
                         column: x => x.UserId,
-                        principalTable: "User",
+                        principalTable: "user",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
@@ -556,192 +556,192 @@ namespace QLNH_API.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuestTable_GuestId",
-                table: "GuestTable",
+                table: "guesttable",
                 column: "GuestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuestTable_StatusId",
-                table: "GuestTable",
+                table: "guesttable",
                 column: "StatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Item_CategoryId",
-                table: "Item",
+                table: "item",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Item_UnitId",
-                table: "Item",
+                table: "item",
                 column: "UnitId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ItemImage_ItemId",
-                table: "ItemImage",
+                table: "itemimage",
                 column: "ItemId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_CreatedUserId",
-                table: "Order",
+                table: "order",
                 column: "CreatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_GuestId",
-                table: "Order",
+                table: "order",
                 column: "GuestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_GuestTableId",
-                table: "Order",
+                table: "order",
                 column: "GuestTableId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_StatusId",
-                table: "Order",
+                table: "order",
                 column: "StatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_UpdatedUserId",
-                table: "Order",
+                table: "order",
                 column: "UpdatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItem_CookingStatusId",
-                table: "OrderItem",
+                table: "orderitem",
                 column: "CookingStatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItem_ItemId",
-                table: "OrderItem",
+                table: "orderitem",
                 column: "ItemId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItem_OrderId",
-                table: "OrderItem",
+                table: "orderitem",
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payment_OrderId",
-                table: "Payment",
+                table: "payment",
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payment_TransactionId",
-                table: "Payment",
+                table: "payment",
                 column: "TransactionId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Recipe_IngredientId",
-                table: "Recipe",
+                table: "recipe",
                 column: "IngredientId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Recipe_ItemId_IngredientId",
-                table: "Recipe",
+                table: "recipe",
                 columns: new[] { "ItemId", "IngredientId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Restaurant_CreatedUserId",
-                table: "Restaurant",
+                table: "restaurant",
                 column: "CreatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Restaurant_UpdatedUserId",
-                table: "Restaurant",
+                table: "restaurant",
                 column: "UpdatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Role_CreatedUserId",
-                table: "Role",
+                table: "role",
                 column: "CreatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Role_UpdatedUserId",
-                table: "Role",
+                table: "role",
                 column: "UpdatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_CreatedUserId",
-                table: "User",
+                table: "user",
                 column: "CreatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_RestaurantId",
-                table: "User",
+                table: "user",
                 column: "RestaurantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_RoleId",
-                table: "User",
+                table: "user",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_UpdatedUserId",
-                table: "User",
+                table: "user",
                 column: "UpdatedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Username",
-                table: "User",
+                table: "user",
                 column: "Username",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkShift_ShiftId",
-                table: "WorkShift",
+                table: "workshift",
                 column: "ShiftId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkShift_UserId",
-                table: "WorkShift",
+                table: "workshift",
                 column: "UserId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Order_User_CreatedUserId",
-                table: "Order",
+                table: "order",
                 column: "CreatedUserId",
-                principalTable: "User",
+                principalTable: "user",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Order_User_UpdatedUserId",
-                table: "Order",
+                table: "order",
                 column: "UpdatedUserId",
-                principalTable: "User",
+                principalTable: "user",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Restaurant_User_CreatedUserId",
-                table: "Restaurant",
+                table: "restaurant",
                 column: "CreatedUserId",
-                principalTable: "User",
+                principalTable: "user",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Restaurant_User_UpdatedUserId",
-                table: "Restaurant",
+                table: "restaurant",
                 column: "UpdatedUserId",
-                principalTable: "User",
+                principalTable: "user",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Role_User_CreatedUserId",
-                table: "Role",
+                table: "role",
                 column: "CreatedUserId",
-                principalTable: "User",
+                principalTable: "user",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Role_User_UpdatedUserId",
-                table: "Role",
+                table: "role",
                 column: "UpdatedUserId",
-                principalTable: "User",
+                principalTable: "user",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
         }
@@ -751,70 +751,70 @@ namespace QLNH_API.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_Restaurant_User_CreatedUserId",
-                table: "Restaurant");
+                table: "restaurant");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Restaurant_User_UpdatedUserId",
-                table: "Restaurant");
+                table: "restaurant");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Role_User_CreatedUserId",
-                table: "Role");
+                table: "role");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Role_User_UpdatedUserId",
-                table: "Role");
+                table: "role");
 
             migrationBuilder.DropTable(
-                name: "ItemImage");
+                name: "itemimage");
 
             migrationBuilder.DropTable(
-                name: "OrderItem");
+                name: "orderitem");
 
             migrationBuilder.DropTable(
-                name: "Payment");
+                name: "payment");
 
             migrationBuilder.DropTable(
-                name: "Recipe");
+                name: "recipe");
 
             migrationBuilder.DropTable(
-                name: "WorkShift");
+                name: "workshift");
 
             migrationBuilder.DropTable(
-                name: "Order");
+                name: "order");
 
             migrationBuilder.DropTable(
-                name: "Ingredient");
+                name: "ingredient");
 
             migrationBuilder.DropTable(
-                name: "Item");
+                name: "item");
 
             migrationBuilder.DropTable(
-                name: "Shift");
+                name: "shift");
 
             migrationBuilder.DropTable(
-                name: "GuestTable");
+                name: "guesttable");
 
             migrationBuilder.DropTable(
-                name: "Category");
+                name: "category");
 
             migrationBuilder.DropTable(
-                name: "Unit");
+                name: "unit");
 
             migrationBuilder.DropTable(
-                name: "Guest");
+                name: "guest");
 
             migrationBuilder.DropTable(
-                name: "Status");
+                name: "status");
 
             migrationBuilder.DropTable(
-                name: "User");
+                name: "user");
 
             migrationBuilder.DropTable(
-                name: "Restaurant");
+                name: "restaurant");
 
             migrationBuilder.DropTable(
-                name: "Role");
+                name: "role");
         }
     }
 }
