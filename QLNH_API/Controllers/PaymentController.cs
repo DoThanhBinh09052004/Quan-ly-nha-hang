@@ -57,6 +57,9 @@ namespace QLNH_API.Controllers
             [JsonPropertyName("content")]
             public string? Content { get; set; }
 
+            [JsonPropertyName("description")]
+            public string? Description { get; set; }
+
             [JsonPropertyName("transferType")]
             public string? TransferType { get; set; }
 
@@ -81,7 +84,7 @@ namespace QLNH_API.Controllers
                     return NotFound("Khong tim thay don hang");
                 }
 
-                var amount = order.FinalPrice - order.PaidAmount;
+                var amount = NormalizeVndAmount(order.FinalPrice - order.PaidAmount);
                 if (amount <= 0)
                 {
                     return BadRequest("Don hang nay da duoc thanh toan du");
@@ -186,7 +189,8 @@ namespace QLNH_API.Controllers
                     return Ok(new { success = true, message = "Payment is already processed" });
                 }
 
-                if (request.TransferAmount != payment.Amount)
+                var transferAmount = NormalizeVndAmount(request.TransferAmount);
+                if (transferAmount != NormalizeVndAmount(payment.Amount))
                 {
                     await _context.SaveChangesAsync();
                     return BadRequest(new { success = false, message = "Transfer amount does not match payment amount" });
@@ -297,8 +301,10 @@ namespace QLNH_API.Controllers
         {
             var code = request.Code?.Trim();
             var content = request.Content ?? string.Empty;
+            var description = request.Description ?? string.Empty;
+            var webhookText = $"{code} {content} {description}";
 
-            return await _context.Payment
+            var exactMatch = await _context.Payment
                 .Include(p => p.Order)
                     .ThenInclude(o => o.OrderItems)
                 .Include(p => p.Order)
@@ -308,7 +314,33 @@ namespace QLNH_API.Controllers
                 .Where(p => p.Provider == "SEPAY")
                 .FirstOrDefaultAsync(p =>
                     (!string.IsNullOrEmpty(code) && p.AddInfo == code) ||
-                    content.Contains(p.AddInfo));
+                    content.Contains(p.AddInfo) ||
+                    description.Contains(p.AddInfo));
+
+            if (exactMatch != null)
+            {
+                return exactMatch;
+            }
+
+            var normalizedWebhookText = NormalizePaymentCode(webhookText);
+            if (string.IsNullOrEmpty(normalizedWebhookText))
+            {
+                return null;
+            }
+
+            var payments = await _context.Payment
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.OrderItems)
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.GuestTable)
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.Guest)
+                .Where(p => p.Provider == "SEPAY")
+                .ToListAsync();
+
+            return payments.FirstOrDefault(p =>
+                !string.IsNullOrWhiteSpace(p.AddInfo) &&
+                normalizedWebhookText.Contains(NormalizePaymentCode(p.AddInfo)));
         }
 
         private async Task<Payment?> GetPaymentWithOrderAsync(long paymentId)
@@ -341,12 +373,13 @@ namespace QLNH_API.Controllers
             if (order != null)
             {
                 var remainingAmount = order.FinalPrice - order.PaidAmount;
-                if (remainingAmount != payment.Amount)
+                var expectedPaymentAmount = NormalizeVndAmount(remainingAmount);
+                if (expectedPaymentAmount != NormalizeVndAmount(payment.Amount))
                 {
                     throw new InvalidOperationException("Payment amount no longer matches the order remaining amount.");
                 }
 
-                order.PaidAmount += payment.Amount;
+                order.PaidAmount = order.FinalPrice;
                 order.ChangeAmount = 0;
                 order.StatusId = 3;
                 order.CheckOutTime = now;
@@ -413,9 +446,22 @@ namespace QLNH_API.Controllers
 
         private string BuildSepayQrUrl(string bankCode, string accountNo, decimal amount, string addInfo)
         {
-            var amountText = amount.ToString("0", CultureInfo.InvariantCulture);
+            var amountText = NormalizeVndAmount(amount).ToString("0", CultureInfo.InvariantCulture);
             var encodedAddInfo = Uri.EscapeDataString(addInfo);
             return $"https://qr.sepay.vn/img?acc={accountNo}&bank={bankCode}&amount={amountText}&des={encodedAddInfo}&template=compact";
+        }
+
+        private static decimal NormalizeVndAmount(decimal amount)
+        {
+            return decimal.Round(amount, 0, MidpointRounding.AwayFromZero);
+        }
+
+        private static string NormalizePaymentCode(string value)
+        {
+            return new string(value
+                .Where(char.IsLetterOrDigit)
+                .Select(char.ToUpperInvariant)
+                .ToArray());
         }
 
         private bool IsValidSepayApiKey()
