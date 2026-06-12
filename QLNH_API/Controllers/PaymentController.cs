@@ -46,7 +46,7 @@ namespace QLNH_API.Controllers
             public string? Gateway { get; set; }
 
             [JsonPropertyName("transactionDate")]
-            public DateTime? TransactionDate { get; set; }
+            public string? TransactionDate { get; set; }
 
             [JsonPropertyName("accountNumber")]
             public string? AccountNumber { get; set; }
