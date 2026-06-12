@@ -261,6 +261,38 @@ namespace QLNH_API.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Manager, Cashier")]
+        public async Task<IActionResult> GetPayment(long id)
+        {
+            try
+            {
+                var payment = await _context.Payment
+                    .Include(p => p.Order)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (payment == null)
+                {
+                    return NotFound("Khong tim thay giao dich thanh toan");
+                }
+
+                return Ok(new
+                {
+                    PaymentId = payment.Id,
+                    Status = payment.Status,
+                    OrderId = payment.OrderId,
+                    OrderStatus = payment.Order?.StatusId,
+                    PaidAmount = payment.Order?.PaidAmount,
+                    ExpiresAt = payment.ExpiresAt
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting payment status: {ex.Message}");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
         private async Task<Payment?> FindPaymentFromWebhookAsync(SepayWebhookRequest request)
         {
             var code = request.Code?.Trim();
