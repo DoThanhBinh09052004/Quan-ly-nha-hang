@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QLNH_API.Data;
+using QLNH_API.DTO;
 
 namespace QLNH_API.Services
 {
@@ -52,6 +53,56 @@ namespace QLNH_API.Services
                .ToListAsync();
 
             return revenueByDay;
+        }
+
+        public async Task<GrossProfitMarginReportDTO> GetGrossProfitAndProfitMarginReport()
+        {
+            var orderRows = await _context.Order
+                .Where(o => !o.Deleted && !o.Voided && o.StatusId == 3)
+                .Select(o => new
+                {
+                    o.Created,
+                    TotalRevenue = o.FinalPrice,
+                    TotalCost = o.ActualCost
+                })
+                .ToListAsync();
+
+            return new GrossProfitMarginReportDTO
+            {
+                Daily = orderRows
+                    .GroupBy(x => new { x.Created.Year, x.Created.Month, x.Created.Day })
+                    .Select(g => CreateGrossProfitMarginReportItem(
+                        g.Key.Year,
+                        g.Key.Month,
+                        g.Key.Day,
+                        g.Sum(x => x.TotalRevenue),
+                        g.Sum(x => x.TotalCost)))
+                    .OrderBy(x => x.Year)
+                    .ThenBy(x => x.Month)
+                    .ThenBy(x => x.Day)
+                    .ToList(),
+                Monthly = orderRows
+                    .GroupBy(x => new { x.Created.Year, x.Created.Month })
+                    .Select(g => CreateGrossProfitMarginReportItem(
+                        g.Key.Year,
+                        g.Key.Month,
+                        null,
+                        g.Sum(x => x.TotalRevenue),
+                        g.Sum(x => x.TotalCost)))
+                    .OrderBy(x => x.Year)
+                    .ThenBy(x => x.Month)
+                    .ToList(),
+                Yearly = orderRows
+                    .GroupBy(x => x.Created.Year)
+                    .Select(g => CreateGrossProfitMarginReportItem(
+                        g.Key,
+                        null,
+                        null,
+                        g.Sum(x => x.TotalRevenue),
+                        g.Sum(x => x.TotalCost)))
+                    .OrderBy(x => x.Year)
+                    .ToList()
+            };
         }
         public async Task<object> GetRevenueByHour(int days = 30)
         {
@@ -110,11 +161,80 @@ namespace QLNH_API.Services
                     TotalRevenue = g.Sum(x => x.SalePrice * x.Quantity),
                     OrderCount = g.Select(x => x.OrderId).Distinct().Count()
                 })
-                .OrderByDescending(x => x.TotalQuantity)
+                .OrderByDescending(x => x.TotalRevenue)
                 .Take(top)
                 .ToListAsync();
 
             return bestSellers;
+        }
+
+        public async Task<object> GetBestSellingItemsByCategory(int categoryId, int days = 30, int top = 10)
+        {
+            var fromDate = DateTime.Now.AddDays(-days);
+
+            var bestSellers = await _context.OrderItem
+                .Include(oi => oi.Item)
+                    .ThenInclude(i => i.Category)
+                .Where(oi =>
+                    oi.Created >= fromDate &&
+                    !oi.Deleted &&
+                    !oi.Voided &&
+                    oi.Item != null &&
+                    oi.Item.CategoryId == categoryId)
+                .GroupBy(oi => new
+                {
+                    oi.ItemId,
+                    ItemName = oi.Name,
+                    CategoryId = oi.Item.CategoryId,
+                    CategoryName = oi.Item.Category.Name
+                })
+                .Select(g => new
+                {
+                    ItemId = g.Key.ItemId,
+                    ItemName = g.Key.ItemName,
+                    CategoryId = g.Key.CategoryId,
+                    CategoryName = g.Key.CategoryName,
+                    TotalQuantity = g.Sum(x => x.Quantity),
+                    TotalRevenue = g.Sum(x => x.SalePrice * x.Quantity),
+                    OrderCount = g.Select(x => x.OrderId).Distinct().Count()
+                })
+                .OrderByDescending(x => x.TotalRevenue)
+                .Take(top)
+                .ToListAsync();
+
+            return bestSellers;
+        }
+
+        public async Task<object> GetRevenueByCategory(int days = 30)
+        {
+            var fromDate = DateTime.Now.AddDays(-days);
+
+            var revenueByCategory = await _context.OrderItem
+                .Include(oi => oi.Item)
+                    .ThenInclude(i => i.Category)
+                .Where(oi =>
+                    oi.Created >= fromDate &&
+                    !oi.Deleted &&
+                    !oi.Voided &&
+                    oi.Item != null &&
+                    oi.Item.Category != null)
+                .GroupBy(oi => new
+                {
+                    oi.Item.CategoryId,
+                    CategoryName = oi.Item.Category.Name
+                })
+                .Select(g => new
+                {
+                    CategoryId = g.Key.CategoryId,
+                    CategoryName = g.Key.CategoryName,
+                    TotalRevenue = g.Sum(x => x.SalePrice * x.Quantity),
+                    TotalQuantity = g.Sum(x => x.Quantity),
+                    OrderCount = g.Select(x => x.OrderId).Distinct().Count()
+                })
+                .OrderByDescending(x => x.TotalRevenue)
+                .ToListAsync();
+
+            return revenueByCategory;
         }
 
         public async Task<object> GetTableTurnoverAnalysis(int days = 30)
@@ -256,6 +376,65 @@ namespace QLNH_API.Services
             {
                 HistoricalData = historicalData.TakeLast(30),
                 Forecast = forecast
+            };
+        }
+
+        public async Task<object> GetRelativeBusinessSituation()
+        {
+            var today = DateTime.Now.Date;
+
+            return new
+            {
+                Today = await GetBusinessSituationRange(today, today.AddDays(1), "Hôm nay"),
+                Yesterday = await GetBusinessSituationRange(today.AddDays(-1), today, "Hôm qua"),
+                Last7Days = await GetBusinessSituationRange(today.AddDays(-7), today, "7 ngày gần nhất tính đến hôm qua"),
+                Last30Days = await GetBusinessSituationRange(today.AddDays(-30), today, "30 ngày gần nhất tính đến hôm qua")
+            };
+        }
+
+        public object GetChatbotInterpretationNotes()
+        {
+            return new
+            {
+                Daily = "Daily chỉ gồm các ngày có doanh thu. Nếu thiếu ngày thì hiểu là không có doanh thu hoặc không có order hoàn tất trong ngày đó.",
+                Monthly = "Monthly chỉ gồm các tháng có doanh thu. Nếu thiếu tháng thì hiểu là không có doanh thu hoặc không có order hoàn tất trong tháng đó.",
+                RecentRevenueWeek = "Nếu cần nhìn theo 1 tuần có doanh thu gần nhất từ dữ liệu Daily, hãy hiểu là 7 ngày có doanh thu gần nhất, không phải tuần lịch vừa rồi.",
+                RecentRevenueMonth = "Nếu cần nhìn theo 1 tháng có doanh thu gần nhất từ dữ liệu Daily, hãy hiểu là 30 ngày có doanh thu gần nhất, không phải tháng lịch vừa rồi."
+            };
+        }
+
+        private GrossProfitMarginReportItemDTO CreateGrossProfitMarginReportItem(int year, int? month, int? day, decimal totalRevenue, decimal totalCost)
+        {
+            var grossProfit = totalRevenue - totalCost;
+
+            return new GrossProfitMarginReportItemDTO
+            {
+                Year = year,
+                Month = month,
+                Day = day,
+                TotalRevenue = totalRevenue,
+                TotalCost = totalCost,
+                GrossProfit = grossProfit,
+                ProfitMargin = totalRevenue == 0 ? 0 : (grossProfit / totalRevenue) * 100
+            };
+        }
+
+        private async Task<object> GetBusinessSituationRange(DateTime fromDate, DateTime toDate, string label)
+        {
+            var orders = await _context.Order
+                .Where(o => !o.Deleted && !o.Voided && o.StatusId == 3 && o.Created >= fromDate && o.Created < toDate)
+                .ToListAsync();
+
+            return new
+            {
+                Label = label,
+                FromDate = fromDate,
+                ToDate = toDate.AddDays(-1),
+                TotalRevenue = orders.Sum(x => x.FinalPrice),
+                TotalCost = orders.Sum(x => x.ActualCost),
+                TotalProfit = orders.Sum(x => x.ActualProfit),
+                TotalOrders = orders.Count,
+                AverageOrderValue = orders.Count > 0 ? orders.Average(x => x.FinalPrice) : 0
             };
         }
     }

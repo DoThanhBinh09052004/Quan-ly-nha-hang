@@ -26,33 +26,97 @@ namespace QLNH_API.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Manager, Cashier")]
-        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrder()
+        public async Task<ActionResult<OrderListResponseDTO>> GetOrder(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? sortField = "created",
+            [FromQuery] string? sortOrder = "desc")
         {
             try
             {
-                var orders = await _context.Order
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Item)
-                    .Include(o => o.CreatedUser)
-                    .Include(o => o.UpdatedUser)
-                    .Include(o => o.GuestTable)
-                    .Include(o => o.Guest)
-                    .Include(o => o.Status)
-                    .Where(o => !o.Deleted)
-                    .ToListAsync();
+                page = Math.Max(page, 1);
+                pageSize = Math.Clamp(pageSize, 1, 100);
 
-                if (orders == null || !orders.Any())
+                var query = _context.Order
+                    .AsNoTracking()
+                    .Where(o => !o.Deleted);
+
+                if (!string.IsNullOrWhiteSpace(search))
                 {
-                    return NotFound("No orders found.");
+                    var keyword = $"%{search.Trim()}%";
+                    query = query.Where(o =>
+                        EF.Functions.Like(o.OrderNumber, keyword) ||
+                        (o.GuestTable != null && EF.Functions.Like(o.GuestTable.Name, keyword)) ||
+                        (o.Status != null && EF.Functions.Like(o.Status.Name, keyword)));
                 }
 
-                var orderDTOs = _mapper.Map<IEnumerable<OrderDTO>>(orders);
-                return Ok(orderDTOs);
+                var totalRecords = await query.CountAsync();
+
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+                var todayRevenue = await _context.Order
+                    .AsNoTracking()
+                    .Where(o => !o.Deleted && o.Created >= today && o.Created < tomorrow)
+                    .SumAsync(o => (decimal?)o.FinalPrice) ?? 0m;
+
+                var descending = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase) || sortOrder == "-1";
+                query = (sortField ?? "").ToLowerInvariant() switch
+                {
+                    "ordernumber" => descending ? query.OrderByDescending(o => o.OrderNumber) : query.OrderBy(o => o.OrderNumber),
+                    "totalprice" => descending ? query.OrderByDescending(o => o.TotalPrice) : query.OrderBy(o => o.TotalPrice),
+                    "finalprice" => descending ? query.OrderByDescending(o => o.FinalPrice) : query.OrderBy(o => o.FinalPrice),
+                    "paidamount" => descending ? query.OrderByDescending(o => o.PaidAmount) : query.OrderBy(o => o.PaidAmount),
+                    "changeamount" => descending ? query.OrderByDescending(o => o.ChangeAmount) : query.OrderBy(o => o.ChangeAmount),
+                    "guesttable.name" => descending ? query.OrderByDescending(o => o.GuestTable != null ? o.GuestTable.Name : "") : query.OrderBy(o => o.GuestTable != null ? o.GuestTable.Name : ""),
+                    "status.name" => descending ? query.OrderByDescending(o => o.Status != null ? o.Status.Name : "") : query.OrderBy(o => o.Status != null ? o.Status.Name : ""),
+                    "updated" => descending ? query.OrderByDescending(o => o.Updated) : query.OrderBy(o => o.Updated),
+                    _ => descending ? query.OrderByDescending(o => o.Created) : query.OrderBy(o => o.Created),
+                };
+
+                var items = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(o => new OrderListItemDTO
+                    {
+                        Id = o.Id,
+                        OrderNumber = o.OrderNumber,
+                        Created = o.Created,
+                        Updated = o.Updated,
+                        TotalPrice = o.TotalPrice,
+                        Discount = o.Discount,
+                        FinalPrice = o.FinalPrice,
+                        PaidAmount = o.PaidAmount,
+                        ChangeAmount = o.ChangeAmount,
+                        GuestPhone = o.GuestPhone,
+                        GuestTableId = o.GuestTableId,
+                        GuestTable = o.GuestTable == null ? null : new SimpleLookupDTO
+                        {
+                            Id = o.GuestTable.Id,
+                            Name = o.GuestTable.Name
+                        },
+                        Status = o.Status == null ? null : new SimpleLookupDTO
+                        {
+                            Id = o.Status.Id,
+                            Name = o.Status.Name
+                        }
+                    })
+                    .ToListAsync();
+
+                return Ok(new OrderListResponseDTO
+                {
+                    Items = items,
+                    TotalRecords = totalRecords,
+                    TodayRevenue = todayRevenue
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting orders: {ex.Message}");
-                return StatusCode(500, "Internal server error. Please try again later.");
+                Console.WriteLine($"Error getting orders: {ex}");
+                return Problem(
+                    title: "Internal server error",
+                    detail: "Failed to get orders.",
+                    statusCode: 500);
             }
         }
 
@@ -82,17 +146,44 @@ namespace QLNH_API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting order: {ex.Message}");
-                return StatusCode(500, "Internal server error.");
+                Console.WriteLine($"Error getting order: {ex}");
+                return Problem(
+                    title: "Internal server error",
+                    detail: "Failed to get the order.",
+                    statusCode: 500);
             }
         }
 
         [HttpPost]
         [Authorize(Roles = "Manager,Cashier")]
-        public async Task<ActionResult<OrderDTO>> CreateOrder(Order order)
+        public async Task<ActionResult<OrderDTO>> CreateOrder([FromBody] CreateOrderRequest request)
         {
             try
             {
+                var order = new Order
+                {
+                    OrderNumber = string.IsNullOrWhiteSpace(request.OrderNumber) ? GenerateOrderNumber() : request.OrderNumber,
+                    Description = request.Description,
+                    TotalPrice = request.TotalPrice,
+                    PaidAmount = request.PaidAmount,
+                    ChangeAmount = request.ChangeAmount,
+                    GuestPhone = request.GuestPhone,
+                    GuestId = request.GuestId,
+                    GuestTableId = request.GuestTableId,
+                    Discount = request.Discount,
+                    FinalPrice = request.FinalPrice,
+                    OrderItems = request.OrderItems?.Select(item => new OrderItem
+                    {
+                        Name = item.Name,
+                        Description = item.Description,
+                        Quantity = item.Quantity,
+                        SalePrice = item.SalePrice,
+                        ItemId = item.ItemId,
+                        CookingStatusId = item.CookingStatusId ?? 9,
+                        KitchenNote = item.KitchenNote
+                    }).ToList()
+                };
+
                 // 1. Xử lý giảm giá nếu có số điện thoại khách hàng
                 if (!string.IsNullOrEmpty(order.GuestPhone))
                 {
@@ -115,15 +206,21 @@ namespace QLNH_API.Controllers
                 }
 
                 // 2. Tính final price - QUAN TRỌNG: finalPrice = totalPrice - discount
-                order.FinalPrice = order.TotalPrice - order.Discount; 
+                order.FinalPrice = order.TotalPrice - order.Discount;
+                order.ActualCost = 0;
+                order.ActualProfit = order.FinalPrice;
 
                 // 3. Xử lý order items
                 if (order.OrderItems != null)
                 {
                     foreach (var item in order.OrderItems)
                     {
+                        item.Order = order;
                         item.Created = DateTime.Now;
                         item.Updated = DateTime.Now;
+                        item.Deleted = false;
+                        item.Voided = false;
+                        item.CookingStatusId ??= 9;
                     }
                 }
 
@@ -145,11 +242,25 @@ namespace QLNH_API.Controllers
                 // 6. Tính tiền thừa nếu có paidAmount
                 if (order.PaidAmount > 0)
                 {
-                    order.ChangeAmount = order.PaidAmount - order.FinalPrice;
+                    order.ChangeAmount = Math.Max(0, order.PaidAmount - order.FinalPrice);
+                }
+                else
+                {
+                    order.ChangeAmount = 0;
                 }
 
                 _context.Order.Add(order);
                 await _context.SaveChangesAsync();
+
+                try
+                {
+                    await ApplyOrderActualProfitAsync(order);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception profitEx)
+                {
+                    Console.WriteLine($"Failed to calculate order profit after create for OrderId {order.Id}: {profitEx}");
+                }
 
                 // 7. Thanh toán tự động nếu đã nhập paidAmount đủ
                 if (order.PaidAmount >= order.FinalPrice)
@@ -163,8 +274,11 @@ namespace QLNH_API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating order: {ex.Message}");
-                return StatusCode(500, "Internal server error.");
+                Console.WriteLine($"Error creating order: {ex}");
+                return Problem(
+                    title: "Internal server error",
+                    detail: $"Failed to create the order. {ex.Message}",
+                    statusCode: 500);
             }
         }
 
@@ -206,7 +320,7 @@ namespace QLNH_API.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Manager, Cashier")]
-        public async Task<IActionResult> Update(int id, [FromBody] Order updatedOrder)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateOrderRequest request)
         {
             try
             {
@@ -220,50 +334,79 @@ namespace QLNH_API.Controllers
                     return NotFound("Order không tồn tại");
 
                 // Xử lý giảm giá nếu có thay đổi số điện thoại
-                if (!string.IsNullOrEmpty(updatedOrder.GuestPhone) &&
-                    updatedOrder.GuestPhone != existingOrder.GuestPhone)
+                var paidAmount = request.PaidAmount;
+                var guestPhone = string.IsNullOrWhiteSpace(request.GuestPhone) ? null : request.GuestPhone.Trim();
+                var guestId = request.GuestId;
+                var discount = request.Discount;
+
+                if (!string.IsNullOrEmpty(guestPhone) &&
+                    guestPhone != existingOrder.GuestPhone)
                 {
                     var guest = await _context.Guest
-                        .FirstOrDefaultAsync(g => g.Phone == updatedOrder.GuestPhone && !g.Deleted);
+                        .FirstOrDefaultAsync(g => g.Phone == guestPhone && !g.Deleted);
 
                     if (guest != null)
                     {
                         // Áp dụng giảm giá 3%
-                        updatedOrder.Discount = updatedOrder.TotalPrice * 0.03m;
-                        updatedOrder.GuestId = guest.Id;
-                        existingOrder.GuestPhone = updatedOrder.GuestPhone;
+                        discount = request.TotalPrice * 0.03m;
+                        guestId = guest.Id;
+                        existingOrder.GuestPhone = guestPhone;
                     }
                     else
                     {
-                        updatedOrder.Discount = 0;
-                        updatedOrder.GuestId = null;
-                        existingOrder.GuestPhone = updatedOrder.GuestPhone;
+                        discount = 0;
+                        guestId = null;
+                        existingOrder.GuestPhone = guestPhone;
                     }
                 }
-                else if (string.IsNullOrEmpty(updatedOrder.GuestPhone))
+                else if (string.IsNullOrEmpty(guestPhone))
                 {
-                    updatedOrder.Discount = 0;
-                    updatedOrder.GuestId = null;
+                    discount = 0;
+                    guestId = null;
                     existingOrder.GuestPhone = null;
                 }
+                else
+                {
+                    existingOrder.GuestPhone = guestPhone;
+                }
 
-                updatedOrder.FinalPrice = updatedOrder.TotalPrice - updatedOrder.Discount;
+                var finalPrice = request.TotalPrice - discount;
+                var changeAmount = paidAmount > 0
+                    ? Math.Max(0, paidAmount - finalPrice)
+                    : 0;
 
                 // Cập nhật các trường
-                existingOrder.GuestId = updatedOrder.GuestId;
-                existingOrder.Discount = updatedOrder.Discount;
-                existingOrder.FinalPrice = updatedOrder.FinalPrice;
-                existingOrder.TotalPrice = updatedOrder.TotalPrice;
-                existingOrder.PaidAmount = updatedOrder.PaidAmount;
-                existingOrder.Description = updatedOrder.Description;
-                existingOrder.GuestTableId = updatedOrder.GuestTableId;
-                existingOrder.ChangeAmount=existingOrder.PaidAmount - existingOrder.FinalPrice;
+                existingOrder.OrderNumber = string.IsNullOrWhiteSpace(request.OrderNumber)
+                    ? existingOrder.OrderNumber
+                    : request.OrderNumber.Trim();
+                existingOrder.GuestId = guestId;
+                existingOrder.Discount = discount;
+                existingOrder.FinalPrice = finalPrice;
+                existingOrder.TotalPrice = request.TotalPrice;
+                existingOrder.PaidAmount = paidAmount;
+                existingOrder.Description = request.Description;
+                existingOrder.GuestTableId = request.GuestTableId;
+                existingOrder.ChangeAmount = changeAmount;
                 existingOrder.Updated = DateTime.Now;
+
+                Console.WriteLine($"[Order Update] Updating OrderId={id}, TotalPrice={existingOrder.TotalPrice}, Discount={existingOrder.Discount}, FinalPrice={existingOrder.FinalPrice}, PaidAmount={existingOrder.PaidAmount}, ChangeAmount={existingOrder.ChangeAmount}, GuestTableId={existingOrder.GuestTableId}, GuestId={existingOrder.GuestId}, GuestPhone={existingOrder.GuestPhone}");
 
                 await _context.SaveChangesAsync();
 
+                try
+                {
+                    Console.WriteLine($"[Order Update] Recalculating actual profit for OrderId={existingOrder.Id} with {existingOrder.OrderItems?.Count ?? 0} order items.");
+                    await ApplyOrderActualProfitAsync(existingOrder);
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine($"[Order Update] Recalculated profit for OrderId={existingOrder.Id}, ActualCost={existingOrder.ActualCost}, ActualProfit={existingOrder.ActualProfit}");
+                }
+                catch (Exception profitEx)
+                {
+                    Console.WriteLine($"Failed to calculate order profit after update for OrderId {existingOrder.Id}: {profitEx}");
+                }
+
                 // Thanh toán nếu đủ tiền
-                if (updatedOrder.PaidAmount >= existingOrder.FinalPrice)
+                if (paidAmount >= existingOrder.FinalPrice)
                 {
                     existingOrder.CheckOutTime = DateTime.Now;
                     await PayOrderInternal(existingOrder);
@@ -274,8 +417,11 @@ namespace QLNH_API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating order: {ex.Message}");
-                return StatusCode(500, "Internal server error.");
+                Console.WriteLine($"Error updating order: {ex}");
+                return Problem(
+                    title: "Internal server error",
+                    detail: $"Failed to update the order. {ex.Message}",
+                    statusCode: 500);
             }
         }
 
@@ -344,11 +490,13 @@ namespace QLNH_API.Controllers
                     order.ChangeAmount = order.PaidAmount - order.FinalPrice;
                 }
 
+                await ApplyOrderActualProfitAsync(order);
+
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in PayOrderInternal: {ex.Message}");
+                Console.WriteLine($"Error in PayOrderInternal: {ex}");
                 throw; // Re-throw để controller có thể xử lý
             }
         }
@@ -356,6 +504,37 @@ namespace QLNH_API.Controllers
         private string GenerateOrderNumber()
         {
             return "ORD-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        }
+
+        private async Task ApplyOrderActualProfitAsync(Order order)
+        {
+            decimal actualCost = 0;
+
+            if (order.OrderItems != null && order.OrderItems.Any())
+            {
+                foreach (var orderItem in order.OrderItems.Where(oi => !oi.Deleted && !oi.Voided && oi.ItemId.HasValue))
+                {
+                    var recipeRows = await (
+                        from r in _context.Recipe
+                        join i in _context.Ingredient on r.IngredientId equals i.Id
+                        where r.ItemId == orderItem.ItemId.Value && !i.Deleted
+                        select new
+                        {
+                            r.QuantityNeeded,
+                            i.RawMaterialCost
+                        }
+                    ).ToListAsync();
+
+                    var recipeCost = recipeRows.Sum(row => (decimal)row.QuantityNeeded * row.RawMaterialCost);
+
+                    Console.WriteLine($"[Order Profit] OrderId={order.Id}, ItemId={orderItem.ItemId}, Quantity={orderItem.Quantity}, RecipeRowCount={recipeRows.Count}, UnitRecipeCost={recipeCost}");
+
+                    actualCost += recipeCost * orderItem.Quantity;
+                }
+            }
+
+            order.ActualCost = actualCost;
+            order.ActualProfit = order.FinalPrice - actualCost;
         }
 
         [HttpPost("ai-recommendations")]
@@ -454,6 +633,7 @@ namespace QLNH_API.Controllers
             {
                 var order = await _context.Order
                     .Include(o => o.Guest)
+                    .Include(o => o.OrderItems)
                     .FirstOrDefaultAsync(o => o.Id == id && !o.Deleted);
 
                 if (order == null)
@@ -502,6 +682,7 @@ namespace QLNH_API.Controllers
                 // Cập nhật giảm giá và điểm
                 order.Discount += discountValue;
                 order.FinalPrice = order.TotalPrice - order.Discount; // FinalPrice được tính lại sau khi cộng thêm discount
+                await ApplyOrderActualProfitAsync(order);
                 order.Guest.Points -= request.PointsToUse;
                 order.Updated = DateTime.Now;
 
@@ -518,14 +699,56 @@ namespace QLNH_API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error using points: {ex.Message}");
-                return StatusCode(500, "Internal server error.");
+                Console.WriteLine($"Error using points: {ex}");
+                return Problem(
+                    title: "Internal server error",
+                    detail: "Failed to use points for the order.",
+                    statusCode: 500);
             }
         }
 
         public class UsePointsRequest
         {
             public int PointsToUse { get; set; }
+        }
+
+        public class CreateOrderRequest
+        {
+            public string? OrderNumber { get; set; }
+            public string? Description { get; set; }
+            public decimal TotalPrice { get; set; }
+            public decimal PaidAmount { get; set; } = 0;
+            public decimal ChangeAmount { get; set; } = 0;
+            public string? GuestPhone { get; set; }
+            public int? GuestId { get; set; }
+            public int? GuestTableId { get; set; }
+            public decimal Discount { get; set; } = 0;
+            public decimal FinalPrice { get; set; } = 0;
+            public List<CreateOrderItemRequest>? OrderItems { get; set; }
+        }
+
+        public class CreateOrderItemRequest
+        {
+            public string Name { get; set; } = "";
+            public string? Description { get; set; }
+            public int Quantity { get; set; } = 1;
+            public double SalePrice { get; set; }
+            public int? ItemId { get; set; }
+            public int? CookingStatusId { get; set; }
+            public string? KitchenNote { get; set; }
+        }
+
+        public class UpdateOrderRequest
+        {
+            public string? OrderNumber { get; set; }
+            public string? Description { get; set; }
+            public decimal TotalPrice { get; set; }
+            public decimal PaidAmount { get; set; } = 0;
+            public string? GuestPhone { get; set; }
+            public int? GuestId { get; set; }
+            public int? GuestTableId { get; set; }
+            public decimal Discount { get; set; } = 0;
+            public decimal FinalPrice { get; set; } = 0;
         }
     }
 }

@@ -21,6 +21,8 @@ namespace QLNH_API.Model
         public int? GuestId { get; set; }
         public decimal Discount { get; set; } = 0;
         public decimal FinalPrice { get; set; } = 0;
+        public decimal ActualCost { get; set; } = 0;
+        public decimal ActualProfit { get; set; } = 0;
         public DateTime? CheckInTime { get; set; }
         public DateTime? CheckOutTime { get; set; }
         public int PartySize { get; set; } = 1;

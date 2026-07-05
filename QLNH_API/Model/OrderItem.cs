@@ -28,7 +28,7 @@ namespace QLNH_API.Model
 
         [ForeignKey("OrderId")]
         [JsonIgnore]
-        public virtual Order Order { get; set; }
+        public virtual Order? Order { get; set; }
 
         [ForeignKey("CookingStatusId")]
         public virtual Status? CookingStatus { get; set; }

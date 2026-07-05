@@ -5,6 +5,7 @@ namespace QLNH_API.DTO
     public sealed class BusinessChatRequestDto
     {
         public string Message { get; set; } = "";
+        public string Intent { get; set; } = "";
         public int DaysHour { get; set; } = 30;
         public int DaysDow { get; set; } = 90;
         public int DaysBest { get; set; } = 30;
@@ -26,6 +27,9 @@ namespace QLNH_API.DTO
         public object ByPartySize { get; set; } = new();
         public object Forecast { get; set; } = new();
         public object ListOfItem { get; set; } = new();
+        public object GrossProfitReport { get; set; } = new();
+        public object RelativePeriods { get; set; } = new();
+        public object InterpretationNotes { get; set; } = new();
 
 
     }
@@ -34,6 +38,7 @@ namespace QLNH_API.DTO
     public sealed class AiBusinessChatRequestDto
     {
         public string Message { get; set; } = "";
+        public string Intent { get; set; } = "";
         public RevenueBusinessSnapshotDto Snapshot { get; set; } = new();
     }
 
@@ -44,10 +49,8 @@ namespace QLNH_API.DTO
         public string AnswerText { get; set; } = "";
         public JsonElement Kpis { get; set; } // giữ flexible
         public JsonElement Insights { get; set; } // array
-        //public JsonElement Actions { get; set; } // array
-        /// <summary>
-        //public JsonElement Risks { get; set; } // array
-        /// </summary>
+        public JsonElement Actions { get; set; } // array
+        public JsonElement Risks { get; set; } // array
         public JsonElement FollowUpQuestions { get; set; } // array
     }
 }

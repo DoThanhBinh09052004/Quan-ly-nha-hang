@@ -59,6 +59,7 @@ namespace QLNH_API.Controllers
             {
                 Name = dto.Name,
                 Unit = dto.Unit,
+                RawMaterialCost = dto.RawMaterialCost,
                 StockQuantity = dto.StockQuantity,
                 MinStock = dto.MinStock,
                 Created = DateTime.Now,
@@ -85,6 +86,7 @@ namespace QLNH_API.Controllers
 
             ingredient.Name = dto.Name;
             ingredient.Unit = dto.Unit;
+            ingredient.RawMaterialCost = dto.RawMaterialCost;
             ingredient.StockQuantity = dto.StockQuantity;
             ingredient.MinStock = dto.MinStock;
             ingredient.Updated = DateTime.Now;

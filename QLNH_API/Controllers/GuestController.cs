@@ -125,6 +125,12 @@ namespace QLNH_API.Controllers
                 {
                     GuestId = id,
                     Cluster = -1,
+                    ClusterName = "Chưa xác định",
+                    ClusterDescription = "Không thể tải dữ liệu phân khúc khách hàng lúc này.",
+                    ClusterTraits = new List<string>(),
+                    GuestProfileName = "Chưa xác định",
+                    GuestProfileDescription = "Không thể tải dữ liệu khách hiện tại lúc này.",
+                    GuestProfileTraits = new List<string>(),
                     Features = new Dictionary<string, System.Text.Json.JsonElement>()
                 });
             }
@@ -134,6 +140,12 @@ namespace QLNH_API.Controllers
                 {
                     GuestId = id,
                     Cluster = -1,
+                    ClusterName = "Chưa xác định",
+                    ClusterDescription = "Không thể tải dữ liệu phân khúc khách hàng lúc này.",
+                    ClusterTraits = new List<string>(),
+                    GuestProfileName = "Chưa xác định",
+                    GuestProfileDescription = "Không thể tải dữ liệu khách hiện tại lúc này.",
+                    GuestProfileTraits = new List<string>(),
                     Features = new Dictionary<string, System.Text.Json.JsonElement>()
                 });
             }

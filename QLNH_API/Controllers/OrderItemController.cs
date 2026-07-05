@@ -91,6 +91,8 @@ namespace QLNH_API.Controllers
                     SalePrice = orderItemDto.SalePrice,
                     ItemId = orderItemDto.ItemId,
                     OrderId = orderItemDto.OrderId,
+                    CookingStatusId = orderItemDto.CookingStatusId ?? 9,
+                    KitchenNote = orderItemDto.KitchenNote,
                     Created = DateTime.Now,
                     Updated = DateTime.Now,
                     Deleted = false,
@@ -99,6 +101,15 @@ namespace QLNH_API.Controllers
 
                 _context.OrderItem.Add(orderItem);
                 await _context.SaveChangesAsync();
+
+                try
+                {
+                    await RecalculateOrderActualProfitAsync(orderItem.OrderId);
+                }
+                catch (Exception recalculateEx)
+                {
+                    Console.WriteLine($"⚠️ Failed to recalculate order profit for OrderId {orderItem.OrderId}: {recalculateEx}");
+                }
 
                 Console.WriteLine($"✅ Order item created successfully with ID: {orderItem.Id}");
 
@@ -145,6 +156,7 @@ namespace QLNH_API.Controllers
                 existingOrderItem.Voided = orderItem.Voided;
 
                 await _context.SaveChangesAsync();
+                await RecalculateOrderActualProfitAsync(existingOrderItem.OrderId);
                 return Ok(existingOrderItem);
             }
             catch (Exception ex)
@@ -171,6 +183,7 @@ namespace QLNH_API.Controllers
                 orderItem.Updated = DateTime.Now;
 
                 await _context.SaveChangesAsync();
+                await RecalculateOrderActualProfitAsync(orderItem.OrderId);
                 return NoContent();
             }
             catch (Exception ex)
@@ -181,7 +194,7 @@ namespace QLNH_API.Controllers
 
         // Xóa tất cả OrderItems theo OrderId
         [HttpDelete("order/{orderId}")]
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager, Cashier")]
 
         public async Task<IActionResult> DeleteOrderItemsByOrderId(int orderId)
         {
@@ -203,6 +216,16 @@ namespace QLNH_API.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                try
+                {
+                    await RecalculateOrderActualProfitAsync(orderId);
+                }
+                catch (Exception recalculateEx)
+                {
+                    Console.WriteLine($"⚠️ Failed to recalculate order profit for OrderId {orderId}: {recalculateEx}");
+                }
+
                 return NoContent();
             }
             catch (Exception ex)
@@ -226,10 +249,23 @@ namespace QLNH_API.Controllers
                     orderItem.Updated = now;
                     orderItem.Deleted = false;
                     orderItem.Voided = false;
+                    orderItem.CookingStatusId ??= 9;
                 }
 
                 _context.OrderItem.AddRange(orderItems);
                 await _context.SaveChangesAsync();
+
+                foreach (var orderId in orderItems.Select(oi => oi.OrderId).Distinct())
+                {
+                    try
+                    {
+                        await RecalculateOrderActualProfitAsync(orderId);
+                    }
+                    catch (Exception recalculateEx)
+                    {
+                        Console.WriteLine($"⚠️ Failed to recalculate order profit for OrderId {orderId}: {recalculateEx}");
+                    }
+                }
 
                 return CreatedAtAction(nameof(GetOrderItems), orderItems);
             }
@@ -317,6 +353,14 @@ namespace QLNH_API.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                try
+                {
+                    await RecalculateOrderActualProfitAsync(orderItem.OrderId);
+                }
+                catch (Exception profitEx)
+                {
+                    Console.WriteLine($"⚠️ Failed to recalculate order profit for OrderId {orderItem.OrderId}: {profitEx.Message}");
+                }
 
                 // Lấy tên trạng thái mới
                 var newStatus = await _context.Status.FindAsync(dto.CookingStatusId);
@@ -403,6 +447,45 @@ namespace QLNH_API.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
+        }
+
+        private async Task RecalculateOrderActualProfitAsync(int orderId)
+        {
+            var order = await _context.Order
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId && !o.Deleted);
+
+            if (order == null)
+                return;
+
+            decimal actualCost = 0;
+
+            if (order.OrderItems != null && order.OrderItems.Any())
+            {
+                foreach (var orderItem in order.OrderItems.Where(oi => !oi.Deleted && !oi.Voided && oi.ItemId.HasValue))
+                {
+                    var recipeRows = await (
+                        from r in _context.Recipe
+                        join i in _context.Ingredient on r.IngredientId equals i.Id
+                        where r.ItemId == orderItem.ItemId.Value && !i.Deleted
+                        select new
+                        {
+                            r.QuantityNeeded,
+                            i.RawMaterialCost
+                        }
+                    ).ToListAsync();
+
+                    var recipeCost = recipeRows.Sum(row => (decimal)row.QuantityNeeded * row.RawMaterialCost);
+
+                    actualCost += recipeCost * orderItem.Quantity;
+                }
+            }
+
+            order.ActualCost = actualCost;
+            order.ActualProfit = order.FinalPrice - actualCost;
+            order.Updated = DateTime.Now;
+
+            await _context.SaveChangesAsync();
         }
 
        

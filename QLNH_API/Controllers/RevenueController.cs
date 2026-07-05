@@ -34,6 +34,13 @@ namespace QLNH_API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("gross-profit-margin")]
+        public async Task<IActionResult> GetGrossProfitAndProfitMarginReport()
+        {
+            var result = await _service.GetGrossProfitAndProfitMarginReport();
+            return Ok(result);
+        }
+
         [HttpGet("by-hour")]
         public async Task<IActionResult> GetRevenueByHour([FromQuery] int days = 30)
         {
@@ -49,9 +56,11 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("best-sellers")]
-        public async Task<IActionResult> GetBestSellers([FromQuery] int days = 30, [FromQuery] int top = 10)
+        public async Task<IActionResult> GetBestSellers([FromQuery] int days = 30, [FromQuery] int top = 10, [FromQuery] int? categoryId = null)
         {
-            var result = await _service.GetBestSellingItems(days, top);
+            var result = categoryId.HasValue && categoryId.Value > 0
+                ? await _service.GetBestSellingItemsByCategory(categoryId.Value, days, top)
+                : await _service.GetBestSellingItems(days, top);
             return Ok(result);
         }
 
@@ -66,6 +75,13 @@ namespace QLNH_API.Controllers
         public async Task<IActionResult> GetRevenueByPartySize([FromQuery] int days = 90)
         {
             var result = await _service.GetRevenueByPartySize(days);
+            return Ok(result);
+        }
+
+        [HttpGet("by-category")]
+        public async Task<IActionResult> GetRevenueByCategory([FromQuery] int days = 30)
+        {
+            var result = await _service.GetRevenueByCategory(days);
             return Ok(result);
         }
 

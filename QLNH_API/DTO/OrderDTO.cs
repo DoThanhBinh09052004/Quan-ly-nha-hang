@@ -10,6 +10,8 @@
         public decimal TotalPrice { get; set; }
         public decimal Discount { get; set; }
         public decimal FinalPrice { get; set; }
+        public decimal ActualCost { get; set; }
+        public decimal ActualProfit { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal ChangeAmount { get; set; }
         public string? GuestPhone { get; set; }

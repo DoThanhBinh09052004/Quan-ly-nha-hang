@@ -253,6 +253,24 @@ namespace QLNH_API.Services
         [JsonPropertyName("cluster")]
         public int Cluster { get; set; }
 
+        [JsonPropertyName("cluster_name")]
+        public string ClusterName { get; set; } = "";
+
+        [JsonPropertyName("cluster_description")]
+        public string ClusterDescription { get; set; } = "";
+
+        [JsonPropertyName("cluster_traits")]
+        public List<string> ClusterTraits { get; set; } = new();
+
+        [JsonPropertyName("guest_profile_name")]
+        public string GuestProfileName { get; set; } = "";
+
+        [JsonPropertyName("guest_profile_description")]
+        public string GuestProfileDescription { get; set; } = "";
+
+        [JsonPropertyName("guest_profile_traits")]
+        public List<string> GuestProfileTraits { get; set; } = new();
+
         [JsonPropertyName("features")]
         public Dictionary<string, JsonElement> Features { get; set; } = new();
     }

@@ -18,6 +18,7 @@ namespace QLNH_API.DTO
         public int PreparationTime { get; set; }
         public bool IsAvailable { get; set; }
         public double AverageRating { get; set; }
+        public decimal Profit { get; set; }
         public UnitDTO? Unit { get; set; }
         public CategoryDTO? Category { get; set; }
 

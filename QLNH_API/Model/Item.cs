@@ -16,6 +16,7 @@ namespace QLNH_API.Model
         public DateTime Updated { get; set; } = DateTime.Now;
         public bool Deleted { get; set; } = false;
         public double CostPrice { get; set; } = 0;
+        public decimal Profit { get; set; }
         public int PreparationTime { get; set; } = 15;
         public bool IsAvailable { get; set; } = true;
         public double AverageRating { get; set; } = 0;

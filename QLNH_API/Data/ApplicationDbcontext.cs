@@ -163,6 +163,14 @@ namespace QLNH_API.Data
                 .Property(o => o.FinalPrice)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Order>()
+                .Property(o => o.ActualCost)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.ActualProfit)
+                .HasPrecision(18, 2);
+
             // Payment relationships.
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Order)
@@ -190,6 +198,10 @@ namespace QLNH_API.Data
                 .WithMany()
                 .HasForeignKey(i => i.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Item>()
+                .Property(i => i.Profit)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<ItemImage>()
                 .HasOne(img => img.Item)
@@ -248,6 +260,11 @@ namespace QLNH_API.Data
             modelBuilder.Entity<Ingredient>()
                 .Property(i => i.Unit)
                 .IsRequired();
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.RawMaterialCost)
+                .HasPrecision(18, 2);
+
         }
     }
 }
