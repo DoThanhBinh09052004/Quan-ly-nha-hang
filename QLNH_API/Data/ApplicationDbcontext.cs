@@ -11,6 +11,8 @@ namespace QLNH_API.Data
         }
 
         public DbSet<Category> Category { get; set; }
+        public DbSet<Expense> Expense { get; set; }
+        public DbSet<ExpenseCategory> ExpenseCategory { get; set; }
         public DbSet<Guest> Guest { get; set; }
         public DbSet<GuestTable> GuestTable { get; set; }
         public DbSet<Ingredient> Ingredient { get; set; }
@@ -33,6 +35,8 @@ namespace QLNH_API.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Category>().ToTable("category");
+            modelBuilder.Entity<Expense>().ToTable("expense");
+            modelBuilder.Entity<ExpenseCategory>().ToTable("expensecategory");
             modelBuilder.Entity<Guest>().ToTable("guest");
             modelBuilder.Entity<GuestTable>().ToTable("guesttable");
             modelBuilder.Entity<Ingredient>().ToTable("ingredient");
@@ -208,6 +212,20 @@ namespace QLNH_API.Data
                 .WithMany(i => i.ItemImages)
                 .HasForeignKey(img => img.ItemId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ExpenseCategory>()
+                .HasIndex(ec => ec.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Expense>()
+                .HasOne(e => e.ExpenseCategory)
+                .WithMany(ec => ec.Expenses)
+                .HasForeignKey(e => e.ExpenseCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Expense>()
+                .Property(e => e.Amount)
+                .HasPrecision(18, 2);
 
             // Recipe relationships.
             modelBuilder.Entity<Recipe>()

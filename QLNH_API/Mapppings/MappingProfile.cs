@@ -76,6 +76,10 @@ namespace QLNH_API.Mapppings
             CreateMap<Unit, UnitDTO>();
             CreateMap<UnitType, UnitTypeDTO>();
             CreateMap<Category, CategoryDTO>();
+            CreateMap<ExpenseCategory, ExpenseCategoryDTO>();
+            CreateMap<Expense, ExpenseDTO>()
+                .ForMember(dest => dest.ExpenseCategory, opt => opt.MapFrom(src => src.ExpenseCategory));
+            CreateMap<ExpenseRequestDTO, Expense>();
             CreateMap<Ingredient, IngredientDTO>();
             CreateMap<Payment, PaymentDTO>();
             CreateMap<ItemImage, ItemImageDTO>();

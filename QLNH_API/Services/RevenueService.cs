@@ -104,6 +104,94 @@ namespace QLNH_API.Services
                     .ToList()
             };
         }
+
+        public async Task<NetProfitReportDTO> GetNetProfitReport()
+        {
+            var orderRows = await _context.Order
+                .Where(o => !o.Deleted && !o.Voided && o.StatusId == 3)
+                .Select(o => new
+                {
+                    o.Created,
+                    TotalRevenue = o.FinalPrice,
+                    IngredientCost = o.ActualCost
+                })
+                .ToListAsync();
+
+            var expenseRows = await _context.Expense
+                .Where(e => !e.Deleted)
+                .Select(e => new
+                {
+                    e.ExpenseDate,
+                    e.Amount
+                })
+                .ToListAsync();
+
+            return new NetProfitReportDTO
+            {
+                Daily = orderRows
+                    .GroupBy(x => new { x.Created.Year, x.Created.Month, x.Created.Day })
+                    .Select(g =>
+                    {
+                        var operatingExpense = expenseRows
+                            .Where(e =>
+                                e.ExpenseDate.Year == g.Key.Year &&
+                                e.ExpenseDate.Month == g.Key.Month &&
+                                e.ExpenseDate.Day == g.Key.Day)
+                            .Sum(e => e.Amount);
+
+                        return CreateNetProfitReportItem(
+                            g.Key.Year,
+                            g.Key.Month,
+                            g.Key.Day,
+                            g.Sum(x => x.TotalRevenue),
+                            g.Sum(x => x.IngredientCost),
+                            operatingExpense);
+                    })
+                    .OrderBy(x => x.Year)
+                    .ThenBy(x => x.Month)
+                    .ThenBy(x => x.Day)
+                    .ToList(),
+                Monthly = orderRows
+                    .GroupBy(x => new { x.Created.Year, x.Created.Month })
+                    .Select(g =>
+                    {
+                        var operatingExpense = expenseRows
+                            .Where(e =>
+                                e.ExpenseDate.Year == g.Key.Year &&
+                                e.ExpenseDate.Month == g.Key.Month)
+                            .Sum(e => e.Amount);
+
+                        return CreateNetProfitReportItem(
+                            g.Key.Year,
+                            g.Key.Month,
+                            null,
+                            g.Sum(x => x.TotalRevenue),
+                            g.Sum(x => x.IngredientCost),
+                            operatingExpense);
+                    })
+                    .OrderBy(x => x.Year)
+                    .ThenBy(x => x.Month)
+                    .ToList(),
+                Yearly = orderRows
+                    .GroupBy(x => x.Created.Year)
+                    .Select(g =>
+                    {
+                        var operatingExpense = expenseRows
+                            .Where(e => e.ExpenseDate.Year == g.Key)
+                            .Sum(e => e.Amount);
+
+                        return CreateNetProfitReportItem(
+                            g.Key,
+                            null,
+                            null,
+                            g.Sum(x => x.TotalRevenue),
+                            g.Sum(x => x.IngredientCost),
+                            operatingExpense);
+                    })
+                    .OrderBy(x => x.Year)
+                    .ToList()
+            };
+        }
         public async Task<object> GetRevenueByHour(int days = 30)
         {
             var fromDate = DateTime.Now.AddDays(-days);
@@ -416,6 +504,29 @@ namespace QLNH_API.Services
                 TotalCost = totalCost,
                 GrossProfit = grossProfit,
                 ProfitMargin = totalRevenue == 0 ? 0 : (grossProfit / totalRevenue) * 100
+            };
+        }
+
+        private NetProfitReportItemDTO CreateNetProfitReportItem(
+            int year,
+            int? month,
+            int? day,
+            decimal totalRevenue,
+            decimal ingredientCost,
+            decimal operatingExpense)
+        {
+            var netProfit = totalRevenue - ingredientCost - operatingExpense;
+
+            return new NetProfitReportItemDTO
+            {
+                Year = year,
+                Month = month,
+                Day = day,
+                TotalRevenue = totalRevenue,
+                IngredientCost = ingredientCost,
+                OperatingExpense = operatingExpense,
+                NetProfit = netProfit,
+                NetProfitMargin = totalRevenue == 0 ? 0 : (netProfit / totalRevenue) * 100
             };
         }
 

@@ -41,6 +41,13 @@ namespace QLNH_API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("net-profit")]
+        public async Task<IActionResult> GetNetProfitReport()
+        {
+            var result = await _service.GetNetProfitReport();
+            return Ok(result);
+        }
+
         [HttpGet("by-hour")]
         public async Task<IActionResult> GetRevenueByHour([FromQuery] int days = 30)
         {
