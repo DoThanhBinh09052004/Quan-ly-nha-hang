@@ -16,12 +16,16 @@ namespace QLNH_API.Controllers
         private readonly ApplicationDbcontext _context;
         private readonly IMapper _mapper;
         private readonly AiClientService _aiService;
+        private readonly StatusResolver _statusResolver;
+        private readonly ReservationService _reservationService;
 
-        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService)
+        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService, StatusResolver statusResolver, ReservationService reservationService)
         {
             _context = context;
             _mapper = mapper;
             _aiService = aiService;
+            _statusResolver = statusResolver;
+            _reservationService = reservationService;
         }
 
         [HttpGet]
@@ -160,6 +164,10 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                var pendingItemStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
+                var occupiedTableStatusId = await _statusResolver.GetIdAsync(StatusResolver.TableOccupied);
+                var unpaidOrderStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderUnpaid);
+
                 var order = new Order
                 {
                     OrderNumber = string.IsNullOrWhiteSpace(request.OrderNumber) ? GenerateOrderNumber() : request.OrderNumber,
@@ -179,7 +187,7 @@ namespace QLNH_API.Controllers
                         Quantity = item.Quantity,
                         SalePrice = item.SalePrice,
                         ItemId = item.ItemId,
-                        CookingStatusId = item.CookingStatusId ?? 9,
+                        CookingStatusId = item.CookingStatusId ?? pendingItemStatusId,
                         KitchenNote = item.KitchenNote
                     }).ToList()
                 };
@@ -220,7 +228,7 @@ namespace QLNH_API.Controllers
                         item.Updated = DateTime.Now;
                         item.Deleted = false;
                         item.Voided = false;
-                        item.CookingStatusId ??= 9;
+                        item.CookingStatusId ??= pendingItemStatusId;
                     }
                 }
 
@@ -228,7 +236,7 @@ namespace QLNH_API.Controllers
                 var table = await _context.GuestTable.FindAsync(order.GuestTableId);
                 if (table != null)
                 {
-                    table.StatusId = 2; // Bàn đang phục vụ
+                    table.StatusId = occupiedTableStatusId;
                     table.Updated = DateTime.Now;
                     order.CheckInTime = DateTime.Now;
                 }
@@ -237,7 +245,7 @@ namespace QLNH_API.Controllers
                 order.OrderNumber = GenerateOrderNumber();
                 order.Created = DateTime.Now;
                 order.Updated = DateTime.Now;
-                order.StatusId = 4; // Chưa thanh toán
+                order.StatusId = unpaidOrderStatusId;
 
                 // 6. Tính tiền thừa nếu có paidAmount
                 if (order.PaidAmount > 0)
@@ -251,6 +259,11 @@ namespace QLNH_API.Controllers
 
                 _context.Order.Add(order);
                 await _context.SaveChangesAsync();
+
+                if (order.GuestTableId.HasValue)
+                {
+                    await _reservationService.RefreshTableStatusAsync(order.GuestTableId.Value);
+                }
 
                 try
                 {
@@ -294,6 +307,8 @@ namespace QLNH_API.Controllers
                     return NotFound();
                 }
 
+                var guestTableId = order.GuestTableId;
+
                 // Soft delete
                 order.Deleted = true;
                 order.Updated = DateTime.Now;
@@ -310,6 +325,10 @@ namespace QLNH_API.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                if (guestTableId.HasValue)
+                {
+                    await _reservationService.RefreshTableStatusAsync(guestTableId.Value);
+                }
                 return NoContent();
             }
             catch (Exception ex)
@@ -332,6 +351,8 @@ namespace QLNH_API.Controllers
 
                 if (existingOrder == null)
                     return NotFound("Order không tồn tại");
+
+                var previousGuestTableId = existingOrder.GuestTableId;
 
                 // Xử lý giảm giá nếu có thay đổi số điện thoại
                 var paidAmount = request.PaidAmount;
@@ -393,6 +414,15 @@ namespace QLNH_API.Controllers
 
                 await _context.SaveChangesAsync();
 
+                if (previousGuestTableId.HasValue)
+                {
+                    await _reservationService.RefreshTableStatusAsync(previousGuestTableId.Value);
+                }
+                if (existingOrder.GuestTableId.HasValue && existingOrder.GuestTableId != previousGuestTableId)
+                {
+                    await _reservationService.RefreshTableStatusAsync(existingOrder.GuestTableId.Value);
+                }
+
                 try
                 {
                     Console.WriteLine($"[Order Update] Recalculating actual profit for OrderId={existingOrder.Id} with {existingOrder.OrderItems?.Count ?? 0} order items.");
@@ -430,10 +460,11 @@ namespace QLNH_API.Controllers
             try
             {
                 // Nếu đã thanh toán rồi thì không xử lý lại
-                if (order.StatusId == 3) return;
+                var paidOrderStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderPaid);
+                if (order.StatusId == paidOrderStatusId) return;
 
                 // Đổi trạng thái Order
-                order.StatusId = 3; // Đã thanh toán
+                order.StatusId = paidOrderStatusId;
                 order.Updated = DateTime.Now;
 
                 // Cập nhật số lượng item trong kho
@@ -477,13 +508,6 @@ namespace QLNH_API.Controllers
                     }
                 }
 
-                // Đổi trạng thái bàn
-                if (order.GuestTable != null)
-                {
-                    order.GuestTable.StatusId = 1; // Bàn trống
-                    order.GuestTable.Updated = DateTime.Now;
-                }
-
                 // Tính tiền thừa
                 if (order.PaidAmount > order.FinalPrice)
                 {
@@ -493,6 +517,11 @@ namespace QLNH_API.Controllers
                 await ApplyOrderActualProfitAsync(order);
 
                 await _context.SaveChangesAsync();
+
+                if (order.GuestTableId.HasValue)
+                {
+                    await _reservationService.RefreshTableStatusAsync(order.GuestTableId.Value);
+                }
             }
             catch (Exception ex)
             {

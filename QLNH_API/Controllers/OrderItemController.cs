@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using QLNH_API.Data;
 using QLNH_API.DTO;
 using QLNH_API.Model;
+using QLNH_API.Services;
 
 namespace QLNH_API.Controllers
 {
@@ -12,10 +13,12 @@ namespace QLNH_API.Controllers
     public class OrderItemController : ControllerBase
     {
         private readonly ApplicationDbcontext _context;
+        private readonly StatusResolver _statusResolver;
 
-        public OrderItemController(ApplicationDbcontext context)
+        public OrderItemController(ApplicationDbcontext context, StatusResolver statusResolver)
         {
             _context = context;
+            _statusResolver = statusResolver;
         }
 
         [HttpGet]
@@ -73,6 +76,7 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                var pendingStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
                 Console.WriteLine($"🟡 Creating order item from DTO: {System.Text.Json.JsonSerializer.Serialize(orderItemDto)}");
 
                 // Kiểm tra Order tồn tại
@@ -91,7 +95,7 @@ namespace QLNH_API.Controllers
                     SalePrice = orderItemDto.SalePrice,
                     ItemId = orderItemDto.ItemId,
                     OrderId = orderItemDto.OrderId,
-                    CookingStatusId = orderItemDto.CookingStatusId ?? 9,
+                    CookingStatusId = orderItemDto.CookingStatusId ?? pendingStatusId,
                     KitchenNote = orderItemDto.KitchenNote,
                     Created = DateTime.Now,
                     Updated = DateTime.Now,
@@ -242,6 +246,7 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                var pendingStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
                 var now = DateTime.Now;
                 foreach (var orderItem in orderItems)
                 {
@@ -249,7 +254,7 @@ namespace QLNH_API.Controllers
                     orderItem.Updated = now;
                     orderItem.Deleted = false;
                     orderItem.Voided = false;
-                    orderItem.CookingStatusId ??= 9;
+                    orderItem.CookingStatusId ??= pendingStatusId;
                 }
 
                 _context.OrderItem.AddRange(orderItems);
@@ -282,23 +287,26 @@ namespace QLNH_API.Controllers
         {
             try
             {
-                // Các trạng thái cần hiển thị cho bếp: Chờ chế biến(9) và Đang chế biến(6)
-                var cookingStatusIds = new[] { 9, 6 };
+            // Các trạng thái cần hiển thị cho bếp: Chờ chế biến và Đang chế biến
+                var cookingStatusIds = await _statusResolver.GetIdsAsync(
+                    StatusResolver.OrderItemPending, StatusResolver.OrderItemProcessing);
+                var completedStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemCompleted);
 
                 var items = await _context.OrderItem
                     .Include(oi => oi.Order)
                         .ThenInclude(o => o.GuestTable)
                     .Include(oi => oi.CookingStatus)
                     .Where(oi => !oi.Deleted && !oi.Voided
-                        && cookingStatusIds.Contains(oi.CookingStatusId ?? 9)
-                        && oi.CookingStatusId != 7) // Chưa hoàn thành
+                        && cookingStatusIds.Contains(oi.CookingStatusId ?? cookingStatusIds[0])
+                        && oi.CookingStatusId != completedStatusId)
                     .OrderBy(oi => oi.Created)
                     .Select(oi => new OrderItemStatusDTO
                     {
                         Id = oi.Id,
                         Name = oi.Name,
                         Quantity = oi.Quantity,
-                        CookingStatusId = oi.CookingStatusId ?? 9,
+                        CookingStatusId = oi.CookingStatusId ?? cookingStatusIds[0],
+                        CookingStatusCode = oi.CookingStatus != null ? oi.CookingStatus.Code : null,
                         CompletedAt = oi.CompletedAt,
                         KitchenNote = oi.KitchenNote,
                         OrderId = oi.OrderId,
@@ -332,22 +340,29 @@ namespace QLNH_API.Controllers
                     return NotFound($"Không tìm thấy món với ID {dto.OrderItemId}");
                 }
 
+                var newStatusId = dto.CookingStatusCode != null
+                    ? await _statusResolver.GetIdAsync(dto.CookingStatusCode)
+                    : dto.CookingStatusId;
+
                 // Lưu trạng thái cũ để kiểm tra
-                int oldStatusId = orderItem.CookingStatusId ?? 9;
+                var pendingStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
+                var completedStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemCompleted);
+                var cancelledStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemCancelled);
+                int oldStatusId = orderItem.CookingStatusId ?? pendingStatusId;
 
                 // Cập nhật trạng thái
-                orderItem.CookingStatusId = dto.CookingStatusId;
+                orderItem.CookingStatusId = newStatusId;
                 orderItem.KitchenNote = dto.KitchenNote;
                 orderItem.Updated = DateTime.Now;
 
-                // Nếu chuyển sang trạng thái "Chế biến hoàn thành" (7), ghi nhận thời gian
-                if (dto.CookingStatusId == 7 && oldStatusId != 7)
+                // Nếu chuyển sang trạng thái "Chế biến hoàn thành", ghi nhận thời gian
+                if (newStatusId == completedStatusId && oldStatusId != completedStatusId)
                 {
                     orderItem.CompletedAt = DateTime.Now;
                 }
 
-                // Nếu chuyển sang "Hủy món" (8)
-                if (dto.CookingStatusId == 8)
+                // Nếu chuyển sang "Hủy món"
+                if (newStatusId == cancelledStatusId)
                 {
                     orderItem.Voided = true; // Đồng bộ với flag Voided
                 }
@@ -363,7 +378,7 @@ namespace QLNH_API.Controllers
                 }
 
                 // Lấy tên trạng thái mới
-                var newStatus = await _context.Status.FindAsync(dto.CookingStatusId);
+                var newStatus = await _context.Status.FindAsync(newStatusId);
 
                 return Ok(new
                 {
@@ -388,18 +403,20 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                var completedStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemCompleted);
                 var completedItems = await _context.OrderItem
                     .Include(oi => oi.CookingStatus)
                     .Where(oi => oi.OrderId == orderId
                         && !oi.Deleted
                         && !oi.Voided
-                        && oi.CookingStatusId == 7) // Chế biến hoàn thành
+                        && oi.CookingStatusId == completedStatusId)
                     .Select(oi => new OrderItemStatusDTO
                     {
                         Id = oi.Id,
                         Name = oi.Name,
                         Quantity = oi.Quantity,
                         CookingStatusId = oi.CookingStatusId ?? 0,
+                        CookingStatusCode = oi.CookingStatus != null ? oi.CookingStatus.Code : null,
                         CompletedAt = oi.CompletedAt,
                         KitchenNote = oi.KitchenNote,
                         OrderId = oi.OrderId
@@ -422,17 +439,20 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                var kitchenStatusIds = await _statusResolver.GetIdsAsync(
+                    StatusResolver.OrderItemPending, StatusResolver.OrderItemProcessing,
+                    StatusResolver.OrderItemCompleted, StatusResolver.OrderItemCancelled);
                 var pendingCount = await _context.OrderItem
-                    .CountAsync(oi => !oi.Deleted && !oi.Voided && (oi.CookingStatusId == 9 || oi.CookingStatusId == null));
+                    .CountAsync(oi => !oi.Deleted && !oi.Voided && (oi.CookingStatusId == kitchenStatusIds[0] || oi.CookingStatusId == null));
 
                 var processingCount = await _context.OrderItem
-                    .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == 6);
+                    .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == kitchenStatusIds[1]);
 
                 var completedCount = await _context.OrderItem
-                    .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == 7);
+                    .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == kitchenStatusIds[2]);
 
                 var cancelledCount = await _context.OrderItem
-                    .CountAsync(oi => !oi.Deleted && oi.CookingStatusId == 8);
+                    .CountAsync(oi => !oi.Deleted && oi.CookingStatusId == kitchenStatusIds[3]);
 
                 return Ok(new
                 {

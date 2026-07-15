@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using QLNH_API.Data;
 using QLNH_API.Model;
+using QLNH_API.Services;
 
 namespace QLNH_API.Controllers
 {
@@ -20,11 +21,15 @@ namespace QLNH_API.Controllers
 
         private readonly ApplicationDbcontext _context;
         private readonly IConfiguration _configuration;
+        private readonly StatusResolver _statusResolver;
+        private readonly ReservationService _reservationService;
 
-        public PaymentController(ApplicationDbcontext context, IConfiguration configuration)
+        public PaymentController(ApplicationDbcontext context, IConfiguration configuration, StatusResolver statusResolver, ReservationService reservationService)
         {
             _context = context;
             _configuration = configuration;
+            _statusResolver = statusResolver;
+            _reservationService = reservationService;
         }
 
         public class CreateVietQRRequest
@@ -381,7 +386,7 @@ namespace QLNH_API.Controllers
 
                 order.PaidAmount = order.FinalPrice;
                 order.ChangeAmount = 0;
-                order.StatusId = 3;
+                order.StatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderPaid);
                 order.CheckOutTime = now;
                 order.Updated = now;
 
@@ -413,14 +418,13 @@ namespace QLNH_API.Controllers
                     order.Guest.Updated = now;
                 }
 
-                if (order.GuestTable != null)
-                {
-                    order.GuestTable.StatusId = 1;
-                    order.GuestTable.Updated = now;
-                }
             }
 
             await _context.SaveChangesAsync();
+            if (order?.GuestTableId is int guestTableId)
+            {
+                await _reservationService.RefreshTableStatusAsync(guestTableId);
+            }
         }
 
         private async Task ExpireOldPendingPaymentsAsync()

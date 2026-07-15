@@ -16,5 +16,6 @@ namespace QLNH_API.Model
         public int Points { get; set; } = 0;
         [JsonIgnore]
         public virtual ICollection<Order>? Orders { get; set; } = new List<Order>();
+        public virtual ICollection<Reservation>? Reservations { get; set; } = new List<Reservation>();
     }
 }

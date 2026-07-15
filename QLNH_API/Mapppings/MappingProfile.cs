@@ -1,6 +1,8 @@
 using AutoMapper;
 using QLNH_API.DTO;
+using QLNH_API.DTO.Reservation;
 using QLNH_API.Model;
+using QLNH_API.Services;
 
 namespace QLNH_API.Mapppings
 {
@@ -34,11 +36,18 @@ namespace QLNH_API.Mapppings
             CreateMap<Guest, GuestDTO>();
             CreateMap<Status, StatusDTO>();
 
+            CreateMap<Reservation, ReservationDTO>()
+                .ForMember(dest => dest.GuestTableName,
+                    opt => opt.MapFrom(src => src.GuestTable != null ? src.GuestTable.Name : null))
+                .ForMember(dest => dest.ReservationEndTime,
+                    opt => opt.MapFrom(src => src.ReservationTime.AddMinutes(src.DurationMinutes)));
+
             CreateMap<GuestTable, GuestTableDTO>()
+                .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.StatusId))
                 .ForMember(dest => dest.CurrentOrderTotal, opt => opt.MapFrom(src =>
-                    (src.StatusId == 1 || src.StatusId == 2) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Sum(o => o.FinalPrice) : 0))
+                    src.Status != null && (src.Status.Code == StatusResolver.TableAvailable || src.Status.Code == StatusResolver.TableOccupied) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Sum(o => o.FinalPrice) : 0))
                 .ForMember(dest => dest.CurrentGuestName, opt => opt.MapFrom(src =>
-                    (src.StatusId == 1 || src.StatusId == 2) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Select(o => o.Guest != null ? o.Guest.Name : o.GuestPhone).FirstOrDefault() : null));
+                    src.Status != null && (src.Status.Code == StatusResolver.TableAvailable || src.Status.Code == StatusResolver.TableOccupied) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Select(o => o.Guest != null ? o.Guest.Name : o.GuestPhone).FirstOrDefault() : null));
 
             CreateMap<Order, OrderDTO>()
                 .ForMember(dest => dest.CreatedUser, opt => opt.MapFrom(src => src.CreatedUser))
@@ -51,6 +60,7 @@ namespace QLNH_API.Mapppings
             CreateMap<OrderItem, OrderItemDTO>()
                 .ForMember(dest => dest.Item, opt => opt.MapFrom(src => src.Item))
                 .ForMember(dest => dest.CookingStatusId, opt => opt.MapFrom(src => src.CookingStatusId))
+                .ForMember(dest => dest.CookingStatusCode, opt => opt.MapFrom(src => src.CookingStatus != null ? src.CookingStatus.Code : null))
                 .ForMember(dest => dest.CookingStatusName, opt => opt.MapFrom(src => src.CookingStatus != null ? src.CookingStatus.Name : null))
                 .ForMember(dest => dest.CompletedAt, opt => opt.MapFrom(src => src.CompletedAt))
                 .ForMember(dest => dest.KitchenNote, opt => opt.MapFrom(src => src.KitchenNote));

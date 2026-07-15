@@ -29,6 +29,7 @@ namespace QLNH_API.Data
         public DbSet<Unit> Unit { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<WorkShift> WorkShift { get; set; }
+        public DbSet<Reservation> Reservation { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,6 +54,26 @@ namespace QLNH_API.Data
             modelBuilder.Entity<Unit>().ToTable("unit");
             modelBuilder.Entity<User>().ToTable("user");
             modelBuilder.Entity<WorkShift>().ToTable("workshift");
+            modelBuilder.Entity<Reservation>().ToTable("reservation");
+
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.GuestTable)
+                .WithMany(gt => gt.Reservations)
+                .HasForeignKey(r => r.GuestTableId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.Guest)
+                .WithMany(g => g.Reservations)
+                .HasForeignKey(r => r.GuestId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Reservation>()
+                .HasIndex(r => new { r.GuestTableId, r.ReservationTime, r.Status });
+
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.Status)
+                .HasMaxLength(30);
 
             // User relationships.
             modelBuilder.Entity<User>()
@@ -78,6 +99,11 @@ namespace QLNH_API.Data
                 .WithMany()
                 .HasForeignKey(u => u.UpdatedUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.ShiftSalary)
+                .HasPrecision(18, 2)
+                .HasDefaultValue(0m);
 
             // Restaurant relationships.
             modelBuilder.Entity<Restaurant>()
@@ -256,6 +282,11 @@ namespace QLNH_API.Data
                 .WithMany()
                 .HasForeignKey(ws => ws.ShiftId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<WorkShift>()
+                .Property(ws => ws.PenaltyAmount)
+                .HasPrecision(18, 2)
+                .HasDefaultValue(0m);
 
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)

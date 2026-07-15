@@ -12,6 +12,7 @@ namespace QLNH_API.DTO
         public bool Deleted { get; set; }
         public int Capacity { get; set; }
         public int Floor { get; set; }
+        public int? StatusId { get; set; }
         public virtual StatusDTO? Status { get; set; }
         public virtual GuestDTO? Guest { get; set; }
         public decimal CurrentOrderTotal { get; set; }

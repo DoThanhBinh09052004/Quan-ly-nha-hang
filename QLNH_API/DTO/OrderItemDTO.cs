@@ -18,6 +18,7 @@ namespace QLNH_API.DTO
         public int? ItemId { get; set; }
         public int OrderId { get; set; }
         public int? CookingStatusId { get; set; }
+        public string? CookingStatusCode { get; set; }
         public string? CookingStatusName { get; set; }
         public DateTime? CompletedAt { get; set; }
         public string? KitchenNote { get; set; }

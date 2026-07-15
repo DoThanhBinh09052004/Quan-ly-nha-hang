@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using QLNH_API.Data;
 using QLNH_API.DTO;
 using QLNH_API.Model;
+using QLNH_API.Services;
 
 namespace QLNH_API.Controllers
 {
@@ -14,11 +15,13 @@ namespace QLNH_API.Controllers
     {
         private readonly ApplicationDbcontext _context;
         private readonly IMapper _mapper;
+        private readonly StatusResolver _statusResolver;
 
-        public GuestTableController(ApplicationDbcontext context, IMapper mapper)
+        public GuestTableController(ApplicationDbcontext context, IMapper mapper, StatusResolver statusResolver)
         {
             _context = context;
             _mapper = mapper;
+            _statusResolver = statusResolver;
         }
 
         [HttpGet]
@@ -59,12 +62,15 @@ namespace QLNH_API.Controllers
             try
             {
                 // Sử dụng .Include() để tải eager loading các đối tượng liên quan
+                var tableStatusIds = await _statusResolver.GetIdsAsync(
+                    StatusResolver.TableAvailable,
+                    StatusResolver.TableReserved);
 
                 var GuestTable = await _context.GuestTable
                                          .Include(u => u.Status)
                                           .Include(gt => gt.Guest)
                                           .Include(gt => gt.Orders)
-                                          .Where(gt => gt.Status.Id == 1)
+                                          .Where(gt => gt.StatusId.HasValue && tableStatusIds.Contains(gt.StatusId.Value))
                                           .ToListAsync();
 
                 if (GuestTable == null || !GuestTable.Any())

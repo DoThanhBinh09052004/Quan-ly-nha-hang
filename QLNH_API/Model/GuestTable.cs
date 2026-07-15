@@ -24,5 +24,6 @@ namespace QLNH_API.Model
         public virtual Guest? Guest { get; set; }
 
         public virtual ICollection<Order>? Orders { get; set; } = new List<Order>();
+        public virtual ICollection<Reservation>? Reservations { get; set; } = new List<Reservation>();
     }
 }

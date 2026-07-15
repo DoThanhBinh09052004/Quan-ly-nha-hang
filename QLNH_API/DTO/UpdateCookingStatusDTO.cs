@@ -3,7 +3,8 @@
     public class UpdateCookingStatusDTO
     {
         public int OrderItemId { get; set; }
-        public int CookingStatusId { get; set; } 
+        public int CookingStatusId { get; set; }
+        public string? CookingStatusCode { get; set; }
         public string? KitchenNote { get; set; }
     }
 
@@ -13,6 +14,7 @@
         public string Name { get; set; }
         public int Quantity { get; set; }
         public int CookingStatusId { get; set; }
+        public string? CookingStatusCode { get; set; }
         public DateTime? CompletedAt { get; set; }
         public string? KitchenNote { get; set; }
         public int OrderId { get; set; }
