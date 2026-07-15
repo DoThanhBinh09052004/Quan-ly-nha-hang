@@ -22,7 +22,6 @@ namespace QLNH_API.Data
         public DbSet<OrderItem> OrderItem { get; set; }
         public DbSet<Payment> Payment { get; set; }
         public DbSet<Recipe> Recipe { get; set; }
-        public DbSet<Restaurant> Restaurant { get; set; }
         public DbSet<Role> Role { get; set; }
         public DbSet<Shift> Shift { get; set; }
         public DbSet<Status> Status { get; set; }
@@ -47,7 +46,6 @@ namespace QLNH_API.Data
             modelBuilder.Entity<OrderItem>().ToTable("orderitem");
             modelBuilder.Entity<Payment>().ToTable("payment");
             modelBuilder.Entity<Recipe>().ToTable("recipe");
-            modelBuilder.Entity<Restaurant>().ToTable("restaurant");
             modelBuilder.Entity<Role>().ToTable("role");
             modelBuilder.Entity<Shift>().ToTable("shift");
             modelBuilder.Entity<Status>().ToTable("status");
@@ -83,12 +81,6 @@ namespace QLNH_API.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<User>()
-                .HasOne(u => u.restaurant)
-                .WithMany(r => r.Users)
-                .HasForeignKey(u => u.RestaurantId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<User>()
                 .HasOne(u => u.CreatedUser)
                 .WithMany()
                 .HasForeignKey(u => u.CreatedUserId)
@@ -104,19 +96,6 @@ namespace QLNH_API.Data
                 .Property(u => u.ShiftSalary)
                 .HasPrecision(18, 2)
                 .HasDefaultValue(0m);
-
-            // Restaurant relationships.
-            modelBuilder.Entity<Restaurant>()
-                .HasOne(r => r.CreatedUser)
-                .WithMany()
-                .HasForeignKey(r => r.CreatedUserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Restaurant>()
-                .HasOne(r => r.UpdatedUser)
-                .WithMany()
-                .HasForeignKey(r => r.UpdatedUserId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Role relationships.
             modelBuilder.Entity<Role>()

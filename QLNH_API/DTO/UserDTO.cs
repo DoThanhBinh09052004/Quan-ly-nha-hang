@@ -17,7 +17,5 @@ namespace QLNH_API.DTO
         public UserSimpleDTO? CreatedUser { get; set; }
         public UserSimpleDTO? UpdatedUser { get; set; }
         public  RoleSimpleDTO? role { get; set; }
-        public RestaurantSimpleDTO? restaurant { get; set; }
-
     }
 }

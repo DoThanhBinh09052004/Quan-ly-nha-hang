@@ -11,24 +11,16 @@ namespace QLNH_API.Mapppings
         public MappingProfile()
         {
             // =================================================================
-            // 1. FUNCTIONAL GROUP: USER & RESTAURANT MANAGEMENT (User, Role, Restaurant)
+            // 1. FUNCTIONAL GROUP: USER & ROLE MANAGEMENT (User, Role)
             // =================================================================
             CreateMap<User, UserSimpleDTO>();
             CreateMap<Role, RoleSimpleDTO>();
-            CreateMap<Restaurant, RestaurantSimpleDTO>();
             CreateMap<Role, RoleDTO>();
 
             CreateMap<User, UserDTO>()
                 .ForMember(dest => dest.CreatedUser, opt => opt.MapFrom(src => src.CreatedUser))
                 .ForMember(dest => dest.UpdatedUser, opt => opt.MapFrom(src => src.UpdatedUser))
-                .ForMember(dest => dest.restaurant, opt => opt.MapFrom(src => src.restaurant))
                 .ForMember(dest => dest.role, opt => opt.MapFrom(src => src.role));
-
-            CreateMap<Restaurant, RestaurantDTO>()
-                .ForMember(dest => dest.CreatedUser, opt => opt.MapFrom(src => src.CreatedUser))
-                .ForMember(dest => dest.UpdatedUser, opt => opt.MapFrom(src => src.UpdatedUser))
-                .ForMember(dest => dest.Users, opt => opt.MapFrom(src => src.Users));
-
 
             // =================================================================
             // 2. FUNCTIONAL GROUP: TABLES, ORDERS & KITCHEN (Guest, Table, Order, Kitchen)

@@ -29,7 +29,6 @@ namespace QLNH_API.Controllers
                 .Include(u => u.CreatedUser)
                 .Include(u => u.UpdatedUser)
                 .Include(u => u.role)
-                .Include(u => u.restaurant)
                 .Where(i => !i.Deleted)
                 .AsSplitQuery()
                 .ToListAsync();
@@ -50,7 +49,6 @@ namespace QLNH_API.Controllers
         public async Task<ActionResult<UserDTO>> Get(int id)
         {
             var User = await _context.User
-                                           .Include(u => u.restaurant) // Tải dữ liệu của Restaurant
                                            .Include(u => u.role)
                                            .Include(u => u.CreatedUser)
                                            .Include(u => u.UpdatedUser)

@@ -30,9 +30,5 @@ namespace QLNH_API.Model
         [ForeignKey("RoleId")]
         public  Role? role { get; set; }
 
-        public int? RestaurantId { get; set; }
-
-        [ForeignKey("RestaurantId")]
-        public Restaurant? restaurant { get; set; }
     }
 }
