@@ -25,6 +25,7 @@ namespace QLNH_API.Model
         public DateTime WorkDate { get; set; }
 
         public string? Note { get; set; }
+        public decimal PenaltyAmount { get; set; } = 0m;
         public DateTime Created { get; set; } = DateTime.Now;
         public DateTime Updated { get; set; } = DateTime.Now;
         public bool Deleted { get; set; } = false;

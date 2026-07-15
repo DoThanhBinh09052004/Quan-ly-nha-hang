@@ -25,7 +25,6 @@ namespace QLNH_API.Controllers
             _mapper = mapper;
         }
 
-        // Lấy danh sách phân ca làm việc, hỗ trợ lọc theo UserId và khoảng thời gian (WorkDate)
         [HttpGet]
         [Authorize(Roles = "Manager, Cashier")]
         public async Task<ActionResult<IEnumerable<WorkShiftDTO>>> GetWorkShifts(
@@ -36,7 +35,7 @@ namespace QLNH_API.Controllers
             var query = _context.WorkShift
                 .Include(ws => ws.User)
                 .Include(ws => ws.Shift)
-                .Where(ws => !ws.Deleted && !ws.User.Deleted && !ws.Shift.Deleted);
+                .Where(ws => !ws.Deleted && ws.User != null && !ws.User.Deleted && ws.Shift != null && !ws.Shift.Deleted);
 
             if (userId.HasValue)
             {
@@ -59,7 +58,6 @@ namespace QLNH_API.Controllers
             return Ok(workShiftDTOs);
         }
 
-        // Lấy chi tiết lịch phân ca
         [HttpGet("{id}")]
         [Authorize(Roles = "Manager, Cashier")]
         public async Task<ActionResult<WorkShiftDTO>> GetWorkShift(int id)
@@ -71,46 +69,48 @@ namespace QLNH_API.Controllers
 
             if (workShift == null)
             {
-                return NotFound("Không tìm thấy phân ca này.");
+                return NotFound("Khong tim thay phan ca nay.");
             }
 
             var workShiftDTO = _mapper.Map<WorkShiftDTO>(workShift);
             return Ok(workShiftDTO);
         }
 
-        // Phân ca làm việc mới cho nhân viên
         [HttpPost]
         [Authorize(Roles = "Manager")]
         public async Task<ActionResult<WorkShiftDTO>> Create([FromBody] WorkShiftRequestDTO dto)
         {
-            // Kiểm tra User tồn tại và chưa bị xóa
+            if (dto.PenaltyAmount < 0)
+            {
+                return BadRequest("So tien tru khong duoc am.");
+            }
+
             var user = await _context.User.FirstOrDefaultAsync(u => u.Id == dto.UserId && !u.Deleted);
             if (user == null)
             {
-                return BadRequest("Nhân viên không tồn tại hoặc đã bị xóa.");
+                return BadRequest("Nhan vien khong ton tai hoac da bi xoa.");
             }
 
-            // Kiểm tra Shift tồn tại và chưa bị xóa
             var shift = await _context.Shift.FirstOrDefaultAsync(s => s.Id == dto.ShiftId && !s.Deleted);
             if (shift == null)
             {
-                return BadRequest("Ca làm việc không tồn tại hoặc đã bị xóa.");
+                return BadRequest("Ca lam viec khong ton tai hoac da bi xoa.");
             }
 
-            // Chuẩn hóa ngày làm việc về 00:00:00 để dễ so sánh và lọc
             var workDateOnly = dto.WorkDate.Date;
 
-            // Kiểm tra xem nhân viên đã được phân ca này vào ngày này chưa
             var exists = await _context.WorkShift
                 .AnyAsync(ws => ws.UserId == dto.UserId && ws.ShiftId == dto.ShiftId && ws.WorkDate == workDateOnly && !ws.Deleted);
 
             if (exists)
             {
-                return BadRequest("Nhân viên đã được phân ca làm việc này trong ngày hôm đó.");
+                return BadRequest("Nhan vien da duoc phan ca nay trong ngay hom do.");
             }
 
             var workShift = _mapper.Map<WorkShift>(dto);
             workShift.WorkDate = workDateOnly;
+            workShift.Note = dto.Note?.Trim();
+            workShift.PenaltyAmount = dto.PenaltyAmount;
             workShift.Created = DateTime.Now;
             workShift.Updated = DateTime.Now;
             workShift.Deleted = false;
@@ -118,7 +118,6 @@ namespace QLNH_API.Controllers
             _context.WorkShift.Add(workShift);
             await _context.SaveChangesAsync();
 
-            // Load lại đầy đủ thông tin User và Shift để map ra DTO trả về cho client
             await _context.Entry(workShift).Reference(ws => ws.User).LoadAsync();
             await _context.Entry(workShift).Reference(ws => ws.Shift).LoadAsync();
 
@@ -126,14 +125,18 @@ namespace QLNH_API.Controllers
             return CreatedAtAction(nameof(GetWorkShift), new { id = workShift.Id }, resultDTO);
         }
 
-        // Cập nhật phân ca làm việc
         [HttpPut("{id}")]
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Update(int id, [FromBody] WorkShiftRequestDTO dto)
         {
             if (id != dto.Id)
             {
-                return BadRequest("ID không khớp.");
+                return BadRequest("ID khong khop.");
+            }
+
+            if (dto.PenaltyAmount < 0)
+            {
+                return BadRequest("So tien tru khong duoc am.");
             }
 
             var workShift = await _context.WorkShift
@@ -141,53 +144,50 @@ namespace QLNH_API.Controllers
 
             if (workShift == null)
             {
-                return NotFound("Không tìm thấy phân ca làm việc cần cập nhật.");
+                return NotFound("Khong tim thay phan ca lam viec can cap nhat.");
             }
 
-            // Kiểm tra User tồn tại và chưa bị xóa
             var user = await _context.User.FirstOrDefaultAsync(u => u.Id == dto.UserId && !u.Deleted);
             if (user == null)
             {
-                return BadRequest("Nhân viên không tồn tại hoặc đã bị xóa.");
+                return BadRequest("Nhan vien khong ton tai hoac da bi xoa.");
             }
 
-            // Kiểm tra Shift tồn tại và chưa bị xóa
             var shift = await _context.Shift.FirstOrDefaultAsync(s => s.Id == dto.ShiftId && !s.Deleted);
             if (shift == null)
             {
-                return BadRequest("Ca làm việc không tồn tại hoặc đã bị xóa.");
+                return BadRequest("Ca lam viec khong ton tai hoac da bi xoa.");
             }
 
             var workDateOnly = dto.WorkDate.Date;
 
-            // Kiểm tra trùng lịch phân ca khác
             var exists = await _context.WorkShift
                 .AnyAsync(ws => ws.UserId == dto.UserId && ws.ShiftId == dto.ShiftId && ws.WorkDate == workDateOnly && ws.Id != id && !ws.Deleted);
 
             if (exists)
             {
-                return BadRequest("Nhân viên đã được phân ca làm việc này trong ngày hôm đó.");
+                return BadRequest("Nhan vien da duoc phan ca nay trong ngay hom do.");
             }
 
             _mapper.Map(dto, workShift);
             workShift.WorkDate = workDateOnly;
+            workShift.Note = dto.Note?.Trim();
+            workShift.PenaltyAmount = dto.PenaltyAmount;
             workShift.Updated = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
-            // Load lại đầy đủ thông tin User và Shift để map ra DTO
             await _context.Entry(workShift).Reference(ws => ws.User).LoadAsync();
             await _context.Entry(workShift).Reference(ws => ws.Shift).LoadAsync();
 
             return Ok(new
             {
                 success = true,
-                message = "Cập nhật phân ca thành công",
+                message = "Cap nhat phan ca thanh cong",
                 data = _mapper.Map<WorkShiftDTO>(workShift)
             });
         }
 
-        // Xóa mềm phân ca làm việc (hủy lịch ca)
         [HttpDelete("{id}")]
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int id)
@@ -197,7 +197,7 @@ namespace QLNH_API.Controllers
 
             if (workShift == null)
             {
-                return NotFound("Không tìm thấy phân ca cần xóa.");
+                return NotFound("Khong tim thay phan ca can xoa.");
             }
 
             workShift.Deleted = true;

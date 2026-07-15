@@ -9,6 +9,7 @@ namespace QLNH_API.DTO
         public String Username { get; set; }
         public String Password { get; set; }
         public String? FullName { get; set; }
+        public decimal ShiftSalary { get; set; } = 0m;
         public DateTime Created { get; set; } 
         public DateTime Updated { get; set; }
         //public bool Deleted { get; set; }
