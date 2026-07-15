@@ -123,5 +123,30 @@ namespace QLNH_API.Controllers
                 return StatusCode(502, new { error = "AI prediction failed", detail = ex.Message });
             }
         }
+
+        [HttpGet("ai-forecast")]
+        public async Task<IActionResult> PredictRevenueRangeByAi([FromQuery] int days = 7, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                days = Math.Clamp(days, 1, 31);
+                var startDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+                var result = await _aiRevenue.PredictRevenueRangeAsync(startDate, days, cancellationToken);
+
+                return Ok(result.Select(item => new
+                {
+                    date = item.Date,
+                    predictedRevenue = item.PredictedRevenue
+                }));
+            }
+            catch (HttpRequestException ex)
+            {
+                return StatusCode(502, new { error = "AI service unavailable", detail = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(502, new { error = "AI prediction failed", detail = ex.Message });
+            }
+        }
     }
 }

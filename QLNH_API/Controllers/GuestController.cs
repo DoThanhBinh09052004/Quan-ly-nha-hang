@@ -13,11 +13,13 @@ namespace QLNH_API.Controllers
     {
         private readonly ApplicationDbcontext _context;
         private readonly AiClientService _aiService;
+        private readonly CustomerSegmentDataService _customerSegmentData;
 
-        public GuestController(ApplicationDbcontext context, AiClientService aiService)
+        public GuestController(ApplicationDbcontext context, AiClientService aiService, CustomerSegmentDataService customerSegmentData)
         {
             _context = context;
             _aiService = aiService;
+            _customerSegmentData = customerSegmentData;
         }
 
         [HttpGet]
@@ -116,7 +118,11 @@ namespace QLNH_API.Controllers
         {
             try
             {
-                var result = await _aiService.GetCustomerSegmentAsync(id, cancellationToken);
+                var payload = await _customerSegmentData.GetPayloadAsync(id, cancellationToken);
+                if (payload == null)
+                    return NotFound("Khong tim thay khach hang");
+
+                var result = await _aiService.GetCustomerSegmentAsync(payload, cancellationToken);
                 return Ok(result);
             }
             catch (HttpRequestException)

@@ -41,6 +41,27 @@ namespace QLNH_API.Services
             return dto;
         }
 
+        public async Task<List<RevenueAiPredictResponseDto>> PredictRevenueRangeAsync(
+            string startDateIso,
+            int days,
+            CancellationToken cancellationToken = default)
+        {
+            var client = _httpClientFactory.CreateClient("AiService");
+            var payload = new AiPredictRangeBody { StartDate = startDateIso, Days = days };
+
+            using var response = await client.PostAsJsonAsync("predict/revenue-range", payload, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                throw new HttpRequestException($"AI service {(int)response.StatusCode}: {errorBody}");
+            }
+
+            return await response.Content.ReadFromJsonAsync<List<RevenueAiPredictResponseDto>>(
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                cancellationToken) ?? new List<RevenueAiPredictResponseDto>();
+        }
+
         public async Task<List<AiRecommendationItemDto>> RecommendForTableAsync(
             List<string> currentItems,
             int topN = 5,
@@ -88,11 +109,10 @@ namespace QLNH_API.Services
         }
 
         public async Task<AiCustomerSegmentResponseDto> GetCustomerSegmentAsync(
-            int guestId,
+            AiCustomerSegmentRequestDto payload,
             CancellationToken cancellationToken = default)
         {
             var client = _httpClientFactory.CreateClient("AiService");
-            var payload = new AiCustomerSegmentBody { GuestId = guestId };
 
             using var response = await client.PostAsJsonAsync("analyze/customer-segment", payload, cancellationToken);
 
@@ -208,6 +228,15 @@ namespace QLNH_API.Services
             public string Date { get; set; } = "";
         }
 
+        private sealed class AiPredictRangeBody
+        {
+            [JsonPropertyName("start_date")]
+            public string StartDate { get; set; } = "";
+
+            [JsonPropertyName("days")]
+            public int Days { get; set; }
+        }
+
         private sealed class AiRecommendBody
         {
             [JsonPropertyName("current_items")]
@@ -226,11 +255,6 @@ namespace QLNH_API.Services
             public int TopN { get; set; } = 5;
         }
 
-        private sealed class AiCustomerSegmentBody
-        {
-            [JsonPropertyName("guest_id")]
-            public int GuestId { get; set; }
-        }
     }
 
     public sealed class AiRecommendationItemDto
@@ -270,6 +294,18 @@ namespace QLNH_API.Services
 
         [JsonPropertyName("guest_profile_traits")]
         public List<string> GuestProfileTraits { get; set; } = new();
+
+        [JsonPropertyName("cluster_features")]
+        public Dictionary<string, JsonElement> ClusterFeatures { get; set; } = new();
+
+        [JsonPropertyName("behavior_label")]
+        public string BehaviorLabel { get; set; } = "";
+
+        [JsonPropertyName("behavior_description")]
+        public string BehaviorDescription { get; set; } = "";
+
+        [JsonPropertyName("behavior_traits")]
+        public List<string> BehaviorTraits { get; set; } = new();
 
         [JsonPropertyName("features")]
         public Dictionary<string, JsonElement> Features { get; set; } = new();
