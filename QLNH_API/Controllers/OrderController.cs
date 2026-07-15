@@ -6,6 +6,7 @@ using QLNH_API.Data;
 using QLNH_API.DTO;
 using QLNH_API.Model;
 using QLNH_API.Services;
+using System.Data;
 
 namespace QLNH_API.Controllers
 {
@@ -18,14 +19,16 @@ namespace QLNH_API.Controllers
         private readonly AiClientService _aiService;
         private readonly StatusResolver _statusResolver;
         private readonly ReservationService _reservationService;
+        private readonly IngredientInventoryService _ingredientInventoryService;
 
-        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService, StatusResolver statusResolver, ReservationService reservationService)
+        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService, StatusResolver statusResolver, ReservationService reservationService, IngredientInventoryService ingredientInventoryService)
         {
             _context = context;
             _mapper = mapper;
             _aiService = aiService;
             _statusResolver = statusResolver;
             _reservationService = reservationService;
+            _ingredientInventoryService = ingredientInventoryService;
         }
 
         [HttpGet]
@@ -162,8 +165,15 @@ namespace QLNH_API.Controllers
         [Authorize(Roles = "Manager,Cashier")]
         public async Task<ActionResult<OrderDTO>> CreateOrder([FromBody] CreateOrderRequest request)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
+                if (request.OrderItems == null || request.OrderItems.Count == 0 ||
+                    request.OrderItems.Any(item => item.Quantity <= 0 || !item.ItemId.HasValue))
+                {
+                    return BadRequest(new { message = "Đơn hàng phải có ít nhất một món hợp lệ" });
+                }
+
                 var pendingItemStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
                 var occupiedTableStatusId = await _statusResolver.GetIdAsync(StatusResolver.TableOccupied);
                 var unpaidOrderStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderUnpaid);
@@ -187,7 +197,7 @@ namespace QLNH_API.Controllers
                         Quantity = item.Quantity,
                         SalePrice = item.SalePrice,
                         ItemId = item.ItemId,
-                        CookingStatusId = item.CookingStatusId ?? pendingItemStatusId,
+                        CookingStatusId = pendingItemStatusId,
                         KitchenNote = item.KitchenNote
                     }).ToList()
                 };
@@ -260,6 +270,15 @@ namespace QLNH_API.Controllers
                 _context.Order.Add(order);
                 await _context.SaveChangesAsync();
 
+                if (order.OrderItems != null && order.OrderItems.Count > 0)
+                {
+                    await _ingredientInventoryService.ReserveAsync(order.OrderItems
+                        .Where(item => !item.Deleted && !item.Voided)
+                        .Select(item => new OrderItemReservation(item, item.Quantity))
+                        .ToList());
+                    await _context.SaveChangesAsync();
+                }
+
                 if (order.GuestTableId.HasValue)
                 {
                     await _reservationService.RefreshTableStatusAsync(order.GuestTableId.Value);
@@ -282,8 +301,18 @@ namespace QLNH_API.Controllers
                     await PayOrderInternal(order);
                 }
 
+                await transaction.CommitAsync();
+
                 var orderDTO = _mapper.Map<OrderDTO>(order);
                 return Ok(orderDTO);
+            }
+            catch (IngredientInventoryException ex)
+            {
+                return BadRequest(new IngredientInventoryErrorDTO
+                {
+                    Message = ex.Message,
+                    Shortages = ex.Shortages
+                });
             }
             catch (Exception ex)
             {
@@ -299,9 +328,12 @@ namespace QLNH_API.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int id)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
-                var order = await _context.Order.FindAsync(id);
+                var order = await _context.Order
+                    .Include(o => o.OrderItems)
+                    .FirstOrDefaultAsync(o => o.Id == id && !o.Deleted);
                 if (order == null)
                 {
                     return NotFound();
@@ -320,6 +352,10 @@ namespace QLNH_API.Controllers
 
                 foreach (var item in orderItems)
                 {
+                    if (!item.Deleted && !item.Voided)
+                    {
+                        await _ingredientInventoryService.ReleaseForDeletionAsync(item);
+                    }
                     item.Deleted = true;
                     item.Updated = DateTime.Now;
                 }
@@ -329,6 +365,7 @@ namespace QLNH_API.Controllers
                 {
                     await _reservationService.RefreshTableStatusAsync(guestTableId.Value);
                 }
+                await transaction.CommitAsync();
                 return NoContent();
             }
             catch (Exception ex)
@@ -341,6 +378,7 @@ namespace QLNH_API.Controllers
         [Authorize(Roles = "Manager, Cashier")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateOrderRequest request)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
                 var existingOrder = await _context.Order
@@ -353,6 +391,7 @@ namespace QLNH_API.Controllers
                     return NotFound("Order không tồn tại");
 
                 var previousGuestTableId = existingOrder.GuestTableId;
+                var pendingItemStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
 
                 // Xử lý giảm giá nếu có thay đổi số điện thoại
                 var paidAmount = request.PaidAmount;
@@ -410,6 +449,11 @@ namespace QLNH_API.Controllers
                 existingOrder.ChangeAmount = changeAmount;
                 existingOrder.Updated = DateTime.Now;
 
+                if (request.OrderItems != null)
+                {
+                    await SynchronizeOrderItemsAsync(existingOrder, request.OrderItems, pendingItemStatusId);
+                }
+
                 Console.WriteLine($"[Order Update] Updating OrderId={id}, TotalPrice={existingOrder.TotalPrice}, Discount={existingOrder.Discount}, FinalPrice={existingOrder.FinalPrice}, PaidAmount={existingOrder.PaidAmount}, ChangeAmount={existingOrder.ChangeAmount}, GuestTableId={existingOrder.GuestTableId}, GuestId={existingOrder.GuestId}, GuestPhone={existingOrder.GuestPhone}");
 
                 await _context.SaveChangesAsync();
@@ -442,8 +486,18 @@ namespace QLNH_API.Controllers
                     await PayOrderInternal(existingOrder);
                 }
 
+                await transaction.CommitAsync();
+
                 var orderDTO = _mapper.Map<OrderDTO>(existingOrder);
                 return Ok(orderDTO);
+            }
+            catch (IngredientInventoryException ex)
+            {
+                return BadRequest(new IngredientInventoryErrorDTO
+                {
+                    Message = ex.Message,
+                    Shortages = ex.Shortages
+                });
             }
             catch (Exception ex)
             {
@@ -452,6 +506,122 @@ namespace QLNH_API.Controllers
                     title: "Internal server error",
                     detail: $"Failed to update the order. {ex.Message}",
                     statusCode: 500);
+            }
+        }
+
+        private async Task SynchronizeOrderItemsAsync(
+            Order order,
+            IReadOnlyCollection<CreateOrderItemRequest> requestedItems,
+            int pendingStatusId)
+        {
+            if (requestedItems.Count == 0 ||
+                requestedItems.Any(item => item.Quantity <= 0 || !item.ItemId.HasValue))
+            {
+                throw new IngredientInventoryException("Đơn hàng phải có ít nhất một món hợp lệ");
+            }
+
+            var duplicateIds = requestedItems
+                .Where(item => item.Id > 0)
+                .GroupBy(item => item.Id)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+
+            if (duplicateIds.Count > 0)
+            {
+                throw new IngredientInventoryException("Danh sách món có chi tiết bị trùng lặp");
+            }
+
+            var existingItems = order.OrderItems?
+                .Where(item => !item.Deleted && !item.Voided)
+                .ToDictionary(item => item.Id) ?? new Dictionary<int, OrderItem>();
+            var requestedById = requestedItems
+                .Where(item => item.Id > 0)
+                .ToDictionary(item => item.Id);
+            var reservations = new List<OrderItemReservation>();
+
+            foreach (var existingItem in existingItems.Values)
+            {
+                if (!requestedById.TryGetValue(existingItem.Id, out var requestedItem))
+                {
+                    await _ingredientInventoryService.ReleaseForDeletionAsync(existingItem);
+                    existingItem.Deleted = true;
+                    existingItem.Updated = DateTime.Now;
+                    continue;
+                }
+
+                var isPending = !existingItem.CookingStatusId.HasValue ||
+                    existingItem.CookingStatusId == pendingStatusId;
+
+                if (!isPending &&
+                    (requestedItem.Quantity != existingItem.Quantity || requestedItem.ItemId != existingItem.ItemId))
+                {
+                    throw new IngredientInventoryException(
+                        $"Món '{existingItem.Name}' đã bắt đầu chế biến nên không thể thay đổi số lượng");
+                }
+
+                if (requestedItem.ItemId != existingItem.ItemId)
+                {
+                    throw new IngredientInventoryException("Không thể thay đổi món ăn của một chi tiết đơn hàng đã tồn tại");
+                }
+
+                if (isPending && requestedItem.Quantity > existingItem.Quantity)
+                {
+                    reservations.Add(new OrderItemReservation(
+                        existingItem,
+                        requestedItem.Quantity - existingItem.Quantity));
+                }
+                else if (isPending && requestedItem.Quantity < existingItem.Quantity)
+                {
+                    await _ingredientInventoryService.ReleasePendingReductionAsync(existingItem, requestedItem.Quantity);
+                }
+
+                existingItem.Name = requestedItem.Name;
+                existingItem.Description = requestedItem.Description;
+                existingItem.SalePrice = requestedItem.SalePrice;
+                existingItem.Quantity = requestedItem.Quantity;
+                if (isPending)
+                {
+                    existingItem.KitchenNote = requestedItem.KitchenNote;
+                }
+                existingItem.Updated = DateTime.Now;
+            }
+
+            foreach (var requestedItem in requestedItems.Where(item => item.Id <= 0))
+            {
+                var newOrderItem = new OrderItem
+                {
+                    Name = requestedItem.Name,
+                    Description = requestedItem.Description,
+                    Quantity = requestedItem.Quantity,
+                    SalePrice = requestedItem.SalePrice,
+                    ItemId = requestedItem.ItemId,
+                    CookingStatusId = pendingStatusId,
+                    KitchenNote = requestedItem.KitchenNote,
+                    OrderId = order.Id,
+                    Order = order,
+                    Created = DateTime.Now,
+                    Updated = DateTime.Now,
+                    Deleted = false,
+                    Voided = false
+                };
+
+                _context.OrderItem.Add(newOrderItem);
+                reservations.Add(new OrderItemReservation(newOrderItem, newOrderItem.Quantity));
+            }
+
+            var unknownIds = requestedById.Keys.Where(id => !existingItems.ContainsKey(id)).ToList();
+            if (unknownIds.Count > 0)
+            {
+                throw new IngredientInventoryException("Có chi tiết món không thuộc đơn hàng đang chỉnh sửa");
+            }
+
+            await _context.SaveChangesAsync();
+
+            if (reservations.Count > 0)
+            {
+                await _ingredientInventoryService.ReserveAsync(reservations);
+                await _context.SaveChangesAsync();
             }
         }
 
@@ -758,6 +928,7 @@ namespace QLNH_API.Controllers
 
         public class CreateOrderItemRequest
         {
+            public int Id { get; set; }
             public string Name { get; set; } = "";
             public string? Description { get; set; }
             public int Quantity { get; set; } = 1;
@@ -778,6 +949,7 @@ namespace QLNH_API.Controllers
             public int? GuestTableId { get; set; }
             public decimal Discount { get; set; } = 0;
             public decimal FinalPrice { get; set; } = 0;
+            public List<CreateOrderItemRequest>? OrderItems { get; set; }
         }
     }
 }

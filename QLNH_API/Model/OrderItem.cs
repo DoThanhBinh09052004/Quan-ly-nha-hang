@@ -32,5 +32,7 @@ namespace QLNH_API.Model
 
         [ForeignKey("CookingStatusId")]
         public virtual Status? CookingStatus { get; set; }
+
+        public virtual ICollection<OrderItemIngredientAllocation> IngredientAllocations { get; set; } = new List<OrderItemIngredientAllocation>();
     }
 }

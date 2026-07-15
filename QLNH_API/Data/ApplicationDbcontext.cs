@@ -20,6 +20,7 @@ namespace QLNH_API.Data
         public DbSet<ItemImage> ItemImage { get; set; }
         public DbSet<Order> Order { get; set; }
         public DbSet<OrderItem> OrderItem { get; set; }
+        public DbSet<OrderItemIngredientAllocation> OrderItemIngredientAllocation { get; set; }
         public DbSet<Payment> Payment { get; set; }
         public DbSet<Recipe> Recipe { get; set; }
         public DbSet<Role> Role { get; set; }
@@ -44,6 +45,7 @@ namespace QLNH_API.Data
             modelBuilder.Entity<ItemImage>().ToTable("itemimage");
             modelBuilder.Entity<Order>().ToTable("order");
             modelBuilder.Entity<OrderItem>().ToTable("orderitem");
+            modelBuilder.Entity<OrderItemIngredientAllocation>().ToTable("orderitemingredientallocation");
             modelBuilder.Entity<Payment>().ToTable("payment");
             modelBuilder.Entity<Recipe>().ToTable("recipe");
             modelBuilder.Entity<Role>().ToTable("role");
@@ -284,6 +286,22 @@ namespace QLNH_API.Data
                 .WithMany()
                 .HasForeignKey(oi => oi.CookingStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrderItemIngredientAllocation>()
+                .HasOne(a => a.OrderItem)
+                .WithMany(oi => oi.IngredientAllocations)
+                .HasForeignKey(a => a.OrderItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrderItemIngredientAllocation>()
+                .HasOne(a => a.Ingredient)
+                .WithMany()
+                .HasForeignKey(a => a.IngredientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrderItemIngredientAllocation>()
+                .HasIndex(a => new { a.OrderItemId, a.IngredientId })
+                .IsUnique();
 
             modelBuilder.Entity<Ingredient>()
                 .Property(i => i.Unit)

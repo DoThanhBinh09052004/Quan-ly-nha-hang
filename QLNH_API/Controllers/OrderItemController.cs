@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QLNH_API.Data;
 using QLNH_API.DTO;
 using QLNH_API.Model;
 using QLNH_API.Services;
+using System.Data;
 
 namespace QLNH_API.Controllers
 {
@@ -14,11 +16,15 @@ namespace QLNH_API.Controllers
     {
         private readonly ApplicationDbcontext _context;
         private readonly StatusResolver _statusResolver;
+        private readonly IngredientInventoryService _ingredientInventoryService;
+        private readonly IMapper _mapper;
 
-        public OrderItemController(ApplicationDbcontext context, StatusResolver statusResolver)
+        public OrderItemController(ApplicationDbcontext context, StatusResolver statusResolver, IngredientInventoryService ingredientInventoryService, IMapper mapper)
         {
             _context = context;
             _statusResolver = statusResolver;
+            _ingredientInventoryService = ingredientInventoryService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -46,13 +52,14 @@ namespace QLNH_API.Controllers
         [HttpGet("order/{orderId}")]
         [Authorize(Roles = "Manager, Cashier")]
 
-        public async Task<ActionResult<IEnumerable<OrderItem>>> GetOrderItemsByOrderId(int orderId)
+        public async Task<ActionResult<IEnumerable<OrderItemDTO>>> GetOrderItemsByOrderId(int orderId)
         {
             try
             {
                 var orderItems = await _context.OrderItem
                     .Include(oi => oi.Item)
-                    .Where(oi => oi.OrderId == orderId && !oi.Deleted)
+                    .Include(oi => oi.CookingStatus)
+                    .Where(oi => oi.OrderId == orderId && !oi.Deleted && !oi.Voided)
                     .ToListAsync();
 
                 if (!orderItems.Any())
@@ -60,7 +67,7 @@ namespace QLNH_API.Controllers
                     return NotFound($"No order items found for order ID {orderId}");
                 }
 
-                return Ok(orderItems);
+                return Ok(_mapper.Map<List<OrderItemDTO>>(orderItems));
             }
             catch (Exception ex)
             {
@@ -74,8 +81,14 @@ namespace QLNH_API.Controllers
 
         public async Task<ActionResult<OrderItem>> CreateOrderItem([FromBody] OrderItemDTO orderItemDto)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
+                if (orderItemDto.Quantity <= 0 || !orderItemDto.ItemId.HasValue)
+                {
+                    return BadRequest(new { message = "Món ăn và số lượng món không hợp lệ" });
+                }
+
                 var pendingStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
                 Console.WriteLine($"🟡 Creating order item from DTO: {System.Text.Json.JsonSerializer.Serialize(orderItemDto)}");
 
@@ -105,6 +118,12 @@ namespace QLNH_API.Controllers
 
                 _context.OrderItem.Add(orderItem);
                 await _context.SaveChangesAsync();
+                await _ingredientInventoryService.ReserveAsync(new[]
+                {
+                    new OrderItemReservation(orderItem, orderItem.Quantity)
+                });
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 try
                 {
@@ -118,6 +137,14 @@ namespace QLNH_API.Controllers
                 Console.WriteLine($"✅ Order item created successfully with ID: {orderItem.Id}");
 
                 return Ok(orderItem);
+            }
+            catch (IngredientInventoryException ex)
+            {
+                return BadRequest(new IngredientInventoryErrorDTO
+                {
+                    Message = ex.Message,
+                    Shortages = ex.Shortages
+                });
             }
             catch (Exception ex)
             {
@@ -136,11 +163,17 @@ namespace QLNH_API.Controllers
 
         public async Task<ActionResult<OrderItem>> UpdateOrderItem(int id, [FromBody] OrderItem orderItem)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
                 if (id != orderItem.Id)
                 {
                     return BadRequest("ID mismatch");
+                }
+
+                if (orderItem.Quantity <= 0)
+                {
+                    return BadRequest(new { message = "Số lượng món phải lớn hơn 0" });
                 }
 
                 var existingOrderItem = await _context.OrderItem
@@ -151,17 +184,47 @@ namespace QLNH_API.Controllers
                     return NotFound($"OrderItem with ID {id} not found");
                 }
 
+                var pendingStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
+                var isPending = !existingOrderItem.CookingStatusId.HasValue ||
+                    existingOrderItem.CookingStatusId == pendingStatusId;
+
+                if (!isPending && orderItem.Quantity != existingOrderItem.Quantity)
+                {
+                    throw new IngredientInventoryException(
+                        $"Món '{existingOrderItem.Name}' đã bắt đầu chế biến nên không thể thay đổi số lượng");
+                }
+
+                if (isPending && orderItem.Quantity > existingOrderItem.Quantity)
+                {
+                    await _ingredientInventoryService.ReserveAsync(new[]
+                    {
+                        new OrderItemReservation(existingOrderItem, orderItem.Quantity - existingOrderItem.Quantity)
+                    });
+                }
+                else if (isPending && orderItem.Quantity < existingOrderItem.Quantity)
+                {
+                    await _ingredientInventoryService.ReleasePendingReductionAsync(existingOrderItem, orderItem.Quantity);
+                }
+
                 // Update fields
                 existingOrderItem.Name = orderItem.Name;
                 existingOrderItem.Description = orderItem.Description;
                 existingOrderItem.Quantity = orderItem.Quantity;
                 existingOrderItem.SalePrice = orderItem.SalePrice;
                 existingOrderItem.Updated = DateTime.Now;
-                existingOrderItem.Voided = orderItem.Voided;
 
                 await _context.SaveChangesAsync();
                 await RecalculateOrderActualProfitAsync(existingOrderItem.OrderId);
+                await transaction.CommitAsync();
                 return Ok(existingOrderItem);
+            }
+            catch (IngredientInventoryException ex)
+            {
+                return BadRequest(new IngredientInventoryErrorDTO
+                {
+                    Message = ex.Message,
+                    Shortages = ex.Shortages
+                });
             }
             catch (Exception ex)
             {
@@ -175,6 +238,7 @@ namespace QLNH_API.Controllers
 
         public async Task<IActionResult> DeleteOrderItem(int id)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
                 var orderItem = await _context.OrderItem.FindAsync(id);
@@ -183,11 +247,14 @@ namespace QLNH_API.Controllers
                     return NotFound();
                 }
 
+                await _ingredientInventoryService.ReleaseForDeletionAsync(orderItem);
+
                 orderItem.Deleted = true;
                 orderItem.Updated = DateTime.Now;
 
                 await _context.SaveChangesAsync();
                 await RecalculateOrderActualProfitAsync(orderItem.OrderId);
+                await transaction.CommitAsync();
                 return NoContent();
             }
             catch (Exception ex)
@@ -202,6 +269,7 @@ namespace QLNH_API.Controllers
 
         public async Task<IActionResult> DeleteOrderItemsByOrderId(int orderId)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
                 var orderItems = await _context.OrderItem
@@ -215,6 +283,10 @@ namespace QLNH_API.Controllers
 
                 foreach (var orderItem in orderItems)
                 {
+                    if (!orderItem.Voided)
+                    {
+                        await _ingredientInventoryService.ReleaseForDeletionAsync(orderItem);
+                    }
                     orderItem.Deleted = true;
                     orderItem.Updated = DateTime.Now;
                 }
@@ -230,6 +302,8 @@ namespace QLNH_API.Controllers
                     Console.WriteLine($"⚠️ Failed to recalculate order profit for OrderId {orderId}: {recalculateEx}");
                 }
 
+                await transaction.CommitAsync();
+
                 return NoContent();
             }
             catch (Exception ex)
@@ -244,8 +318,14 @@ namespace QLNH_API.Controllers
 
         public async Task<ActionResult<IEnumerable<OrderItem>>> CreateOrderItems([FromBody] List<OrderItem> orderItems)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
+                if (orderItems.Count == 0 || orderItems.Any(item => item.Quantity <= 0 || !item.ItemId.HasValue))
+                {
+                    return BadRequest(new { message = "Danh sách món không hợp lệ" });
+                }
+
                 var pendingStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
                 var now = DateTime.Now;
                 foreach (var orderItem in orderItems)
@@ -258,6 +338,10 @@ namespace QLNH_API.Controllers
                 }
 
                 _context.OrderItem.AddRange(orderItems);
+                await _context.SaveChangesAsync();
+                await _ingredientInventoryService.ReserveAsync(orderItems
+                    .Select(item => new OrderItemReservation(item, item.Quantity))
+                    .ToList());
                 await _context.SaveChangesAsync();
 
                 foreach (var orderId in orderItems.Select(oi => oi.OrderId).Distinct())
@@ -272,7 +356,17 @@ namespace QLNH_API.Controllers
                     }
                 }
 
+                await transaction.CommitAsync();
+
                 return CreatedAtAction(nameof(GetOrderItems), orderItems);
+            }
+            catch (IngredientInventoryException ex)
+            {
+                return BadRequest(new IngredientInventoryErrorDTO
+                {
+                    Message = ex.Message,
+                    Shortages = ex.Shortages
+                });
             }
             catch (Exception ex)
             {
@@ -329,6 +423,7 @@ namespace QLNH_API.Controllers
         [Authorize(Roles = "Manager, Kitchen")]
         public async Task<IActionResult> UpdateCookingStatus([FromBody] UpdateCookingStatusDTO dto)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
                 var orderItem = await _context.OrderItem
@@ -349,6 +444,8 @@ namespace QLNH_API.Controllers
                 var completedStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemCompleted);
                 var cancelledStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemCancelled);
                 int oldStatusId = orderItem.CookingStatusId ?? pendingStatusId;
+
+                await _ingredientInventoryService.HandleStatusTransitionAsync(orderItem, oldStatusId, newStatusId);
 
                 // Cập nhật trạng thái
                 orderItem.CookingStatusId = newStatusId;
@@ -379,6 +476,7 @@ namespace QLNH_API.Controllers
 
                 // Lấy tên trạng thái mới
                 var newStatus = await _context.Status.FindAsync(newStatusId);
+                await transaction.CommitAsync();
 
                 return Ok(new
                 {
@@ -388,6 +486,14 @@ namespace QLNH_API.Controllers
                     newStatusId = orderItem.CookingStatusId,
                     newStatusName = newStatus?.Name,
                     completedAt = orderItem.CompletedAt
+                });
+            }
+            catch (IngredientInventoryException ex)
+            {
+                return BadRequest(new IngredientInventoryErrorDTO
+                {
+                    Message = ex.Message,
+                    Shortages = ex.Shortages
                 });
             }
             catch (Exception ex)
