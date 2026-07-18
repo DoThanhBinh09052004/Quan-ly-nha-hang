@@ -68,6 +68,7 @@ Do not commit generated, local, temporary, or sensitive files, including:
 - Debug logs, temporary exports, test output, or local database files.
 - Secrets, access tokens, passwords, private keys, or local connection strings.
 - Unrelated formatting or line-ending changes.
+- Migration
 
 If one of these files is already tracked, do not include its changes in a feature commit unless the user explicitly requests it.
 
