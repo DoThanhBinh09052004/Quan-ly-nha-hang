@@ -36,10 +36,11 @@ namespace QLNH_API.Mapppings
 
             CreateMap<GuestTable, GuestTableDTO>()
                 .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.StatusId))
+                .ForMember(dest => dest.StatusManuallyOverridden, opt => opt.MapFrom(src => src.StatusManuallyOverridden))
                 .ForMember(dest => dest.CurrentOrderTotal, opt => opt.MapFrom(src =>
-                    src.Status != null && (src.Status.Code == StatusResolver.TableAvailable || src.Status.Code == StatusResolver.TableOccupied) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Sum(o => o.FinalPrice) : 0))
+                    src.Status != null && (src.Status.Code == StatusResolver.TableAvailable || src.Status.Code == StatusResolver.TableOccupied) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount < o.FinalPrice).Sum(o => o.FinalPrice) : 0))
                 .ForMember(dest => dest.CurrentGuestName, opt => opt.MapFrom(src =>
-                    src.Status != null && (src.Status.Code == StatusResolver.TableAvailable || src.Status.Code == StatusResolver.TableOccupied) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount == 0).Select(o => o.Guest != null ? o.Guest.Name : o.GuestPhone).FirstOrDefault() : null));
+                    src.Status != null && (src.Status.Code == StatusResolver.TableAvailable || src.Status.Code == StatusResolver.TableOccupied) && src.Orders != null ? src.Orders.Where(o => !o.Deleted && !o.Voided && o.PaidAmount < o.FinalPrice).Select(o => o.Guest != null ? o.Guest.Name : o.GuestPhone).FirstOrDefault() : null));
 
             CreateMap<Order, OrderDTO>()
                 .ForMember(dest => dest.CreatedUser, opt => opt.MapFrom(src => src.CreatedUser))

@@ -25,6 +25,7 @@ namespace QLNH_API.Model
 
         [ForeignKey(nameof(GuestId))]
         public virtual Guest? Guest { get; set; }
+        public virtual Order? Order { get; set; }
     }
 
     public static class ReservationStatuses

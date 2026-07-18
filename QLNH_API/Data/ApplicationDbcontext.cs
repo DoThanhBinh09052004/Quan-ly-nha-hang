@@ -143,6 +143,16 @@ namespace QLNH_API.Data
                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
+                .HasOne(o => o.Reservation)
+                .WithOne(r => r.Order)
+                .HasForeignKey<Order>(o => o.ReservationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.ReservationId)
+                .IsUnique();
+
+            modelBuilder.Entity<Order>()
                 .HasOne(o => o.Guest)
                 .WithMany(g => g.Orders)
                 .HasForeignKey(o => o.GuestId)

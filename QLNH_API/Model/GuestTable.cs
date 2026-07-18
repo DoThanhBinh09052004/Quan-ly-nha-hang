@@ -15,6 +15,7 @@ namespace QLNH_API.Model
         public int Capacity { get; set; } = 4;
         public int Floor { get; set; } = 1;
         public int? StatusId { get; set; }
+        public bool StatusManuallyOverridden { get; set; } = false;
 
         [ForeignKey("StatusId")]
         public virtual Status? Status { get; set; }

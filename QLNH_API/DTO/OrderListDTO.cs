@@ -13,6 +13,7 @@ namespace QLNH_API.DTO
         public decimal ChangeAmount { get; set; }
         public string? GuestPhone { get; set; }
         public int? GuestTableId { get; set; }
+        public int? ReservationId { get; set; }
         public SimpleLookupDTO? GuestTable { get; set; }
         public SimpleLookupDTO? Status { get; set; }
     }

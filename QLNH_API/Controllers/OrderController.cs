@@ -97,6 +97,7 @@ namespace QLNH_API.Controllers
                         ChangeAmount = o.ChangeAmount,
                         GuestPhone = o.GuestPhone,
                         GuestTableId = o.GuestTableId,
+                        ReservationId = o.ReservationId,
                         GuestTable = o.GuestTable == null ? null : new SimpleLookupDTO
                         {
                             Id = o.GuestTable.Id,
@@ -139,6 +140,7 @@ namespace QLNH_API.Controllers
                     .Include(o => o.CreatedUser)
                     .Include(o => o.UpdatedUser)
                     .Include(o => o.GuestTable)
+                    .Include(o => o.Reservation)
                     .Include(o => o.Guest)
                     .Include(o => o.Status)
                     .FirstOrDefaultAsync(o => o.Id == id && !o.Deleted);
@@ -174,6 +176,15 @@ namespace QLNH_API.Controllers
                     return BadRequest(new { message = "Đơn hàng phải có ít nhất một món hợp lệ" });
                 }
 
+                if (!request.GuestTableId.HasValue)
+                {
+                    return BadRequest(new { message = "Vui lòng chọn bàn ăn." });
+                }
+
+                var table = await _reservationService.LockTableAsync(request.GuestTableId.Value);
+                var reservation = await _reservationService.EnsureTableCanAcceptOrderAsync(
+                    table, request.ReservationId);
+
                 var pendingItemStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
                 var occupiedTableStatusId = await _statusResolver.GetIdAsync(StatusResolver.TableOccupied);
                 var unpaidOrderStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderUnpaid);
@@ -188,6 +199,7 @@ namespace QLNH_API.Controllers
                     GuestPhone = request.GuestPhone,
                     GuestId = request.GuestId,
                     GuestTableId = request.GuestTableId,
+                    ReservationId = request.ReservationId,
                     Discount = request.Discount,
                     FinalPrice = request.FinalPrice,
                     OrderItems = request.OrderItems?.Select(item => new OrderItem
@@ -243,12 +255,17 @@ namespace QLNH_API.Controllers
                 }
 
                 // 4. Cập nhật trạng thái bàn
-                var table = await _context.GuestTable.FindAsync(order.GuestTableId);
-                if (table != null)
+                table.StatusId = occupiedTableStatusId;
+                table.StatusManuallyOverridden = false;
+                table.Updated = DateTime.Now;
+                order.CheckInTime = DateTime.Now;
+                if (reservation != null)
                 {
-                    table.StatusId = occupiedTableStatusId;
-                    table.Updated = DateTime.Now;
-                    order.CheckInTime = DateTime.Now;
+                    _reservationService.MarkArrived(reservation);
+                    order.GuestId ??= reservation.GuestId;
+                    order.GuestPhone = string.IsNullOrWhiteSpace(order.GuestPhone)
+                        ? reservation.Phone
+                        : order.GuestPhone;
                 }
 
                 // 5. Tạo số đơn hàng
@@ -314,6 +331,15 @@ namespace QLNH_API.Controllers
                     Shortages = ex.Shortages
                 });
             }
+            catch (TableAvailabilityException ex)
+            {
+                return Conflict(new
+                {
+                    code = ex.Code,
+                    message = ex.Message,
+                    reservationTime = ex.ReservationTime
+                });
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating order: {ex}");
@@ -360,6 +386,11 @@ namespace QLNH_API.Controllers
                     item.Updated = DateTime.Now;
                 }
 
+                if (order.ReservationId.HasValue)
+                {
+                    await _reservationService.MarkCancelledAfterOrderDeletionAsync(order.ReservationId.Value);
+                }
+
                 await _context.SaveChangesAsync();
                 if (guestTableId.HasValue)
                 {
@@ -385,6 +416,7 @@ namespace QLNH_API.Controllers
                     .Include(o => o.GuestTable)
                     .Include(o => o.OrderItems)
                     .Include(o => o.Guest)
+                    .Include(o => o.Reservation)
                     .FirstOrDefaultAsync(o => o.Id == id);
 
                 if (existingOrder == null)
@@ -392,6 +424,25 @@ namespace QLNH_API.Controllers
 
                 var previousGuestTableId = existingOrder.GuestTableId;
                 var pendingItemStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
+
+                if (request.GuestTableId != previousGuestTableId)
+                {
+                    if (!request.GuestTableId.HasValue)
+                    {
+                        return BadRequest(new { message = "Vui lòng chọn bàn ăn." });
+                    }
+
+                    var targetTable = await _reservationService.LockTableAsync(request.GuestTableId.Value);
+                    await _reservationService.EnsureTableCanAcceptOrderAsync(
+                        targetTable, null, existingOrder.Id);
+                    targetTable.StatusManuallyOverridden = false;
+
+                    if (existingOrder.Reservation != null)
+                    {
+                        await _reservationService.TransferReservationAsync(
+                            existingOrder.Reservation, targetTable.Id);
+                    }
+                }
 
                 // Xử lý giảm giá nếu có thay đổi số điện thoại
                 var paidAmount = request.PaidAmount;
@@ -497,6 +548,15 @@ namespace QLNH_API.Controllers
                 {
                     Message = ex.Message,
                     Shortages = ex.Shortages
+                });
+            }
+            catch (TableAvailabilityException ex)
+            {
+                return Conflict(new
+                {
+                    code = ex.Code,
+                    message = ex.Message,
+                    reservationTime = ex.ReservationTime
                 });
             }
             catch (Exception ex)
@@ -685,6 +745,11 @@ namespace QLNH_API.Controllers
                 }
 
                 await ApplyOrderActualProfitAsync(order);
+
+                if (order.ReservationId.HasValue)
+                {
+                    await _reservationService.MarkCompletedAsync(order.ReservationId.Value);
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -921,6 +986,7 @@ namespace QLNH_API.Controllers
             public string? GuestPhone { get; set; }
             public int? GuestId { get; set; }
             public int? GuestTableId { get; set; }
+            public int? ReservationId { get; set; }
             public decimal Discount { get; set; } = 0;
             public decimal FinalPrice { get; set; } = 0;
             public List<CreateOrderItemRequest>? OrderItems { get; set; }

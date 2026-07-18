@@ -18,6 +18,7 @@
         public DateTime? CheckInTime { get; set; }
         public DateTime? CheckOutTime { get; set; }
         public int PartySize { get; set; }
+        public int? ReservationId { get; set; }
 
         public GuestDTO? Guest { get; set; }
         public GuestTableDTO? GuestTable { get; set; }

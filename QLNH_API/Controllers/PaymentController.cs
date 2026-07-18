@@ -420,6 +420,11 @@ namespace QLNH_API.Controllers
 
             }
 
+            if (order?.ReservationId is int reservationId)
+            {
+                await _reservationService.MarkCompletedAsync(reservationId);
+            }
+
             await _context.SaveChangesAsync();
             if (order?.GuestTableId is int guestTableId)
             {

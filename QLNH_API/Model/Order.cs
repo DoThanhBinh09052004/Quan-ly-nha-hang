@@ -28,9 +28,13 @@ namespace QLNH_API.Model
         public int PartySize { get; set; } = 1;
 
         public int? GuestTableId { get; set; }
+        public int? ReservationId { get; set; }
 
         [ForeignKey("GuestTableId")]
         public virtual GuestTable? GuestTable { get; set; }
+
+        [ForeignKey("ReservationId")]
+        public virtual Reservation? Reservation { get; set; }
 
         [ForeignKey("GuestId")]
         public virtual Guest? Guest { get; set; }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QLNH_API.DTO.Reservation;
+using QLNH_API.DTO;
 using QLNH_API.Model;
 using QLNH_API.Services;
 
@@ -31,6 +32,22 @@ namespace QLNH_API.Controllers
         {
             var reservation = await _service.GetByIdAsync(id);
             return reservation == null ? NotFound() : Ok(reservation);
+        }
+
+        [HttpGet("available-tables")]
+        public async Task<ActionResult<IEnumerable<GuestTableDTO>>> GetAvailableTables(
+            [FromQuery] DateTime start,
+            [FromQuery] int durationMinutes,
+            [FromQuery] int partySize,
+            [FromQuery] int? excludedReservationId)
+        {
+            if (durationMinutes < 15 || durationMinutes > 1440 || partySize < 1 || partySize > 50)
+            {
+                return BadRequest(new { message = "Thời lượng hoặc số người không hợp lệ." });
+            }
+
+            return Ok(await _service.GetTablesAvailableForReservationAsync(
+                start, durationMinutes, partySize, excludedReservationId));
         }
 
         [HttpPost]
