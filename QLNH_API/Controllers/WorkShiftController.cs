@@ -25,17 +25,22 @@ namespace QLNH_API.Controllers
             _mapper = mapper;
         }
 
+        private IQueryable<WorkShift> GetActiveWorkShiftsQuery()
+        {
+            return _context.WorkShift
+                .Include(ws => ws.User)
+                .Include(ws => ws.Shift)
+                .Where(ws => !ws.Deleted && ws.User != null && !ws.User.Deleted && ws.Shift != null && !ws.Shift.Deleted);
+        }
+
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<IEnumerable<WorkShiftDTO>>> GetWorkShifts(
             [FromQuery] int? userId,
             [FromQuery] DateTime? fromDate,
             [FromQuery] DateTime? toDate)
         {
-            var query = _context.WorkShift
-                .Include(ws => ws.User)
-                .Include(ws => ws.Shift)
-                .Where(ws => !ws.Deleted && ws.User != null && !ws.User.Deleted && ws.Shift != null && !ws.Shift.Deleted);
+            var query = GetActiveWorkShiftsQuery();
 
             if (userId.HasValue)
             {
@@ -58,8 +63,50 @@ namespace QLNH_API.Controllers
             return Ok(workShiftDTOs);
         }
 
+        [HttpGet("mine")]
+        [Authorize(Roles = "Manager, Service Staff, Kitchen")]
+        public async Task<ActionResult<IEnumerable<WorkShiftDTO>>> GetMyWorkShifts(
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate)
+        {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return Unauthorized();
+            }
+
+            var userId = await _context.User
+                .Where(u => u.Username == username && !u.Deleted)
+                .Select(u => (int?)u.Id)
+                .FirstOrDefaultAsync();
+
+            if (!userId.HasValue)
+            {
+                return Unauthorized();
+            }
+
+            var query = GetActiveWorkShiftsQuery().Where(ws => ws.UserId == userId.Value);
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(ws => ws.WorkDate >= fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                query = query.Where(ws => ws.WorkDate <= toDate.Value.Date.AddDays(1).AddTicks(-1));
+            }
+
+            var workShifts = await query
+                .OrderBy(ws => ws.WorkDate)
+                .ThenBy(ws => ws.Shift!.StartTime)
+                .ToListAsync();
+
+            return Ok(_mapper.Map<List<WorkShiftDTO>>(workShifts));
+        }
+
         [HttpGet("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<WorkShiftDTO>> GetWorkShift(int id)
         {
             var workShift = await _context.WorkShift

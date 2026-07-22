@@ -20,8 +20,9 @@ namespace QLNH_API.Controllers
         private readonly StatusResolver _statusResolver;
         private readonly ReservationService _reservationService;
         private readonly IngredientInventoryService _ingredientInventoryService;
+        private readonly RevenueService _revenueService;
 
-        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService, StatusResolver statusResolver, ReservationService reservationService, IngredientInventoryService ingredientInventoryService)
+        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService, StatusResolver statusResolver, ReservationService reservationService, IngredientInventoryService ingredientInventoryService, RevenueService revenueService)
         {
             _context = context;
             _mapper = mapper;
@@ -29,10 +30,11 @@ namespace QLNH_API.Controllers
             _statusResolver = statusResolver;
             _reservationService = reservationService;
             _ingredientInventoryService = ingredientInventoryService;
+            _revenueService = revenueService;
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<OrderListResponseDTO>> GetOrder(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -60,12 +62,7 @@ namespace QLNH_API.Controllers
 
                 var totalRecords = await query.CountAsync();
 
-                var today = DateTime.Today;
-                var tomorrow = today.AddDays(1);
-                var todayRevenue = await _context.Order
-                    .AsNoTracking()
-                    .Where(o => !o.Deleted && o.Created >= today && o.Created < tomorrow)
-                    .SumAsync(o => (decimal?)o.FinalPrice) ?? 0m;
+                var todayRevenue = await _revenueService.GetTodayRevenue();
 
                 var descending = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase) || sortOrder == "-1";
                 query = (sortField ?? "").ToLowerInvariant() switch
@@ -129,7 +126,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<OrderDTO>> GetOrderById(int id)
         {
             try
@@ -164,7 +161,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Manager,Cashier")]
+        [Authorize(Roles = "Manager,Service Staff")]
         public async Task<ActionResult<OrderDTO>> CreateOrder([FromBody] CreateOrderRequest request)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
@@ -406,7 +403,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateOrderRequest request)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
@@ -802,7 +799,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPost("ai-recommendations")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<IActionResult> GetAiRecommendations([FromBody] AiRecommendationsRequest request, CancellationToken cancellationToken)
         {
             var items = request?.CurrentItems ?? new List<string>();
@@ -829,7 +826,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPost("ai-market-basket")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<IActionResult> AnalyzeMarketBasket([FromBody] AiMarketBasketRequest request, CancellationToken cancellationToken)
         {
             var items = request?.Items ?? new List<string>();
@@ -890,7 +887,7 @@ namespace QLNH_API.Controllers
 
 
         [HttpPost("{id}/use-points")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<OrderDTO>> UsePoints(int id, [FromBody] UsePointsRequest request)
         {
             try

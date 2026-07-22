@@ -28,7 +28,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<ActionResult<IEnumerable<OrderItem>>> GetOrderItems()
         {
@@ -50,7 +50,7 @@ namespace QLNH_API.Controllers
 
         // Lấy OrderItems theo OrderId
         [HttpGet("order/{orderId}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<ActionResult<IEnumerable<OrderItemDTO>>> GetOrderItemsByOrderId(int orderId)
         {
@@ -77,7 +77,7 @@ namespace QLNH_API.Controllers
 
         // Tạo mới OrderItem
         [HttpPost]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<ActionResult<OrderItem>> CreateOrderItem([FromBody] OrderItemDTO orderItemDto)
         {
@@ -159,7 +159,7 @@ namespace QLNH_API.Controllers
 
         // Cập nhật OrderItem
         [HttpPut("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<ActionResult<OrderItem>> UpdateOrderItem(int id, [FromBody] OrderItem orderItem)
         {
@@ -265,7 +265,7 @@ namespace QLNH_API.Controllers
 
         // Xóa tất cả OrderItems theo OrderId
         [HttpDelete("order/{orderId}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager")]
 
         public async Task<IActionResult> DeleteOrderItemsByOrderId(int orderId)
         {
@@ -314,7 +314,7 @@ namespace QLNH_API.Controllers
 
         // Tạo nhiều OrderItems cùng lúc
         [HttpPost("bulk")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<ActionResult<IEnumerable<OrderItem>>> CreateOrderItems([FromBody] List<OrderItem> orderItems)
         {
@@ -376,7 +376,7 @@ namespace QLNH_API.Controllers
 
         // 1. Lấy danh sách món đang chờ & đang chế biến (cho bếp)
         [HttpGet("kitchen/pending")]
-        [Authorize(Roles = "Manager, Cashier, Kitchen")]
+        [Authorize(Roles = "Manager, Service Staff, Kitchen")]
         public async Task<ActionResult<IEnumerable<OrderItemStatusDTO>>> GetPendingKitchenItems()
         {
             try
@@ -504,7 +504,7 @@ namespace QLNH_API.Controllers
 
         // 3. Phục vụ lấy danh sách món đã hoàn thành theo order (để lên đồ)
         [HttpGet("kitchen/completed-by-order/{orderId}")]
-        [Authorize(Roles = "Manager, Cashier, Kitchen")]
+        [Authorize(Roles = "Manager, Service Staff, Kitchen")]
         public async Task<ActionResult<IEnumerable<OrderItemStatusDTO>>> GetCompletedItemsByOrder(int orderId)
         {
             try

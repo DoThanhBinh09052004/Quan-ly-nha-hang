@@ -9,7 +9,7 @@ namespace QLNH_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize(Roles = "Manager, Cashier")]
+    [Authorize(Roles = "Manager, Service Staff")]
     public class ReservationController : ControllerBase
     {
         private readonly ReservationService _service;

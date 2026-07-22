@@ -22,7 +22,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<IEnumerable<ItemDTO>>> GetItems()
         {
             var items = await _context.Item
@@ -36,7 +36,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<ItemDTO>> GetItem(int id)
         {
             var item = await _context.Item
@@ -144,7 +144,7 @@ namespace QLNH_API.Controllers
 
         // GET: /item/best-seller?days=30&top=10
         [HttpGet("best-seller")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult> GetBestSeller([FromQuery] int days = 30, [FromQuery] int top = 10)
         {
             var fromDate = DateTime.Now.AddDays(-days);

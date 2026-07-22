@@ -18,7 +18,7 @@ namespace QLNH_API.Controllers
             }
 
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {

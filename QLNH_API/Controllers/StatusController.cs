@@ -16,7 +16,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff, Kitchen")]
 
         public IEnumerable<Status> GetStatuses()
         {

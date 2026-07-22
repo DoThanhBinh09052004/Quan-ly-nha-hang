@@ -76,7 +76,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPost("vietqr/create")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<IActionResult> CreateVietQR([FromBody] CreateVietQRRequest request)
         {
             try
@@ -223,7 +223,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPost("vietqr/confirm")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<IActionResult> ConfirmVietQR([FromBody] ConfirmVietQRRequest request)
         {
             try
@@ -271,7 +271,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<IActionResult> GetPayment(long id)
         {
             try

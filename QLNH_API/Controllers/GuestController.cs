@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QLNH_API.Data;
@@ -23,6 +24,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<IEnumerable<GuestDTO>>> GetGuests()
         {
             var guests = await _context.Guest
@@ -33,6 +35,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("search")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<GuestDTO>> SearchGuestByPhone(string phone)
         {
             try
@@ -63,6 +66,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<Guest>> CreateGuest([FromBody] Guest guest)
         {
             try
@@ -83,6 +87,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> UpdateGuest(int id, [FromBody] Guest guestData)
         {
             var guest = await _context.Guest.FindAsync(id);
@@ -100,6 +105,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteGuest(int id)
         {
             var guest = await _context.Guest.FindAsync(id);
@@ -114,6 +120,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("{id}/ai-segment")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<IActionResult> GetCustomerSegment(int id, CancellationToken cancellationToken)
         {
             try

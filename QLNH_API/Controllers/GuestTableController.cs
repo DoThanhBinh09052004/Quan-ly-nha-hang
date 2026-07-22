@@ -31,7 +31,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<IEnumerable<GuestTableDTO>>> GetGuestTable()
         {
             try
@@ -60,7 +60,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("available")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<IEnumerable<GuestTableDTO>>> GetEmptyGuestTable()
         {
             try
@@ -75,7 +75,7 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<GuestTableDTO>> GetGuestTableByid(int id)
         {
             var table = await _context.GuestTable

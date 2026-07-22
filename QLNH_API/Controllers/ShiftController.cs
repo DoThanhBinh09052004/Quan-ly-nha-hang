@@ -27,7 +27,7 @@ namespace QLNH_API.Controllers
 
         // Lấy toàn bộ danh sách ca làm việc chưa bị xóa
         [HttpGet]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff, Kitchen")]
         public async Task<ActionResult<IEnumerable<ShiftDTO>>> GetShifts()
         {
             var shifts = await _context.Shift
@@ -40,7 +40,7 @@ namespace QLNH_API.Controllers
 
         // Lấy chi tiết một ca làm việc
         [HttpGet("{id}")]
-        [Authorize(Roles = "Manager, Cashier")]
+        [Authorize(Roles = "Manager, Service Staff, Kitchen")]
         public async Task<ActionResult<ShiftDTO>> GetShift(int id)
         {
             var shift = await _context.Shift
