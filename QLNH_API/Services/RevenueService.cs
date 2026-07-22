@@ -13,10 +13,17 @@ namespace QLNH_API.Services
             _context = context;
         }
 
-        public async Task<object> GetRevenueByMonth()
+        public async Task<object> GetRevenueByMonth(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
         {
-            var revenueByMonth = await _context.Order
-                .Where(o => !o.Deleted && !o.Voided && o.StatusId == 3)
+            var orders = ApplyOrderDateRange(
+                _context.Order.Where(o => !o.Deleted && !o.Voided && o.StatusId == 3),
+                fromDate,
+                toDate);
+
+            var revenueByMonth = await orders
                 .GroupBy(o => new { o.Created.Year, o.Created.Month })
                 .Select(g => new
                 {
@@ -28,15 +35,22 @@ namespace QLNH_API.Services
                 })
                 .OrderBy(x => x.Year)
                 .ThenBy(x => x.Month)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return revenueByMonth;
         }
 
-        public async Task<object> GetRevenueByDay()
+        public async Task<object> GetRevenueByDay(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
         {
-            var revenueByDay = await _context.Order
-               .Where(o => !o.Deleted && !o.Voided && o.StatusId == 3)
+            var orders = ApplyOrderDateRange(
+                GetRecordedRevenueOrders(),
+                fromDate,
+                toDate);
+
+            var revenueByDay = await orders
                .GroupBy(o => new { o.Created.Year, o.Created.Month,o.Created.Day })
                .Select(g => new
                {
@@ -50,146 +64,208 @@ namespace QLNH_API.Services
                .OrderBy(x => x.Year)
                .ThenBy(x => x.Month)
                .ThenBy(x => x.Day)
-               .ToListAsync();
+               .ToListAsync(cancellationToken);
 
             return revenueByDay;
         }
 
-        public async Task<GrossProfitMarginReportDTO> GetGrossProfitAndProfitMarginReport()
+        public async Task<decimal> GetTodayRevenue(CancellationToken cancellationToken = default)
         {
-            var orderRows = await _context.Order
-                .Where(o => !o.Deleted && !o.Voided && o.StatusId == 3)
-                .Select(o => new
+            var today = DateTime.Today;
+            var orders = ApplyOrderDateRange(GetRecordedRevenueOrders(), today, today);
+
+            return await orders.SumAsync(order => (decimal?)order.FinalPrice, cancellationToken) ?? 0m;
+        }
+
+        public async Task<GrossProfitMarginReportDTO> GetGrossProfitAndProfitMarginReport(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
+        {
+            var orders = ApplyOrderDateRange(
+                _context.Order.Where(o => !o.Deleted && !o.Voided && o.StatusId == 3),
+                fromDate,
+                toDate);
+
+            var daily = await orders
+                .GroupBy(o => new { o.Created.Year, o.Created.Month, o.Created.Day })
+                .Select(g => new GrossProfitMarginReportItemDTO
                 {
-                    o.Created,
-                    TotalRevenue = o.FinalPrice,
-                    TotalCost = o.ActualCost
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Day = g.Key.Day,
+                    TotalRevenue = g.Sum(x => x.FinalPrice),
+                    TotalCost = g.Sum(x => x.ActualCost),
+                    GrossProfit = g.Sum(x => x.FinalPrice) - g.Sum(x => x.ActualCost),
+                    ProfitMargin = g.Sum(x => x.FinalPrice) == 0
+                        ? 0
+                        : ((g.Sum(x => x.FinalPrice) - g.Sum(x => x.ActualCost)) / g.Sum(x => x.FinalPrice)) * 100
                 })
-                .ToListAsync();
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ThenBy(x => x.Day)
+                .ToListAsync(cancellationToken);
+
+            var monthly = await orders
+                .GroupBy(o => new { o.Created.Year, o.Created.Month })
+                .Select(g => new GrossProfitMarginReportItemDTO
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    TotalRevenue = g.Sum(x => x.FinalPrice),
+                    TotalCost = g.Sum(x => x.ActualCost),
+                    GrossProfit = g.Sum(x => x.FinalPrice) - g.Sum(x => x.ActualCost),
+                    ProfitMargin = g.Sum(x => x.FinalPrice) == 0
+                        ? 0
+                        : ((g.Sum(x => x.FinalPrice) - g.Sum(x => x.ActualCost)) / g.Sum(x => x.FinalPrice)) * 100
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToListAsync(cancellationToken);
+
+            var yearly = await orders
+                .GroupBy(o => o.Created.Year)
+                .Select(g => new GrossProfitMarginReportItemDTO
+                {
+                    Year = g.Key,
+                    TotalRevenue = g.Sum(x => x.FinalPrice),
+                    TotalCost = g.Sum(x => x.ActualCost),
+                    GrossProfit = g.Sum(x => x.FinalPrice) - g.Sum(x => x.ActualCost),
+                    ProfitMargin = g.Sum(x => x.FinalPrice) == 0
+                        ? 0
+                        : ((g.Sum(x => x.FinalPrice) - g.Sum(x => x.ActualCost)) / g.Sum(x => x.FinalPrice)) * 100
+                })
+                .OrderBy(x => x.Year)
+                .ToListAsync(cancellationToken);
 
             return new GrossProfitMarginReportDTO
             {
-                Daily = orderRows
-                    .GroupBy(x => new { x.Created.Year, x.Created.Month, x.Created.Day })
-                    .Select(g => CreateGrossProfitMarginReportItem(
-                        g.Key.Year,
-                        g.Key.Month,
-                        g.Key.Day,
-                        g.Sum(x => x.TotalRevenue),
-                        g.Sum(x => x.TotalCost)))
-                    .OrderBy(x => x.Year)
-                    .ThenBy(x => x.Month)
-                    .ThenBy(x => x.Day)
-                    .ToList(),
-                Monthly = orderRows
-                    .GroupBy(x => new { x.Created.Year, x.Created.Month })
-                    .Select(g => CreateGrossProfitMarginReportItem(
-                        g.Key.Year,
-                        g.Key.Month,
-                        null,
-                        g.Sum(x => x.TotalRevenue),
-                        g.Sum(x => x.TotalCost)))
-                    .OrderBy(x => x.Year)
-                    .ThenBy(x => x.Month)
-                    .ToList(),
-                Yearly = orderRows
-                    .GroupBy(x => x.Created.Year)
-                    .Select(g => CreateGrossProfitMarginReportItem(
-                        g.Key,
-                        null,
-                        null,
-                        g.Sum(x => x.TotalRevenue),
-                        g.Sum(x => x.TotalCost)))
-                    .OrderBy(x => x.Year)
-                    .ToList()
+                Daily = daily,
+                Monthly = monthly,
+                Yearly = yearly
             };
         }
 
-        public async Task<NetProfitReportDTO> GetNetProfitReport()
+        public async Task<NetProfitReportDTO> GetNetProfitReport(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
         {
-            var orderRows = await _context.Order
-                .Where(o => !o.Deleted && !o.Voided && o.StatusId == 3)
-                .Select(o => new
-                {
-                    o.Created,
-                    TotalRevenue = o.FinalPrice,
-                    IngredientCost = o.ActualCost
-                })
-                .ToListAsync();
+            var orders = ApplyOrderDateRange(
+                _context.Order.Where(o => !o.Deleted && !o.Voided && o.StatusId == 3),
+                fromDate,
+                toDate);
+            var expenses = ApplyExpenseDateRange(
+                _context.Expense.Where(e => !e.Deleted),
+                fromDate,
+                toDate);
 
-            var expenseRows = await _context.Expense
-                .Where(e => !e.Deleted)
-                .Select(e => new
+            var dailyOrders = await orders
+                .GroupBy(o => new { o.Created.Year, o.Created.Month, o.Created.Day })
+                .Select(g => new PeriodFinancialAggregate
                 {
-                    e.ExpenseDate,
-                    e.Amount
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Day = g.Key.Day,
+                    Revenue = g.Sum(x => x.FinalPrice),
+                    IngredientCost = g.Sum(x => x.ActualCost)
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
+            var dailyExpenses = await expenses
+                .GroupBy(e => new { e.ExpenseDate.Year, e.ExpenseDate.Month, e.ExpenseDate.Day })
+                .Select(g => new PeriodFinancialAggregate
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Day = g.Key.Day,
+                    OperatingExpense = g.Sum(x => x.Amount)
+                })
+                .ToListAsync(cancellationToken);
+
+            var monthlyOrders = await orders
+                .GroupBy(o => new { o.Created.Year, o.Created.Month })
+                .Select(g => new PeriodFinancialAggregate
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Revenue = g.Sum(x => x.FinalPrice),
+                    IngredientCost = g.Sum(x => x.ActualCost)
+                })
+                .ToListAsync(cancellationToken);
+            var monthlyExpenses = await expenses
+                .GroupBy(e => new { e.ExpenseDate.Year, e.ExpenseDate.Month })
+                .Select(g => new PeriodFinancialAggregate
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    OperatingExpense = g.Sum(x => x.Amount)
+                })
+                .ToListAsync(cancellationToken);
+
+            var yearlyOrders = await orders
+                .GroupBy(o => o.Created.Year)
+                .Select(g => new PeriodFinancialAggregate
+                {
+                    Year = g.Key,
+                    Revenue = g.Sum(x => x.FinalPrice),
+                    IngredientCost = g.Sum(x => x.ActualCost)
+                })
+                .ToListAsync(cancellationToken);
+            var yearlyExpenses = await expenses
+                .GroupBy(e => e.ExpenseDate.Year)
+                .Select(g => new PeriodFinancialAggregate
+                {
+                    Year = g.Key,
+                    OperatingExpense = g.Sum(x => x.Amount)
+                })
+                .ToListAsync(cancellationToken);
 
             return new NetProfitReportDTO
             {
-                Daily = orderRows
-                    .GroupBy(x => new { x.Created.Year, x.Created.Month, x.Created.Day })
-                    .Select(g =>
-                    {
-                        var operatingExpense = expenseRows
-                            .Where(e =>
-                                e.ExpenseDate.Year == g.Key.Year &&
-                                e.ExpenseDate.Month == g.Key.Month &&
-                                e.ExpenseDate.Day == g.Key.Day)
-                            .Sum(e => e.Amount);
+                Daily = MergeNetProfitPeriods(dailyOrders, dailyExpenses),
+                Monthly = MergeNetProfitPeriods(monthlyOrders, monthlyExpenses),
+                Yearly = MergeNetProfitPeriods(yearlyOrders, yearlyExpenses)
+            };
+        }
 
-                        return CreateNetProfitReportItem(
-                            g.Key.Year,
-                            g.Key.Month,
-                            g.Key.Day,
-                            g.Sum(x => x.TotalRevenue),
-                            g.Sum(x => x.IngredientCost),
-                            operatingExpense);
-                    })
-                    .OrderBy(x => x.Year)
-                    .ThenBy(x => x.Month)
-                    .ThenBy(x => x.Day)
-                    .ToList(),
-                Monthly = orderRows
-                    .GroupBy(x => new { x.Created.Year, x.Created.Month })
-                    .Select(g =>
-                    {
-                        var operatingExpense = expenseRows
-                            .Where(e =>
-                                e.ExpenseDate.Year == g.Key.Year &&
-                                e.ExpenseDate.Month == g.Key.Month)
-                            .Sum(e => e.Amount);
+        public async Task<object> GetBusinessOverviewAsync(
+            DateTime fromDate,
+            DateTime toDate,
+            CancellationToken cancellationToken = default)
+        {
+            var orders = ApplyOrderDateRange(
+                _context.Order.Where(o => !o.Deleted && !o.Voided && o.StatusId == 3),
+                fromDate,
+                toDate);
+            var expenses = ApplyExpenseDateRange(
+                _context.Expense.Where(e => !e.Deleted),
+                fromDate,
+                toDate);
 
-                        return CreateNetProfitReportItem(
-                            g.Key.Year,
-                            g.Key.Month,
-                            null,
-                            g.Sum(x => x.TotalRevenue),
-                            g.Sum(x => x.IngredientCost),
-                            operatingExpense);
-                    })
-                    .OrderBy(x => x.Year)
-                    .ThenBy(x => x.Month)
-                    .ToList(),
-                Yearly = orderRows
-                    .GroupBy(x => x.Created.Year)
-                    .Select(g =>
-                    {
-                        var operatingExpense = expenseRows
-                            .Where(e => e.ExpenseDate.Year == g.Key)
-                            .Sum(e => e.Amount);
+            var orderSummary = await orders
+                .GroupBy(_ => 1)
+                .Select(g => new
+                {
+                    TotalRevenue = g.Sum(x => x.FinalPrice),
+                    IngredientCost = g.Sum(x => x.ActualCost),
+                    TotalOrders = g.Count()
+                })
+                .SingleOrDefaultAsync(cancellationToken);
+            var operatingExpense = await expenses.SumAsync(e => e.Amount, cancellationToken);
+            var totalRevenue = orderSummary?.TotalRevenue ?? 0;
+            var ingredientCost = orderSummary?.IngredientCost ?? 0;
+            var netProfit = totalRevenue - ingredientCost - operatingExpense;
 
-                        return CreateNetProfitReportItem(
-                            g.Key,
-                            null,
-                            null,
-                            g.Sum(x => x.TotalRevenue),
-                            g.Sum(x => x.IngredientCost),
-                            operatingExpense);
-                    })
-                    .OrderBy(x => x.Year)
-                    .ToList()
+            return new
+            {
+                TotalRevenue = totalRevenue,
+                IngredientCost = ingredientCost,
+                OperatingExpense = operatingExpense,
+                TotalCost = ingredientCost + operatingExpense,
+                GrossProfit = totalRevenue - ingredientCost,
+                NetProfit = netProfit,
+                NetProfitMargin = totalRevenue == 0 ? 0 : (netProfit / totalRevenue) * 100,
+                TotalOrders = orderSummary?.TotalOrders ?? 0
             };
         }
         public async Task<object> GetRevenueByHour(int days = 30)
@@ -491,20 +567,69 @@ namespace QLNH_API.Services
             };
         }
 
-        private GrossProfitMarginReportItemDTO CreateGrossProfitMarginReportItem(int year, int? month, int? day, decimal totalRevenue, decimal totalCost)
+        private IQueryable<Model.Order> GetRecordedRevenueOrders()
         {
-            var grossProfit = totalRevenue - totalCost;
+            return _context.Order.Where(order => !order.Deleted && !order.Voided && order.StatusId == 3);
+        }
 
-            return new GrossProfitMarginReportItemDTO
+        private static IQueryable<Model.Order> ApplyOrderDateRange(
+            IQueryable<Model.Order> query,
+            DateTime? fromDate,
+            DateTime? toDate)
+        {
+            if (fromDate.HasValue)
             {
-                Year = year,
-                Month = month,
-                Day = day,
-                TotalRevenue = totalRevenue,
-                TotalCost = totalCost,
-                GrossProfit = grossProfit,
-                ProfitMargin = totalRevenue == 0 ? 0 : (grossProfit / totalRevenue) * 100
-            };
+                var from = fromDate.Value.Date;
+                query = query.Where(o => o.Created >= from);
+            }
+
+            if (toDate.HasValue)
+            {
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(o => o.Created < toExclusive);
+            }
+
+            return query;
+        }
+
+        private static IQueryable<Model.Expense> ApplyExpenseDateRange(
+            IQueryable<Model.Expense> query,
+            DateTime? fromDate,
+            DateTime? toDate)
+        {
+            if (fromDate.HasValue)
+            {
+                var from = fromDate.Value.Date;
+                query = query.Where(e => e.ExpenseDate >= from);
+            }
+
+            if (toDate.HasValue)
+            {
+                var toExclusive = toDate.Value.Date.AddDays(1);
+                query = query.Where(e => e.ExpenseDate < toExclusive);
+            }
+
+            return query;
+        }
+
+        private List<NetProfitReportItemDTO> MergeNetProfitPeriods(
+            IEnumerable<PeriodFinancialAggregate> orderPeriods,
+            IEnumerable<PeriodFinancialAggregate> expensePeriods)
+        {
+            return orderPeriods
+                .Concat(expensePeriods)
+                .GroupBy(x => new { x.Year, x.Month, x.Day })
+                .Select(g => CreateNetProfitReportItem(
+                    g.Key.Year,
+                    g.Key.Month,
+                    g.Key.Day,
+                    g.Sum(x => x.Revenue),
+                    g.Sum(x => x.IngredientCost),
+                    g.Sum(x => x.OperatingExpense)))
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ThenBy(x => x.Day)
+                .ToList();
         }
 
         private NetProfitReportItemDTO CreateNetProfitReportItem(
@@ -547,6 +672,16 @@ namespace QLNH_API.Services
                 TotalOrders = orders.Count,
                 AverageOrderValue = orders.Count > 0 ? orders.Average(x => x.FinalPrice) : 0
             };
+        }
+
+        private sealed class PeriodFinancialAggregate
+        {
+            public int Year { get; set; }
+            public int? Month { get; set; }
+            public int? Day { get; set; }
+            public decimal Revenue { get; set; }
+            public decimal IngredientCost { get; set; }
+            public decimal OperatingExpense { get; set; }
         }
     }
 }

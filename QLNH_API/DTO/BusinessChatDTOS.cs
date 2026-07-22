@@ -5,12 +5,11 @@ namespace QLNH_API.DTO
     public sealed class BusinessChatRequestDto
     {
         public string Message { get; set; } = "";
-        public string Intent { get; set; } = "";
         public int DaysHour { get; set; } = 30;
-        public int DaysDow { get; set; } = 90;
+        public int DaysDow { get; set; } = 30;
         public int DaysBest { get; set; } = 30;
         public int DaysTurnover { get; set; } = 30;
-        public int DaysParty { get; set; } = 90;
+        public int DaysParty { get; set; } = 30;
         public int DaysForecast { get; set; } = 7;
         public int TopBest { get; set; } = 10;
     }
@@ -18,20 +17,21 @@ namespace QLNH_API.DTO
     // Snapshot gửi sang AI service (để AI service không cần gọi C# revenue endpoints)
     public sealed class RevenueBusinessSnapshotDto
     {
-        public object Monthly { get; set; } = new();
-        public object Daily { get; set; } = new();
-        public object ByHour { get; set; } = new();
-        public object ByDayOfWeek { get; set; } = new();
-        public object BestSellers { get; set; } = new();
-        public object TableTurnover { get; set; } = new();
-        public object ByPartySize { get; set; } = new();
-        public object Forecast { get; set; } = new();
-        public object ListOfItem { get; set; } = new();
-        public object GrossProfitReport { get; set; } = new();
-        public object RelativePeriods { get; set; } = new();
-        public object InterpretationNotes { get; set; } = new();
-
-
+        public List<string> DataScopes { get; set; } = new();
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public object? Overview { get; set; }
+        public object? Monthly { get; set; }
+        public object? Daily { get; set; }
+        public object? ByHour { get; set; }
+        public object? ByDayOfWeek { get; set; }
+        public object? BestSellers { get; set; }
+        public object? ByCategory { get; set; }
+        public object? TableTurnover { get; set; }
+        public object? ByPartySize { get; set; }
+        public object? Forecast { get; set; }
+        public GrossProfitMarginReportDTO? GrossProfitReport { get; set; }
+        public NetProfitReportDTO? NetProfitReport { get; set; }
     }
 
     // Request gửi sang AI service

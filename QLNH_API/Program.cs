@@ -84,6 +84,7 @@ builder.Services.AddHttpClient("AiService", (sp, client) =>
 // ---------------- SERVICES ----------------
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<RevenueService>();
+builder.Services.AddScoped<BusinessChatDataService>();
 builder.Services.AddScoped<CustomerSegmentDataService>();
 builder.Services.AddScoped<AiClientService>();
 builder.Services.AddScoped<ReservationService>();

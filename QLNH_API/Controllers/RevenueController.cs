@@ -21,30 +21,42 @@ namespace QLNH_API.Controllers
         }
 
         [HttpGet("monthly")]
-        public async Task<IActionResult> GetRevenueByMonth()
+        public async Task<IActionResult> GetRevenueByMonth(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
         {
-            var result = await _service.GetRevenueByMonth();
+            var result = await _service.GetRevenueByMonth(fromDate, toDate, cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("daily")]
-        public async Task<IActionResult> GetRevenueByDay()
+        public async Task<IActionResult> GetRevenueByDay(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
         {
-            var result = await _service.GetRevenueByDay();
+            var result = await _service.GetRevenueByDay(fromDate, toDate, cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("gross-profit-margin")]
-        public async Task<IActionResult> GetGrossProfitAndProfitMarginReport()
+        public async Task<IActionResult> GetGrossProfitAndProfitMarginReport(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
         {
-            var result = await _service.GetGrossProfitAndProfitMarginReport();
+            var result = await _service.GetGrossProfitAndProfitMarginReport(fromDate, toDate, cancellationToken);
             return Ok(result);
         }
 
         [HttpGet("net-profit")]
-        public async Task<IActionResult> GetNetProfitReport()
+        public async Task<IActionResult> GetNetProfitReport(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
         {
-            var result = await _service.GetNetProfitReport();
+            var result = await _service.GetNetProfitReport(fromDate, toDate, cancellationToken);
             return Ok(result);
         }
 
