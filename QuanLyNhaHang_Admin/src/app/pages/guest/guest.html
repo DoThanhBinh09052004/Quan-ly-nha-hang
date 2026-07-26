@@ -1,0 +1,30 @@
+<div class="management-container">
+  <p-toast />
+  <p-confirmDialog />
+  <section class="management-card">
+    <div class="management-header">
+      <div class="header-title"><h1>Quản lý Khách hàng</h1><p>Theo dõi khách hàng và khám phá hành vi theo cụm AI.</p></div>
+      <div class="header-stats"><div class="stat-card stat-blue"><i class="pi pi-users"></i><div class="stat-info"><span class="stat-label">Tổng khách hàng</span><strong class="stat-value">{{ guests.length }}</strong></div></div></div>
+    </div>
+    <div class="management-toolbar"><div class="toolbar-left"><p-button label="Thêm khách" icon="pi pi-plus" (onClick)="openNew()" /><p-button label="Xóa đã chọn" icon="pi pi-trash" severity="danger" [outlined]="true" [disabled]="!selectedGuests.length" (onClick)="deleteSelected()" /></div><div class="toolbar-right"><p-button label="Tải lại" icon="pi pi-refresh" [text]="true" (onClick)="loadGuests()" /></div></div>
+  </section>
+  <section class="management-card">
+    <div class="table-header"><div class="search-section"><i class="pi pi-search"></i><input pInputText placeholder="Tìm tên hoặc số điện thoại..." (input)="filter($event)" /></div><div class="selection-info">Đã chọn: {{ selectedGuests.length }}</div></div>
+    <p-table #dt [value]="guests" [(selection)]="selectedGuests" dataKey="id" [loading]="loadingGuests" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25]" [globalFilterFields]="['name','phone','points']" styleClass="custom-table">
+      <ng-template #header><tr><th style="width:3rem"><p-tableHeaderCheckbox /></th><th pSortableColumn="name">Tên khách <p-sortIcon field="name" /></th><th>Số điện thoại</th><th pSortableColumn="points">Điểm <p-sortIcon field="points" /></th><th>Ghi chú</th><th pSortableColumn="created">Ngày tạo <p-sortIcon field="created" /></th><th style="width:10rem">Hành động</th></tr></ng-template>
+      <ng-template #body let-guest><tr><td><p-tableCheckbox [value]="guest" /></td><td class="name-cell">{{ guest.name }}</td><td>{{ guest.phone }}</td><td><p-tag [value]="guest.points + ' điểm'" severity="info" /></td><td class="description-cell">{{ guest.description || '—' }}</td><td>{{ guest.created | date:'dd/MM/yyyy' }}</td><td><div class="action-buttons"><button pButton icon="pi pi-eye" class="btn-view" [disabled]="loadingAnalysis" (click)="analyze(guest)" aria-label="Xem phân tích AI"></button><button pButton icon="pi pi-pencil" class="btn-edit" (click)="edit(guest)" aria-label="Sửa khách hàng"></button><button pButton icon="pi pi-trash" class="btn-delete" (click)="delete(guest)" aria-label="Xóa khách hàng"></button></div></td></tr></ng-template>
+      <ng-template #emptymessage><tr><td colspan="7" class="empty-state">Chưa có khách hàng nào.</td></tr></ng-template>
+    </p-table>
+  </section>
+</div>
+
+<p-dialog [(visible)]="guestDialog" [modal]="true" [style]="{width: '28rem'}" header="Thông tin khách hàng">
+  <div class="dialog-form"><div class="form-field"><label>Tên khách <span class="required">*</span></label><input pInputText [(ngModel)]="editingGuest.name" /></div><div class="form-field"><label>Số điện thoại <span class="required">*</span></label><input pInputText [(ngModel)]="editingGuest.phone" /></div><div class="form-field"><label>Điểm</label><p-inputNumber [(ngModel)]="editingGuest.points" [min]="0" /></div><div class="form-field"><label>Ghi chú</label><input pInputText [(ngModel)]="editingGuest.description" /></div></div>
+  <ng-template #footer><div class="dialog-footer"><p-button label="Hủy" severity="secondary" [text]="true" (onClick)="closeGuestDialog()" /><p-button label="Lưu" icon="pi pi-check" (onClick)="saveGuest()" /></div></ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="analysisDialog" [modal]="true" [style]="{width: 'min(90vw, 760px)'}" header="Phân tích AI - Khách hàng" [closable]="!loadingAnalysis">
+  <div class="ai-analysis" *ngIf="!loadingAnalysis; else loading"><section class="cluster-card"><div><strong>{{ selectedGuest?.name }}</strong><p>{{ analysis?.guestProfileDescription }}</p></div><p-tag [value]="analysis?.clusterName || 'Chưa xác định'" severity="info" /></section><section class="behavior-card" *ngIf="analysis?.behaviorDescription; else unavailable"><h3>{{ analysis?.behaviorLabel }}</h3><p>{{ analysis?.behaviorDescription }}</p><div class="trait-list"><p-tag *ngFor="let trait of analysis?.behaviorTraits" [value]="trait" severity="success" /></div></section><ng-template #unavailable><section class="behavior-card unavailable"><h3>Nhận hành vi AI</h3><p>Phân cụm đã sẵn sàng. Nhận định ChatGPT sẽ hiển thị sau khi cấu hình <code>OPENAI_API_KEY</code>.</p></section></ng-template><h3 class="comparison-title">So sánh feature</h3><table class="feature-table"><thead><tr><th>Chỉ số</th><th>Khách hiện tại</th><th>Trung tâm cụm</th></tr></thead><tbody><tr *ngFor="let row of featureRows"><td>{{ row.label }}</td><td>{{ formatFeature(row, row.value) }}</td><td>{{ formatFeature(row, row.center) }}</td></tr></tbody></table></div>
+  <ng-template #loading><div class="analysis-loading"><i class="pi pi-spin pi-spinner"></i><span>Đang phân tích cụm khách hàng...</span></div></ng-template>
+  <ng-template #footer><p-button label="Đóng" icon="pi pi-times" severity="secondary" [outlined]="true" (onClick)="analysisDialog = false" /></ng-template>
+</p-dialog>
