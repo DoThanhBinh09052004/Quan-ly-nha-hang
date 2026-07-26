@@ -27,14 +27,14 @@
                             <i class="pi pi-shopping-cart"></i>
                             <div class="stat-info">
                                 <span class="stat-label">Tổng đơn hàng</span>
-                                <span class="stat-value">{{orders?.length || 0}}</span>
+                                <span class="stat-value">{{totalRecords}}</span>
                             </div>
                         </div>
                         <div class="stat-card stat-green">
                             <i class="pi pi-money-bill"></i>
                             <div class="stat-info">
                                 <span class="stat-label">Doanh thu hôm nay</span>
-                                <span class="stat-value">{{getTodayRevenue() | number}} VND</span>
+                                <span class="stat-value">{{todayRevenue | number}} VND</span>
                             </div>
                         </div>
                     </div>
@@ -73,11 +73,13 @@
                 </div>
             </div>
             
-            <p-table #dt [value]="orders" [(selection)]="selectedOrders" dataKey="id" 
-                     [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50]" 
-                     [loading]="false" [showCurrentPageReport]="true"
+            <p-table #dt [value]="orders" [(selection)]="selectedOrders" dataKey="id"
+                     [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false"
+                     [first]="first" [rows]="rows" [totalRecords]="totalRecords"
+                     [rowsPerPageOptions]="[5,10,25,50]" [loading]="loadingOrders"
+                     [showCurrentPageReport]="true" (onLazyLoad)="onLazyLoad($event)"
                      currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} đơn hàng"
-                     [globalFilterFields]="['orderNumber','guestTable.name']"
+                     [globalFilterFields]="['orderNumber','guestTable.name','status.name']"
                      styleClass="custom-table" [sortOrder]="-1" sortField="created">
                 
                 <ng-template pTemplate="header">
@@ -170,6 +172,11 @@
                         </td>
                         <td>
                             <div class="action-buttons">
+                                <button pButton pRipple icon="pi pi-qrcode"
+                                        class="btn-qr"
+                                        pTooltip="Thanh toán QR"
+                                        [disabled]="!canPayByQr(order) || (qrLoading && qrOrder?.id === order.id)"
+                                        (click)="openQrPayment(order)"></button>
                                 <button pButton pRipple icon="pi pi-pencil" 
                                         class="btn-edit"
                                         (click)="editOrder(order)"></button>
@@ -505,112 +512,61 @@
         </p-dialog>
 
         <!-- Dialog thêm món -->
-        <p-dialog [(visible)]="addItemDialog" header="Thêm món vào đơn hàng" 
-                 [modal]="true" [style]="{width: '500px'}" [draggable]="false">
-            
-            <div class="add-item-form">
-                <div class="form-field">
-                    <label for="itemAutoComplete">Tìm món ăn</label>
-                    <p-autoComplete 
-                        id="itemAutoComplete"
-                        [(ngModel)]="selectedItem"
-                        [suggestions]="filteredItems"
-                        (completeMethod)="filterItems($event)"
-                        (onSelect)="onItemSelect($event)"
-                        (onClear)="onItemClear()"
-                        optionLabel="name"
-                        [dropdown]="true"
-                        placeholder="Nhập tên món ăn..."
-                        [minLength]="1"
-                        [forceSelection]="true">
-                        
-                        <ng-template let-item pTemplate="item">
-                            <div class="item-option">
-                                <div class="option-left">
-                                    <span class="option-name">{{item.name}}</span>
-                                    <small class="option-desc">{{item.description}}</small>
-                                </div>
-                                <div class="option-right">
-                                    <span class="option-price">{{calculateSalePrice(item) | number}} VND</span>
-                                    <small class="option-stock">Còn: {{item.quantity}}</small>
-                                </div>
-                            </div>
-                        </ng-template>
-                    </p-autoComplete>
+        <p-dialog [(visible)]="qrDialog" header="Thanh toán bằng mã QR"
+                  [modal]="true" [style]="{width: '95vw', maxWidth: '520px'}"
+                  [draggable]="false" [resizable]="false" [closable]="!qrLoading"
+                  (onHide)="closeQrDialog()">
+            <div class="qr-payment-dialog">
+                <div *ngIf="qrLoading" class="qr-state">
+                    <i class="pi pi-spin pi-spinner"></i>
+                    <h3>Đang tạo mã QR</h3>
+                    <p>Vui lòng chờ trong giây lát.</p>
                 </div>
 
-                <div class="col-12" *ngIf="selectedItem">
-                    <div class="item-details">
-                        <div class="item-header">
-                            <div class="item-title">
-                                <i class="pi pi-box"></i>
-                                <span>{{selectedItem.name}}</span>
-                            </div>
-                            <p-tag [value]="selectedItem.quantity + ' còn'" 
-                                  [severity]="selectedItem.quantity > 10 ? 'success' : 'warning'" />
-                        </div>
-                        
-                        <div class="item-grid">
-                            <div class="grid-item">
-                                <div class="grid-label">Giá gốc</div>
-                                <div class="grid-value">{{selectedItem.price | number}} VND</div>
-                            </div>
-                            <div class="grid-item">
-                                <div class="grid-label">Giảm giá</div>
-                                <div class="grid-value discount">{{selectedItem.discount}}%</div>
-                            </div>
-                            <div class="grid-item">
-                                <div class="grid-label">Giá bán</div>
-                                <div class="grid-value sale-price">
-                                    {{calculateSalePrice(selectedItem) | number}} VND
-                                </div>
-                            </div>
-                            <div class="grid-item">
-                                <div class="grid-label">Tồn kho</div>
-                                <div class="grid-value">{{selectedItem.quantity}} món</div>
-                            </div>
-                        </div>
-
-                        <div class="item-notes">
-                            <label for="itemDescription">Ghi chú món</label>
-                            <textarea pInputTextarea id="itemDescription" 
-                                     [(ngModel)]="selectedItem.description"
-                                     rows="2"></textarea>
-                        </div>
+                <div *ngIf="!qrLoading && qrPayment && !qrExpired" class="qr-content">
+                    <div class="qr-countdown">
+                        <i class="pi pi-clock"></i>
+                        <span>Mã QR còn hiệu lực</span>
+                        <strong>{{ formatQrRemainingTime() }}</strong>
                     </div>
+                    <img [src]="qrPayment.qrText" class="qr-image" alt="Mã QR thanh toán" />
+                    <div class="qr-amount">{{ qrPayment.amount | number }} VND</div>
+                    <p class="qr-instruction">Quét mã bằng ứng dụng ngân hàng để thanh toán.</p>
+                    <div class="qr-details">
+                        <div><span>Ngân hàng</span><strong>{{ qrPayment.bankCode }}</strong></div>
+                        <div><span>Số tài khoản</span><strong>{{ qrPayment.accountNo }}</strong></div>
+                        <div *ngIf="qrPayment.accountName"><span>Chủ tài khoản</span><strong>{{ qrPayment.accountName }}</strong></div>
+                        <div><span>Nội dung</span><strong>{{ qrPayment.addInfo }}</strong></div>
+                    </div>
+                    <p *ngIf="qrError" class="qr-error"><i class="pi pi-exclamation-circle"></i>{{ qrError }}</p>
                 </div>
 
-                <div class="quantity-field">
-                    <label for="quantity">Số lượng</label>
-                    <div class="quantity-control">
-                        <p-inputNumber id="quantity" [(ngModel)]="itemQuantity" 
-                                      [min]="1" [max]="selectedItem?.quantity || 999"
-                                      showButtons />
-                        <span class="quantity-hint">
-                            Tối đa: {{selectedItem?.quantity || 0}} món
-                        </span>
-                    </div>
+                <div *ngIf="!qrLoading && qrExpired" class="qr-state qr-expired-state">
+                    <i class="pi pi-clock"></i>
+                    <h3>Mã QR đã hết hạn</h3>
+                    <p>Hãy tạo mã mới để tiếp tục thanh toán đơn hàng.</p>
+                </div>
+
+                <div *ngIf="!qrLoading && qrError && !qrPayment" class="qr-state qr-error-state">
+                    <i class="pi pi-exclamation-triangle"></i>
+                    <h3>Không thể tạo mã QR</h3>
+                    <p>{{ qrError }}</p>
                 </div>
             </div>
 
             <ng-template pTemplate="footer">
-                <div class="item-footer">
-                    <div class="footer-left">
-                        <span *ngIf="selectedItem && itemQuantity > 0">
-                            Thành tiền: {{(calculateSalePrice(selectedItem) * itemQuantity) | number}} VND
-                        </span>
-                    </div>
-                    <div class="footer-right">
-                        <button pButton pRipple icon="pi pi-times" label="Hủy" 
-                                class="btn-cancel" (click)="hideDialog()"></button>
-                        <button pButton pRipple icon="pi pi-plus" label="Thêm vào đơn" 
-                                severity="success" (click)="addItemToOrder()" 
-                                [disabled]="!selectedItem || itemQuantity < 1 || itemQuantity > (selectedItem?.quantity || 0)">
-                        </button>
-                    </div>
+                <div class="qr-dialog-footer">
+                    <button pButton pRipple label="Đóng" class="btn-cancel" [disabled]="qrLoading" (click)="closeQrDialog()"></button>
+                    <button *ngIf="qrExpired || (!qrPayment && qrError)" pButton pRipple icon="pi pi-refresh"
+                            label="Tạo mã QR mới" severity="primary" [loading]="qrLoading" (click)="createQrPayment()"></button>
+                    <button *ngIf="qrPayment && qrError && !qrExpired" pButton pRipple icon="pi pi-sync"
+                            label="Kiểm tra lại" severity="primary" (click)="retryPaymentStatus()"></button>
                 </div>
             </ng-template>
         </p-dialog>
+
+        <app-item-picker-dialog [(visible)]="addItemDialog" [items]="items" [categories]="categories"
+                                (addItem)="onItemPickerAdd($event)"></app-item-picker-dialog>
     </div>
 </body>
 </html>

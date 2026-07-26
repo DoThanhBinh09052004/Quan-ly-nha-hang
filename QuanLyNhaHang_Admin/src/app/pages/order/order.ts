@@ -1,15 +1,17 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { debounceTime, distinctUntilChanged, forkJoin, Subject } from 'rxjs';
 
 import { MyData } from '../../my-data';
-import { Order } from '../../../model/order.model';
+import { CreateOrderRequest, Order } from '../../../model/order.model';
 import { Item } from '../../../model/item.model';
 import { OrderItem } from '../../../model/orderitem.model';
+import { Category } from '../../../model/category.model';
+import { ItemPickerDialogComponent, ItemPickerSelection } from './item-picker-dialog/item-picker-dialog';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
@@ -26,6 +28,9 @@ import { CardModule } from 'primeng/card';
 import { BadgeModule } from 'primeng/badge';
 import { GuestTable } from '../../../model/guesttable.model';
 import { TagModule } from "primeng/tag";
+import { TooltipModule } from 'primeng/tooltip';
+import { OrderListItem, OrderListQuery } from '../../../model/order-list.model';
+import { PaymentStatus, VietQrPayment } from '../../../model/payment.model';
 
 interface Column {
   field: string;
@@ -59,13 +64,15 @@ interface ExportColumn {
     AutoCompleteModule,
     CardModule,
     BadgeModule,
-    TagModule
+    TagModule,
+    TooltipModule,
+    ItemPickerDialogComponent
   ],
   providers: [MessageService, ConfirmationService, MyData],
   templateUrl: './order.html',
   styleUrls: ['./order.scss'],
 })
-export class OrderComponent implements OnInit {
+export class OrderComponent implements OnInit, OnDestroy {
   @ViewChild('dt') dt!: Table;
 
   constructor(
@@ -77,9 +84,9 @@ export class OrderComponent implements OnInit {
   
   orderDialog: boolean = false;
   addItemDialog: boolean = false;
-  orders: Order[] = [];
+  orders: OrderListItem[] = [];
   order: Order = this.createEmptyOrder();
-  selectedOrders: Order[] = [];
+  selectedOrders: OrderListItem[] = [];
   submitted: boolean = false;
   guesttables: GuestTable[] = [];
   selectedGuestTable: GuestTable | null = null;
@@ -88,6 +95,7 @@ export class OrderComponent implements OnInit {
   // Quản lý items với AutoComplete
   items: Item[] = [];
   filteredItems: Item[] = [];
+  categories: Category[] = [];
   selectedItem: Item | null = null;
   searchItemText: string = '';
   itemQuantity: number = 1;
@@ -101,10 +109,40 @@ export class OrderComponent implements OnInit {
   guestPoints: number = 0;
   discount: number = 0;
   finalPrice: number = 0;
+  first = 0;
+  rows = 10;
+  totalRecords = 0;
+  todayRevenue = 0;
+  loadingOrders = false;
+  qrDialog = false;
+  qrLoading = false;
+  qrExpired = false;
+  qrError = '';
+  qrRemainingSeconds = 0;
+  qrOrder: OrderListItem | null = null;
+  qrPayment: VietQrPayment | null = null;
+  private searchTerm = '';
+  private sortField = 'created';
+  private sortOrder: 'asc' | 'desc' = 'desc';
+  private readonly searchTerms = new Subject<string>();
+  private paymentPollingTimer?: ReturnType<typeof setInterval>;
+  private paymentCountdownTimer?: ReturnType<typeof setInterval>;
+  private paymentCompletionHandled = false;
 
   ngOnInit() {
+    this.searchTerms.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe((search) => {
+      this.searchTerm = search;
+      this.first = 0;
+      this.selectedOrders = [];
+      this.loadData();
+    });
+
     this.loadData();
     this.loadItems();
+    this.loadCategories();
     this.loadAvailableGuestTables(); 
     this.cols = [
       { field: 'id', header: 'Mã' },
@@ -322,7 +360,20 @@ searchGuestByPhone() {
   
   onGlobalFilter(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.dt.filterGlobal(input.value, 'contains');
+    this.searchTerms.next(input.value.trim());
+  }
+
+  ngOnDestroy() {
+    this.stopPaymentTracking();
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent) {
+    this.first = event.first ?? 0;
+    this.rows = event.rows ?? this.rows;
+    this.sortField = typeof event.sortField === 'string' ? event.sortField : 'created';
+    this.sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
+    this.selectedOrders = [];
+    this.loadData();
   }
 
   // Thêm method cho status severity - để hiển thị màu tag
@@ -400,16 +451,36 @@ searchGuestByPhone() {
     this.searchItemText = '';
   }
 
-  loadData() {
-    this.mydata.getAllOrder().subscribe({
+  loadData(retryPreviousPage = true) {
+    const query: OrderListQuery = {
+      page: Math.floor(this.first / this.rows) + 1,
+      pageSize: this.rows,
+      search: this.searchTerm || undefined,
+      sortField: this.sortField,
+      sortOrder: this.sortOrder
+    };
+    this.loadingOrders = true;
+    this.mydata.getOrders(query).subscribe({
         next: (data) => {
-            this.orders = Array.isArray(data) ? data : [];
+            this.totalRecords = data.totalRecords;
+            this.todayRevenue = data.todayRevenue;
+
+            if (retryPreviousPage && data.items.length === 0 && data.totalRecords > 0 && this.first > 0) {
+              this.first = Math.max(0, this.first - this.rows);
+              this.loadData(false);
+              return;
+            }
+
+            this.orders = data.items;
+            this.loadingOrders = false;
             this.cd.markForCheck();
-            console.log('Orders loaded:', this.orders);
         },
         error: (err) => {
             console.error('Lỗi khi tải danh sách đơn hàng:', err);
             this.orders = [];
+            this.totalRecords = 0;
+            this.todayRevenue = 0;
+            this.loadingOrders = false;
             this.messageService.add({
               severity: 'error',
               summary: 'Lỗi',
@@ -532,6 +603,12 @@ searchGuestByPhone() {
     this.selectedItem = null;
     this.searchItemText = '';
     this.itemQuantity = 1;
+  }
+
+  onItemPickerAdd(selection: ItemPickerSelection) {
+    this.selectedItem = selection.item;
+    this.itemQuantity = selection.quantity;
+    this.addItemToOrder();
   }
 
   addItemToOrder() {
@@ -669,7 +746,215 @@ searchGuestByPhone() {
     return item.quantity * item.salePrice;
   }
 
-  editOrder(order: Order) {
+  loadCategories() {
+    this.mydata.getAllCategories().subscribe({
+      next: (data) => this.categories = Array.isArray(data) ? data : [],
+      error: (err) => {
+        console.error('Lỗi khi tải danh mục món ăn:', err);
+        this.categories = [];
+      }
+    });
+  }
+
+  canPayByQr(order: OrderListItem): boolean {
+    return (order.finalPrice || 0) > (order.paidAmount || 0);
+  }
+
+  openQrPayment(order: OrderListItem) {
+    if (!this.canPayByQr(order)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Không thể thanh toán',
+        detail: 'Đơn hàng này đã được thanh toán đủ.'
+      });
+      return;
+    }
+
+    this.stopPaymentTracking();
+    this.qrOrder = order;
+    this.qrPayment = null;
+    this.qrExpired = false;
+    this.qrError = '';
+    this.qrRemainingSeconds = 0;
+    this.paymentCompletionHandled = false;
+    this.qrDialog = true;
+    this.createQrPayment();
+  }
+
+  closeQrDialog() {
+    this.stopPaymentTracking();
+    this.qrDialog = false;
+  }
+
+  createQrPayment() {
+    if (!this.qrOrder || this.qrLoading) {
+      return;
+    }
+
+    this.stopPaymentTracking();
+    this.qrLoading = true;
+    this.qrExpired = false;
+    this.qrError = '';
+    this.qrPayment = null;
+
+    this.mydata.createVietQr(this.qrOrder.id).subscribe({
+      next: (payment) => {
+        this.qrLoading = false;
+        if (!this.qrDialog) {
+          return;
+        }
+
+        this.qrPayment = payment;
+        this.startPaymentTracking();
+      },
+      error: (err) => {
+        this.qrLoading = false;
+        if (!this.qrDialog) {
+          return;
+        }
+
+        this.qrError = this.getPaymentErrorMessage(err, 'Không thể tạo mã QR thanh toán.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Tạo QR thất bại',
+          detail: this.qrError
+        });
+      }
+    });
+  }
+
+  retryPaymentStatus() {
+    if (!this.qrPayment || this.qrLoading || this.qrExpired) {
+      return;
+    }
+
+    this.qrError = '';
+    this.checkPaymentStatus();
+    this.startPaymentTracking();
+  }
+
+  private startPaymentTracking() {
+    if (!this.qrPayment || this.qrExpired || this.paymentCompletionHandled) {
+      return;
+    }
+
+    this.updateCountdown();
+    this.paymentCountdownTimer = setInterval(() => this.updateCountdown(), 1000);
+    this.paymentPollingTimer = setInterval(() => this.checkPaymentStatus(), 5000);
+  }
+
+  private updateCountdown() {
+    if (!this.qrPayment?.expiresAt) {
+      return;
+    }
+
+    const seconds = Math.max(0, Math.ceil((new Date(this.qrPayment.expiresAt).getTime() - Date.now()) / 1000));
+    this.qrRemainingSeconds = Number.isFinite(seconds) ? seconds : 0;
+
+    if (this.qrRemainingSeconds === 0) {
+      this.markPaymentExpired();
+    }
+  }
+
+  private checkPaymentStatus() {
+    if (!this.qrPayment || this.qrExpired || this.paymentCompletionHandled) {
+      return;
+    }
+
+    this.mydata.getPaymentStatus(this.qrPayment.paymentId).subscribe({
+      next: (payment) => this.handlePaymentStatus(payment),
+      error: (err) => {
+        if (!this.qrDialog) {
+          return;
+        }
+
+        this.stopPaymentTracking();
+        this.qrError = this.getPaymentErrorMessage(err, 'Không thể kiểm tra trạng thái thanh toán.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Kiểm tra thanh toán thất bại',
+          detail: this.qrError
+        });
+      }
+    });
+  }
+
+  private handlePaymentStatus(payment: PaymentStatus) {
+    if (!this.qrDialog) {
+      return;
+    }
+
+    if (payment.status === 'CONFIRMED') {
+      if (this.paymentCompletionHandled) {
+        return;
+      }
+
+      this.paymentCompletionHandled = true;
+      this.stopPaymentTracking();
+      this.qrDialog = false;
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Thanh toán thành công',
+        detail: 'Đơn hàng đã được xác nhận thanh toán qua QR.'
+      });
+      this.loadData();
+      return;
+    }
+
+    if (payment.status === 'EXPIRED') {
+      this.markPaymentExpired();
+    }
+  }
+
+  private markPaymentExpired() {
+    if (this.qrExpired || this.paymentCompletionHandled) {
+      return;
+    }
+
+    this.qrExpired = true;
+    this.stopPaymentTracking();
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Mã QR đã hết hạn',
+      detail: 'Vui lòng tạo mã QR mới để tiếp tục thanh toán.'
+    });
+  }
+
+  private stopPaymentTracking() {
+    if (this.paymentPollingTimer) {
+      clearInterval(this.paymentPollingTimer);
+      this.paymentPollingTimer = undefined;
+    }
+
+    if (this.paymentCountdownTimer) {
+      clearInterval(this.paymentCountdownTimer);
+      this.paymentCountdownTimer = undefined;
+    }
+  }
+
+  formatQrRemainingTime(): string {
+    const minutes = Math.floor(this.qrRemainingSeconds / 60);
+    const seconds = this.qrRemainingSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  private getPaymentErrorMessage(err: any, fallback: string): string {
+    if (typeof err?.error === 'string') {
+      return err.error;
+    }
+
+    return err?.error?.message || err?.message || fallback;
+  }
+
+  editOrder(order: Order | OrderListItem) {
+    if (!('description' in order)) {
+      this.mydata.getOrderById(order.id).subscribe({
+        next: (fullOrder) => this.editOrder(fullOrder),
+        error: (err) => this.handleError(err, 'KhÃ´ng thá»ƒ táº£i chi tiáº¿t Ä‘Æ¡n hÃ ng')
+      });
+      return;
+    }
+
     this.order = { ...order };
     this.loadAllGuestTables(); // Tải tất cả bàn khi edit
     
@@ -813,10 +1098,17 @@ searchGuestByPhone() {
         },
       });
     } else {
-      // Tạo mới đơn hàng
-      const orderToCreate = {
-        ...this.order,
-        orderItems: [] // Gửi mảng rỗng, sẽ tạo order items riêng
+      // Backend tạo đơn cùng chi tiết món trong một transaction và yêu cầu danh sách này không rỗng.
+      const { id, orderItems: _, ...orderData } = this.order;
+      const orderToCreate: CreateOrderRequest = {
+        ...orderData,
+        orderItems: this.orderItems.map((item) => ({
+          name: item.name,
+          description: item.description || '',
+          quantity: item.quantity,
+          salePrice: item.salePrice,
+          itemId: item.itemId
+        }))
       };
 
       this.mydata.createOrder(orderToCreate).subscribe({
@@ -828,16 +1120,18 @@ searchGuestByPhone() {
             detail: 'Tạo mới đơn hàng thành công' 
           });
           
-          if (newOrder && newOrder.id) {
-            this.createOrderItems(newOrder.id);
-          } else {
+          if (!newOrder?.id) {
             console.error('Order ID is missing in response:', newOrder);
             this.messageService.add({
               severity: 'error',
               summary: 'Lỗi',
               detail: 'Không nhận được ID đơn hàng từ server'
             });
+            return;
           }
+
+          this.loadData();
+          this.hideDialog();
         },
         error: (err) => {
           this.handleError(err, 'Tạo mới đơn hàng thất bại');

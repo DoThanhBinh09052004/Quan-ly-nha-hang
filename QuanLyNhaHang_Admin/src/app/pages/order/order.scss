@@ -1,4 +1,5 @@
 /* order.component.scss - DARK THEME */
+@use '../shared';
 .order-management-container {
   max-width: 1600px;
   margin: 0 auto;
@@ -1633,4 +1634,132 @@
       }
     }
   }
+}
+
+.btn-qr {
+  background: #0f766e !important;
+  border-color: #0f766e !important;
+  color: #fff !important;
+
+  &:hover:not(:disabled) {
+    background: #115e59 !important;
+    border-color: #115e59 !important;
+  }
+}
+
+.qr-payment-dialog {
+  color: #e2e8f0;
+
+  .qr-state {
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+
+    > i {
+      font-size: 2.5rem;
+      color: #60a5fa;
+    }
+
+    h3, p {
+      margin: 0;
+    }
+
+    p {
+      color: #94a3b8;
+    }
+  }
+
+  .qr-expired-state > i,
+  .qr-error-state > i {
+    color: #f59e0b;
+  }
+
+  .qr-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .qr-countdown {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #94a3b8;
+
+    i, strong {
+      color: #60a5fa;
+    }
+
+    strong {
+      font-size: 1.1rem;
+    }
+  }
+
+  .qr-image {
+    width: min(280px, 100%);
+    aspect-ratio: 1;
+    object-fit: contain;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .qr-amount {
+    color: #86efac;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .qr-instruction {
+    margin: 0;
+    color: #94a3b8;
+    text-align: center;
+  }
+
+  .qr-details {
+    width: 100%;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+
+    div {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #334155;
+
+      &:last-child {
+        border-bottom: 0;
+      }
+
+      span {
+        color: #94a3b8;
+      }
+
+      strong {
+        text-align: right;
+        overflow-wrap: anywhere;
+      }
+    }
+  }
+
+  .qr-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: #fca5a5;
+  }
+}
+
+.qr-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
