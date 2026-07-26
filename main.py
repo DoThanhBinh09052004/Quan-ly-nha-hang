@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from api.endpoints import router
-from database import load_orders_data, load_order_items, load_guests_data
+from api.business_chat import router as business_chat_router
+from database import load_orders_data, load_order_items, load_guests_data, load_ingredient_daily_usage
 import globals  # Import global models
 import os
 
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.include_router(business_chat_router)
 
 @app.on_event("startup")
 async def load_models():
@@ -54,6 +56,13 @@ async def load_models():
     else:
         globals.segment_model.train(df_orders, df_guests)
         globals.segment_model.save_model()
+
+    print("Training ingredient demand model...")
+    ingredient_usage = load_ingredient_daily_usage(months=6)
+    # Rebuild from the current six-month window on every startup. Do not merge
+    # persisted history because it may have been produced by an older source.
+    globals.ingredient_demand_model.train(ingredient_usage)
+    globals.ingredient_demand_model.save_model()
     
     print("All models loaded successfully!")
 

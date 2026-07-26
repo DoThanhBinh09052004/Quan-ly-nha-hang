@@ -81,3 +81,38 @@ def load_guests_data():
     """
     df = pd.read_sql(query, engine)
     return df
+
+def load_ingredient_daily_usage(months=6):
+    """Load daily ingredient usage inferred from recent order items and recipes.
+
+    Historical ``orderitem`` records are not reliably linked to ``order`` in
+    the current database.  ``orderitem.Created`` is therefore used as the
+    event time; deleted and voided items are excluded from training.
+    """
+    months = max(1, min(int(months), 24))
+    engine = get_engine()
+    query = """
+    SELECT
+        DATE(oi.Created) AS usage_date,
+        r.IngredientId AS ingredient_id,
+        SUM(oi.Quantity * r.QuantityNeeded) AS qty_used
+    FROM orderitem oi
+    JOIN recipe r ON r.ItemId = oi.ItemId
+    WHERE oi.Deleted = 0
+      AND oi.Voided = 0
+      AND oi.Created >= DATE_SUB(CURDATE(), INTERVAL :months MONTH)
+    GROUP BY DATE(oi.Created), r.IngredientId
+    ORDER BY usage_date, ingredient_id
+    """
+    with engine.connect() as connection:
+        return pd.read_sql(text(query), connection, params={'months': months})
+
+def load_ingredients_inventory():
+    """Snapshot tồn kho hiện tại, dùng để đưa ra lượng cần nhập."""
+    engine = get_engine()
+    query = """
+    SELECT Id AS ingredient_id, Name, Unit, StockQuantity, MinStock
+    FROM ingredient
+    WHERE Deleted = 0
+    """
+    return pd.read_sql(query, engine)
