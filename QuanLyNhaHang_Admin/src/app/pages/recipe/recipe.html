@@ -1,0 +1,134 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<main class="management-container item-management-container recipe-page">
+  <section class="management-card">
+    <div class="header-section">
+      <div class="header-title">
+        <h1>Quản lý Công thức</h1>
+        <p>Bấm vào một món để mở danh sách nguyên liệu và định lượng cần dùng.</p>
+      </div>
+
+      <div class="header-stats">
+        <div class="stats-grid">
+          <div class="stat-card stat-blue">
+            <i class="pi pi-receipt"></i>
+            <div class="stat-info">
+              <span class="stat-label">Món có công thức</span>
+              <span class="stat-value">{{ tickets.length }}</span>
+            </div>
+          </div>
+
+          <div class="stat-card stat-green">
+            <i class="pi pi-wallet"></i>
+            <div class="stat-info">
+              <span class="stat-label">Chi phí nguyên liệu/phần</span>
+              <span class="stat-value">{{ recipeCost | number:'1.0-0' }} ₫</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar-section">
+      <div class="toolbar-left">
+        <select [(ngModel)]="selectedItemId">
+          <option [ngValue]="null">Tất cả món ăn</option>
+          <option *ngFor="let item of items" [ngValue]="item.id">{{ item.name }}</option>
+        </select>
+      </div>
+
+      <div class="toolbar-right">
+        <p-button icon="pi pi-plus" label="Thêm nguyên liệu" severity="primary" [rounded]="true" (click)="openNew()"></p-button>
+        <p-button icon="pi pi-refresh" label="Tải lại" [text]="true" (click)="loadLookups()"></p-button>
+      </div>
+    </div>
+  </section>
+
+  <section class="management-card ticket-panel">
+    <div class="table-header">
+      <div class="search-section">
+        <i class="pi pi-search"></i>
+        <input pInputText placeholder="Tìm món hoặc nguyên liệu..." (input)="filter($event)">
+      </div>
+      <div class="selection-info">Bấm vào ticket để xem nguyên liệu</div>
+    </div>
+
+    <div class="ticket-list" *ngIf="!loading; else loadingState">
+      <article
+        class="recipe-ticket"
+        *ngFor="let ticket of tickets"
+        (click)="toggleTicket(ticket.item.id)"
+        [class.expanded]="isExpanded(ticket.item.id)">
+        <header>
+          <div class="ticket-icon"><i class="pi pi-receipt"></i></div>
+          <div class="ticket-title">
+            <h2>{{ ticket.item.name }}</h2>
+            <span>{{ ticket.rows.length }} nguyên liệu · Chi phí {{ ticket.cost | number:'1.0-0' }} ₫/phần</span>
+          </div>
+          <i class="pi" [class.pi-chevron-down]="!isExpanded(ticket.item.id)" [class.pi-chevron-up]="isExpanded(ticket.item.id)"></i>
+        </header>
+
+        <section class="ticket-detail" *ngIf="isExpanded(ticket.item.id)">
+          <div class="ingredient-row" *ngFor="let row of ticket.rows">
+            <div>
+              <strong>{{ row.ingredientName || getIngredient(row.ingredientId)?.name }}</strong>
+              <small>{{ getIngredient(row.ingredientId)?.unit }}</small>
+            </div>
+            <div class="quantity">{{ row.quantityNeeded | number:'1.0-3' }} {{ getIngredient(row.ingredientId)?.unit }}</div>
+            <div class="cost">{{ row.quantityNeeded * (getIngredient(row.ingredientId)?.rawMaterialCost || 0) | number:'1.0-0' }} ₫</div>
+            <div class="actions" (click)="$event.stopPropagation()">
+              <p-button icon="pi pi-pencil" [text]="true" (click)="edit(row)"></p-button>
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="delete(row)"></p-button>
+            </div>
+          </div>
+
+          <p-button
+            icon="pi pi-plus"
+            label="Thêm nguyên liệu vào món"
+            [text]="true"
+            (click)="$event.stopPropagation(); selectedItemId=ticket.item.id; openNew()">
+          </p-button>
+        </section>
+      </article>
+
+      <p class="empty" *ngIf="!tickets.length">Chưa có công thức phù hợp.</p>
+    </div>
+
+    <ng-template #loadingState>
+      <p class="empty"><i class="pi pi-spin pi-spinner"></i> Đang tải công thức...</p>
+    </ng-template>
+  </section>
+</main>
+
+<p-dialog
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{width:'32rem'}"
+  [header]="recipe.id ? 'Cập nhật định lượng' : 'Thêm nguyên liệu vào công thức'">
+  <div class="dialog-form">
+    <div class="form-field">
+      <label for="recipe-item">Món ăn <span class="required">*</span></label>
+      <select id="recipe-item" [(ngModel)]="recipe.itemId" [disabled]="!!recipe.id">
+        <option [ngValue]="0">Chọn món</option>
+        <option *ngFor="let item of items" [ngValue]="item.id">{{ item.name }}</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="recipe-ingredient">Nguyên liệu <span class="required">*</span></label>
+      <select id="recipe-ingredient" [(ngModel)]="recipe.ingredientId" [disabled]="!!recipe.id">
+        <option [ngValue]="0">Chọn nguyên liệu</option>
+        <option *ngFor="let ingredient of ingredients" [ngValue]="ingredient.id">{{ ingredient.name }}</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="recipe-quantity">Định lượng cho một phần <span class="required">*</span></label>
+      <p-inputNumber inputId="recipe-quantity" [(ngModel)]="recipe.quantityNeeded" [min]="0.001" [minFractionDigits]="0" [maxFractionDigits]="3"></p-inputNumber>
+      <small *ngIf="recipe.ingredientId">Đơn vị: {{ getIngredient(recipe.ingredientId)?.unit }}</small>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer"><div class="dialog-footer"><button pButton pRipple icon="pi pi-times" label="Hủy" class="btn-cancel" (click)="dialogVisible=false"></button><button pButton pRipple icon="pi pi-check" label="Lưu" severity="primary" (click)="save()"></button></div></ng-template>
+</p-dialog>
