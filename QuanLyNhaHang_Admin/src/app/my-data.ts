@@ -1,20 +1,39 @@
 import { Injectable } from "@angular/core";
 import { environment } from "../environments/environment";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { catchError, Observable, tap, throwError } from "rxjs";
 import { Restaurant } from "../model/restaurant.model";
 import { Role } from "../model/role.model";
 import { Status } from "../model/status.model";
 import { GuestTable } from "../model/guesttable.model";
-import { Order } from "../model/order.model";
+import { CreateOrderRequest, Order } from "../model/order.model";
+import { OrderListQuery, OrderListResponse } from "../model/order-list.model";
 import { Item } from "../model/item.model";
 import { OrderItem } from "../model/orderitem.model";
 import { Unit } from "../model/unit.model";
 import { Category } from "../model/category.model";
 import { User } from "../model/user.model";
 import { Guest } from "../model/guest.model";
-import { AiIngredientRestockRow, Ingredient } from "../model/ingredient.model";
+import { AiIngredientDailyForecastRow, AiIngredientRestockRow, Ingredient } from "../model/ingredient.model";
 import { Recipe } from "../model/recipe.model";
+import { PaymentStatus, VietQrPayment } from "../model/payment.model";
+import { BusinessChatRequest, BusinessChatResponse } from "../model/business-chat.model";
+
+export interface AiCustomerSegmentResponse {
+  guestId: number;
+  cluster: number;
+  clusterName: string;
+  clusterDescription: string;
+  clusterTraits: string[];
+  guestProfileName: string;
+  guestProfileDescription: string;
+  guestProfileTraits: string[];
+  clusterFeatures: Record<string, number>;
+  behaviorLabel: string;
+  behaviorDescription: string;
+  behaviorTraits: string[];
+  features: Record<string, number>;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -114,15 +133,31 @@ export class MyData {
   }
 
   // ===== ĐƠN HÀNG (ORDER) =====
-  public getAllOrder(): Observable<Order[]> {
+  public getOrders(query: OrderListQuery): Observable<OrderListResponse> {
     const url = `${this.REST_API_SERVER}/order`;
-    return this.httpClient.get<Order[]>(url, this.httpOptions);
+    let params = new HttpParams()
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
+
+    if (query.search?.trim()) {
+      params = params.set('search', query.search.trim());
+    }
+
+    if (query.sortField) {
+      params = params.set('sortField', query.sortField);
+    }
+
+    if (query.sortOrder) {
+      params = params.set('sortOrder', query.sortOrder);
+    }
+
+    return this.httpClient.get<OrderListResponse>(url, { ...this.httpOptions, params });
   }
   public getOrderById(id: number): Observable<Order> {
     const url = `${this.REST_API_SERVER}/order/${id}`;
     return this.httpClient.get<Order>(url, this.httpOptions);
   }
-  public createOrder(order: Omit<Order, 'id'>): Observable<Order> {
+  public createOrder(order: CreateOrderRequest): Observable<Order> {
     const url = `${this.REST_API_SERVER}/order`;
     return this.httpClient.post<Order>(url, order, this.httpOptions);
   }
@@ -149,6 +184,17 @@ export class MyData {
   public voidOrder(orderId: number): Observable<Order> {
     const url = `${this.REST_API_SERVER}/order/${orderId}/void`;
     return this.httpClient.put<Order>(url, {}, this.httpOptions);
+  }
+
+  // ===== THANH TOÁN VIETQR =====
+  public createVietQr(orderId: number): Observable<VietQrPayment> {
+    const url = `${this.REST_API_SERVER}/payments/vietqr/create`;
+    return this.httpClient.post<VietQrPayment>(url, { orderId }, this.httpOptions);
+  }
+
+  public getPaymentStatus(paymentId: number): Observable<PaymentStatus> {
+    const url = `${this.REST_API_SERVER}/payments/${paymentId}`;
+    return this.httpClient.get<PaymentStatus>(url, this.httpOptions);
   }
 
   // ===== MẶT HÀNG (ITEM) =====
@@ -437,9 +483,9 @@ export class MyData {
   }
 
   // ===== CÔNG THỨC (RECIPE) =====
-  public getAllRecipes(): Observable<any[]> {
+  public getAllRecipes(): Observable<Recipe[]> {
     const url = `${this.REST_API_SERVER}/recipe`;
-    return this.httpClient.get<any[]>(url, this.httpOptions);
+    return this.httpClient.get<Recipe[]>(url, this.httpOptions);
   }
 
   public getRecipesByItem(itemId: number): Observable<any[]> {
@@ -474,9 +520,9 @@ export class MyData {
   }
 
   // ===== AI SERVICE CUSTOMER SEGMENTATION =====
-  public getCustomerSegment(guestId: number): Observable<any> {
+  public getCustomerSegment(guestId: number): Observable<AiCustomerSegmentResponse> {
     const url = `${this.REST_API_SERVER}/guest/${guestId}/ai-segment`;
-    return this.httpClient.get<any>(url, this.httpOptions);
+    return this.httpClient.get<AiCustomerSegmentResponse>(url, this.httpOptions);
   }
 
   public getAiIngredientRestock(days: number = 14): Observable<AiIngredientRestockRow[]> {
@@ -484,18 +530,37 @@ export class MyData {
     return this.httpClient.get<AiIngredientRestockRow[]>(url, this.httpOptions);
   }
 
+  // ===== CA LAM & BANG LUONG =====
+  public getAllShifts(): Observable<any[]> {
+    return this.httpClient.get<any[]>(`${this.REST_API_SERVER}/shift`, this.httpOptions);
+  }
+
+  public getWorkShifts(fromDate: string, toDate: string, userId?: number): Observable<any[]> {
+    let url = `${this.REST_API_SERVER}/workshift?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
+    if (userId) url += `&userId=${userId}`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
+
+  public createWorkShift(workShift: any): Observable<any> {
+    return this.httpClient.post<any>(`${this.REST_API_SERVER}/workshift`, workShift, this.httpOptions);
+  }
+
+  public deleteWorkShift(id: number): Observable<void> {
+    return this.httpClient.delete<void>(`${this.REST_API_SERVER}/workshift/${id}`, this.httpOptions);
+  }
+
+  public getPayroll(period: 'weekly' | 'monthly', date: string): Observable<any> {
+    return this.httpClient.get<any>(`${this.REST_API_SERVER}/payroll/${period}?date=${encodeURIComponent(date)}`, this.httpOptions);
+  }
+
+  public getAiIngredientForecast(id: number, days: number = 14): Observable<AiIngredientDailyForecastRow[]> {
+    const url = `${this.REST_API_SERVER}/Ingredient/${id}/ai-forecast?days=${days}`;
+    return this.httpClient.get<AiIngredientDailyForecastRow[]>(url, this.httpOptions);
+  }
+
   // ===== CHATBOT BUSINESS =====
-  public chatbotBusiness(payload: {
-    message: string;
-    daysHour?: number;
-    daysDow?: number;
-    daysBest?: number;
-    daysTurnover?: number;
-    daysParty?: number;
-    daysForecast?: number;
-    topBest?: number;
-  }): Observable<any> {
+  public chatbotBusiness(payload: BusinessChatRequest): Observable<BusinessChatResponse> {
     const url = `${this.REST_API_SERVER}/chatbot/business`;
-    return this.httpClient.post<any>(url, payload, this.httpOptions);
+    return this.httpClient.post<BusinessChatResponse>(url, payload, this.httpOptions);
   }
 }

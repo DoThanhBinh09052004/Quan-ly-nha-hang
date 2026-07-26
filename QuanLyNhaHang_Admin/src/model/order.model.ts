@@ -19,3 +19,15 @@ export interface Order {
     pointsUsed?: number; 
     finalPrice?: number;
 }
+
+export interface CreateOrderItemRequest {
+    name: string;
+    description?: string;
+    quantity: number;
+    salePrice: number;
+    itemId?: number;
+}
+
+export interface CreateOrderRequest extends Omit<Order, 'id' | 'orderItems'> {
+    orderItems: CreateOrderItemRequest[];
+}

@@ -1,15 +1,16 @@
-import { Restaurant } from "./restaurant.model";
 import { Role } from "./role.model";
 
 export interface User {
     id: number;
     username: string;
-    //password?: string;
+    password?: string;
     created: Date;
     updated: Date;
     deleted: boolean;
     // offDuty: boolean;
     roleId?: number;
-    restaurantId?: number;
+    fullName?: string;
+    shiftSalary?: number;
+    role?: Role;
     
 }
