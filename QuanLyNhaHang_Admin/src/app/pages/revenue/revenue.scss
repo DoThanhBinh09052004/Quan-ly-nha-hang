@@ -892,3 +892,32 @@
     word-break: break-word;
   }
 }
+
+.chat-risks .chat-list {
+  color: #ffa198;
+}
+
+.chat-follow-up {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.follow-up-question {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(88, 166, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(31, 111, 235, 0.12);
+  color: #c9d1d9;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(31, 111, 235, 0.25);
+    border-color: #58a6ff;
+  }
+}

@@ -240,12 +240,12 @@
 
                   <!-- Agent structured result -->
                   <div *ngIf="msg.result" class="chatbot-result">
-                    <div class="chat-section">
+                    <div class="chat-section" *ngIf="msg.result.insights?.length">
                       <div class="chat-section-title">Tóm tắt</div>
                       <div class="chat-summary">{{ msg.result.summary }}</div>
                     </div>
 
-                    <div class="chat-section">
+                    <div class="chat-section" *ngIf="msg.result.actions?.length">
                       <div class="chat-section-title">Insights</div>
                       <ul class="chat-list">
                         <li *ngFor="let s of msg.result.insights">{{ s }}</li>
@@ -268,7 +268,26 @@
                       </div>
                     </div>
 
-                    <details class="chat-section kpi-details">
+                    <div class="chat-section chat-risks" *ngIf="msg.result.risks?.length">
+                      <div class="chat-section-title">Rủi ro cần theo dõi</div>
+                      <ul class="chat-list">
+                        <li *ngFor="let risk of msg.result.risks">{{ risk }}</li>
+                      </ul>
+                    </div>
+
+                    <div class="chat-section chat-follow-up" *ngIf="msg.result.followUpQuestions?.length">
+                      <div class="chat-section-title">Gợi ý câu hỏi tiếp theo</div>
+                      <button
+                        *ngFor="let question of msg.result.followUpQuestions"
+                        type="button"
+                        class="follow-up-question"
+                        (click)="chatInput = question"
+                      >
+                        {{ question }}
+                      </button>
+                    </div>
+
+                    <details class="chat-section kpi-details" *ngIf="hasKpis(msg.result.kpis)">
                       <summary class="chat-section-title">KPI (xem chi tiết)</summary>
                       <pre class="json-box">{{ msg.result.kpis | json }}</pre>
                     </details>

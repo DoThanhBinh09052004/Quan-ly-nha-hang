@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
+import { BusinessChatResponse } from '../../../model/business-chat.model';
 
 Chart.register(...registerables);
 
@@ -67,7 +68,7 @@ export class RevenueComponent implements OnInit, OnDestroy {
     id: number;
     role: 'user' | 'agent';
     content?: string;
-    result?: any;
+    result?: BusinessChatResponse;
     isError?: boolean;
     isLoading?: boolean;
   }> = [];
@@ -163,7 +164,7 @@ export class RevenueComponent implements OnInit, OnDestroy {
         const msgIndex = this.chatMessages.findIndex(m => m.id === agentMsgId);
         if (msgIndex !== -1) {
           this.chatMessages[msgIndex].isLoading = false;
-          this.chatMessages[msgIndex].result = res;
+          this.chatMessages[msgIndex].result = this.normalizeBusinessChatResponse(res);
         }
         this.scrollToBottom();
       },
@@ -184,6 +185,26 @@ export class RevenueComponent implements OnInit, OnDestroy {
         this.scrollToBottom();
       }
     });
+  }
+
+  private normalizeBusinessChatResponse(response: BusinessChatResponse): BusinessChatResponse {
+    return {
+      summary: response?.summary ?? '',
+      answerText: response?.answerText ?? '',
+      kpis: response?.kpis ?? {},
+      insights: Array.isArray(response?.insights) ? response.insights : [],
+      actions: Array.isArray(response?.actions) ? response.actions.map((action) => ({
+        title: action?.title ?? '',
+        why: action?.why ?? '',
+        how: Array.isArray(action?.how) ? action.how : []
+      })) : [],
+      risks: Array.isArray(response?.risks) ? response.risks : [],
+      followUpQuestions: Array.isArray(response?.followUpQuestions) ? response.followUpQuestions : []
+    };
+  }
+
+  hasKpis(kpis: Record<string, unknown> | null | undefined): boolean {
+    return !!kpis && Object.keys(kpis).length > 0;
   }
 
   scrollToBottom() {
