@@ -2,13 +2,17 @@ using System.Text.Json.Serialization;
 
 namespace QLNH_API.DTO
 {
+    /// <summary>
+    /// Snapshot feature data used by the AI service to cluster guests.
+    /// No personally identifiable data is included in this contract.
+    /// </summary>
     public sealed class AiCustomerSegmentRequestDto
     {
-        [JsonPropertyName("guest")]
-        public AiCustomerSegmentGuestDto Guest { get; set; } = new();
+        [JsonPropertyName("target_guest_id")]
+        public int TargetGuestId { get; set; }
 
-        [JsonPropertyName("features")]
-        public Dictionary<string, double> Features { get; set; } = new();
+        [JsonPropertyName("guests")]
+        public List<AiCustomerSegmentGuestDto> Guests { get; set; } = new();
     }
 
     public sealed class AiCustomerSegmentGuestDto
@@ -16,11 +20,7 @@ namespace QLNH_API.DTO
         [JsonPropertyName("guest_id")]
         public int GuestId { get; set; }
 
-        [JsonPropertyName("points")]
-        public int Points { get; set; }
-
-        [JsonPropertyName("created")]
-        public DateTime Created { get; set; }
+        [JsonPropertyName("features")]
+        public Dictionary<string, double> Features { get; set; } = new();
     }
-
 }

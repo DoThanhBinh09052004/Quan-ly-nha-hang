@@ -69,6 +69,10 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(User.Password))
+                {
+                    User.Password = "123456";
+                }
                 User.Created = DateTime.Now;
                 User.Updated = DateTime.Now;
 
@@ -137,7 +141,13 @@ namespace QLNH_API.Controllers
                 }
 
                 // Cập nhật thông tin (dùng AutoMapper hoặc gán thủ công)
+                var currentPassword = existingUser.Password;
                 _context.Entry(existingUser).CurrentValues.SetValues(updatedUser);
+                // Mật khẩu để trống trong popup nghĩa là giữ nguyên mật khẩu hiện có.
+                if (string.IsNullOrWhiteSpace(updatedUser.Password))
+                {
+                    existingUser.Password = currentPassword;
+                }
                 existingUser.Updated = DateTime.Now; // Cập nhật thời gian sửa
 
                 await _context.SaveChangesAsync();

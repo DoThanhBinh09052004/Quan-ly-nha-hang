@@ -148,6 +148,7 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                days = Math.Clamp(days, 1, 90);
                 var result = await _aiService.GetIngredientRestockForecastAsync(days, cancellationToken);
                 return Ok(result);
             }
@@ -168,6 +169,7 @@ namespace QLNH_API.Controllers
         {
             try
             {
+                days = Math.Clamp(days, 1, 90);
                 // optional: check ingredient exists to avoid calling AI with invalid id
                 var ingredient = await _context.Ingredient.FirstOrDefaultAsync(i => i.Id == id && !i.Deleted, cancellationToken);
                 if (ingredient == null)
