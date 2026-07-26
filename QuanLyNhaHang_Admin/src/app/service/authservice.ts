@@ -13,6 +13,14 @@ private apiUrl = `${environment.api}/api/Auth`;
     return this.http.post<{ token: string }>(`${this.apiUrl}/login`, { username, password });
   }
 
+  changeMyPassword(username: string, oldPassword: string, newPassword: string) {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/change-my-password`, {
+      username,
+      oldPassword,
+      newPassword
+    });
+  }
+
   logout() {
     localStorage.removeItem('token');
     this.router.navigate(['/login']);

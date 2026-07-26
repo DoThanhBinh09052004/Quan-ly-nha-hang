@@ -29,13 +29,7 @@ export class App {
     ngOnInit() {
        
         this.items = [
-            {
-                label: 'Nhà hàng',
-                icon: 'pi pi-home',
-                command: () => {
-                    this.router.navigate(['/restaurant']);
-                }
-            },
+            
     
             {
                 label: 'Nhân sự',
