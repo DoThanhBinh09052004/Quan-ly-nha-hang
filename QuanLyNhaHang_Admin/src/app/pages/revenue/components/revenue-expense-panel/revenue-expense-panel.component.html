@@ -1,0 +1,55 @@
+<div class="management-card" style="background: linear-gradient(145deg, #162032 0%, #0c1222 100%); border-color: #1e293b;">
+  <div class="toolbar-section" style="margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px;">
+    <div class="toolbar-left">
+      <h2 style="margin: 0; font-size: 18px; color: #e2e8f0;">Chi phí vận hành theo tháng</h2>
+      <p style="margin: 4px 0 0; color: #94a3b8; font-size: 13px;">Hạch toán theo tháng lịch</p>
+    </div>
+    <div class="toolbar-right" style="display: flex; gap: 12px; align-items: center;">
+      <input type="month" class="p-inputtext" [(ngModel)]="expenseMonth" (change)="onExpenseMonthChange()" style="background: #1e293b; border: 1px solid #475569; color: #e2e8f0; padding: 8px 12px; border-radius: 6px;">
+      <button class="p-button p-button-primary" (click)="openExpenseDialog()">Thêm chi phí</button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 16px; margin-bottom: 24px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
+    <div style="flex: 1;">
+      <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">Kỳ đang xem</div>
+      <div style="color: #e2e8f0; font-weight: bold; font-size: 18px;">{{ expenseMonth }}</div>
+    </div>
+    <div style="flex: 1;">
+      <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">Tổng chi phí</div>
+      <div style="color: #e2e8f0; font-weight: bold; font-size: 18px;">{{ formatMoney(totalExpense) }}</div>
+    </div>
+    <div style="flex: 1;">
+      <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">Số khoản mục</div>
+      <div style="color: #e2e8f0; font-weight: bold; font-size: 18px;">{{ expenses.length }}</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+      <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Cơ cấu chi phí</h3>
+      <div style="height: 250px;"><canvas id="chartExpense"></canvas></div>
+      <div *ngIf="expenseBreakdown.length === 0" style="text-align: center; color: #94a3b8; padding: 20px;">Không có dữ liệu</div>
+    </div>
+    <div style="flex: 2; min-width: 400px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+      <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Breakdown theo danh mục</h3>
+      <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <th style="padding: 12px; color: #94a3b8; font-size: 12px; font-weight: 600;">DANH MỤC</th>
+            <th style="padding: 12px; color: #94a3b8; font-size: 12px; font-weight: 600;">SỐ TIỀN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of expenseBreakdown" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 12px; color: #e2e8f0;">{{ item.name }}</td>
+            <td style="padding: 12px; color: #34d399;">{{ formatMoney(item.amount) }}</td>
+          </tr>
+          <tr *ngIf="expenseBreakdown.length === 0">
+            <td colspan="2" style="padding: 24px; text-align: center; color: #94a3b8;">Không có dữ liệu chi phí trong kỳ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

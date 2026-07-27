@@ -1,0 +1,33 @@
+<p-dialog [(visible)]="visible" header="Thêm chi phí" [modal]="true" [style]="{width: '450px'}" (onHide)="closeDialog()">
+  <div class="dialog-form" style="padding-top: 1rem;">
+    <div class="form-field">
+      <label>Ngày chi <span class="required" style="color: #f87171;">*</span></label>
+      <input type="date" class="p-inputtext" [(ngModel)]="editingExpense.expenseDate" style="width: 100%;">
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label>Danh mục <span class="required" style="color: #f87171;">*</span></label>
+      <select [(ngModel)]="editingExpense.expenseCategoryId" class="p-inputtext" style="width: 100%;">
+        <option *ngFor="let cat of expenseCategories" [value]="cat.id">{{ cat.name }}</option>
+      </select>
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label>Tiêu đề <span class="required" style="color: #f87171;">*</span></label>
+      <input type="text" class="p-inputtext" [(ngModel)]="editingExpense.title" placeholder="VD: Mua gas, trả tiền điện..." style="width: 100%;">
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label>Số tiền <span class="required" style="color: #f87171;">*</span></label>
+      <input type="number" class="p-inputtext" [(ngModel)]="editingExpense.amount" style="width: 100%;">
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label>Ghi chú</label>
+      <textarea class="p-inputtext" [(ngModel)]="editingExpense.note" rows="3" style="width: 100%;"></textarea>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button pButton type="button" label="Hủy" class="p-button-text p-button-secondary btn-cancel" (click)="closeDialog()"></button>
+      <button pButton type="button" [label]="expenseSaving ? 'Đang lưu...' : 'Lưu chi phí'" class="p-button-primary" (click)="saveExpense()" [disabled]="expenseSaving"></button>
+    </div>
+  </ng-template>
+</p-dialog>
