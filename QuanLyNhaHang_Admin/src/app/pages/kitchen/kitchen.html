@@ -1,0 +1,88 @@
+<div class="kitchen-container">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <section class="kitchen-header">
+    <div>
+      <p class="eyebrow"><i class="pi pi-receipt"></i> KHU VỰC BẾP</p>
+      <h1>Phiếu chế biến</h1>
+      <p class="header-description">Theo dõi và xử lý món theo từng đơn hàng.</p>
+    </div>
+
+    <div class="header-actions">
+      <span *ngIf="lastUpdated" class="last-updated">
+        Cập nhật {{ lastUpdated | date:'HH:mm:ss' }}
+      </span>
+      <p-button icon="pi pi-refresh" label="Tải lại" [loading]="isLoading" (onClick)="loadTickets()"></p-button>
+    </div>
+  </section>
+
+  <div *ngIf="isLoading && !tickets.length" class="kitchen-state">
+    <p-progressSpinner strokeWidth="4" ariaLabel="Đang tải phiếu bếp"></p-progressSpinner>
+    <p>Đang tải phiếu bếp...</p>
+  </div>
+
+  <div *ngIf="!isLoading && errorMessage" class="kitchen-state kitchen-error">
+    <i class="pi pi-exclamation-circle"></i>
+    <h2>Không tải được dữ liệu</h2>
+    <p>{{ errorMessage }}</p>
+    <p-button icon="pi pi-refresh" label="Thử lại" (onClick)="loadTickets()"></p-button>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && !tickets.length" class="kitchen-state">
+    <i class="pi pi-check-circle"></i>
+    <h2>Bếp đang trống</h2>
+    <p>Chưa có món nào cần chế biến.</p>
+  </div>
+
+  <section *ngIf="tickets.length" class="ticket-grid" aria-label="Danh sách phiếu chế biến">
+    <article *ngFor="let ticket of tickets; trackBy: trackTicket" class="kitchen-ticket">
+      <header class="ticket-header">
+        <div>
+          <span class="ticket-label">ĐƠN HÀNG</span>
+          <h2>{{ ticket.orderNumber }}</h2>
+        </div>
+        <div class="table-badge">
+          <i class="pi pi-table"></i>
+          <span>{{ ticket.tableName || 'Mang đi' }}</span>
+        </div>
+      </header>
+
+      <div class="ticket-items">
+        <section *ngFor="let item of ticket.items; trackBy: trackItem" class="ticket-item">
+          <div class="item-main">
+            <span class="quantity">{{ item.quantity }}×</span>
+            <div>
+              <h3>{{ item.name }}</h3>
+              <p *ngIf="item.kitchenNote" class="kitchen-note">
+                <i class="pi pi-comment"></i> {{ item.kitchenNote }}
+              </p>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <p-tag [value]="statusLabel(item)" [severity]="isProcessing(item) ? 'warn' : 'info'"></p-tag>
+            <div class="action-buttons">
+              <p-button
+                [icon]="isProcessing(item) ? 'pi pi-check' : 'pi pi-play'"
+                [label]="isProcessing(item) ? 'Hoàn thành' : 'Bắt đầu'"
+                severity="success"
+                [loading]="isUpdating(item.id)"
+                [disabled]="isUpdating(item.id)"
+                (onClick)="advanceItem(item)">
+              </p-button>
+              <p-button
+                icon="pi pi-times"
+                label="Hủy"
+                severity="danger"
+                [outlined]="true"
+                [disabled]="isUpdating(item.id)"
+                (onClick)="confirmCancel(item)">
+              </p-button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </article>
+  </section>
+</div>
