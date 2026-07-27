@@ -1,0 +1,53 @@
+<section class="revenue-additions">
+  <div class="addition-heading">
+    <div>
+      <span>PHÂN TÍCH BỔ SUNG</span>
+      <h2>Điểm cần chú ý trong vận hành</h2>
+    </div>
+    <small>Dữ liệu từ RevenueService</small>
+  </div>
+  <div *ngIf="activeTab === 'gross' || activeTab === 'net'" class="financial-flow">
+    <div class="flow-title"><i class="pi pi-sitemap"></i> Sơ đồ dòng tiền</div>
+    <div class="flow-steps">
+      <div class="flow-node income"><i class="pi pi-money-bill"></i><span>Doanh thu</span><strong>{{ formatMoney(kpiRevenue) }}</strong></div>
+      <i class="pi pi-arrow-right flow-arrow"></i>
+      <div class="flow-node expense"><i class="pi pi-minus-circle"></i><span>Chi phí</span><strong>{{ formatMoney(kpiCost) }}</strong></div>
+      <i class="pi pi-arrow-right flow-arrow"></i>
+      <div class="flow-node outcome"><i class="pi pi-check-circle"></i><span>Lợi nhuận</span><strong>{{ formatMoney(kpiProfit) }}</strong></div>
+    </div>
+  </div>
+  <div class="addition-grid">
+    <article class="addition-card best-seller">
+      <div class="addition-card-heading">
+        <div><span>Món bán chạy</span><h3>{{ topSeller?.itemName || 'Chưa có dữ liệu' }}</h3></div>
+        <i class="pi pi-trophy"></i>
+      </div>
+      <div class="addition-chart">
+        <canvas id="chartBest"></canvas>
+        <p *ngIf="!bestSellersData.length">Chưa có dữ liệu món bán chạy.</p>
+      </div>
+    </article>
+    <article class="addition-card">
+      <div class="addition-card-heading">
+        <div><span>Đóng góp doanh thu</span><h3>Theo nhóm hàng</h3></div>
+        <i class="pi pi-tags"></i>
+      </div>
+      <div class="category-list">
+        <div class="category-row" *ngFor="let category of categoryData.slice(0, 5)">
+          <div><span>{{ category.categoryName || 'Chưa phân loại' }}</span><strong>{{ formatMoney(category.totalRevenue) }}</strong></div>
+          <i><b [style.width.%]="categoryRevenueRate(category.totalRevenue)"></b></i>
+        </div>
+        <p *ngIf="!categoryData.length">Chưa có dữ liệu doanh thu theo danh mục.</p>
+      </div>
+    </article>
+    <article class="addition-card turnover">
+      <div class="addition-card-heading">
+        <div><span>Hiệu suất bàn</span><h3>Quay vòng trung bình</h3></div>
+        <i class="pi pi-sync"></i>
+      </div>
+      <strong class="turnover-value">{{ formatMinutes(tableTurnover?.averageTurnoverMinutes) }}</strong>
+      <p>Nhanh nhất {{ formatMinutes(tableTurnover?.minTurnoverMinutes) }} · chậm nhất {{ formatMinutes(tableTurnover?.maxTurnoverMinutes) }}</p>
+      <div class="turnover-live"><i></i> {{ turnoverDetails().length }} lượt phục vụ được ghi nhận</div>
+    </article>
+  </div>
+</section>
