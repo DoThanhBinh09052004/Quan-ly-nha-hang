@@ -1,0 +1,26 @@
+<p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width: '28rem'}" header="Thông tin khách hàng">
+  <div class="dialog-form">
+    <div class="form-field">
+      <label>Tên khách <span class="required" style="color: #f87171;">*</span></label>
+      <input pInputText [(ngModel)]="guest.name" />
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label>Số điện thoại <span class="required" style="color: #f87171;">*</span></label>
+      <input pInputText [(ngModel)]="guest.phone" />
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label>Điểm</label>
+      <p-inputNumber [(ngModel)]="guest.points" [min]="0" styleClass="w-full" />
+    </div>
+    <div class="form-field" style="margin-top: 1rem;">
+      <label>Ghi chú</label>
+      <input pInputText [(ngModel)]="guest.description" />
+    </div>
+  </div>
+  <ng-template #footer>
+    <div class="dialog-footer">
+      <p-button label="Hủy" severity="secondary" [text]="true" (onClick)="closeDialog()" />
+      <p-button label="Lưu" icon="pi pi-check" (onClick)="saveGuest()" />
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,256 @@
+<p-dialog [(visible)]="visible" (onHide)="hideDialog.emit()" [style]="{width: '95vw', maxWidth: '1400px'}" 
+          [header]="order.id ? 'Chỉnh sửa đơn hàng' : (order.reservationId ? 'Nhận bàn & tạo đơn hàng' : 'Tạo đơn hàng mới')" 
+          [modal]="true" [draggable]="false" [resizable]="false">
+    
+    <div class="dialog-content">
+        <!-- Thông tin cơ bản -->
+        <div class="order-info-section">
+            <div class="info-card">
+                <h3>Thông tin đơn hàng</h3>
+                
+                <div class="form-field">
+                    <label for="orderNumber">Số đơn hàng <span class="required">*</span></label>
+                    <input pInputText id="orderNumber" [(ngModel)]="order.orderNumber" placeholder="Nhập số đơn hàng..." />
+                </div>
+
+                <div class="form-field">
+                    <label for="tableAutoComplete">Bàn <span class="required">*</span></label>
+                    <p-autoComplete id="tableAutoComplete"
+                                    [ngModel]="selectedGuestTable"
+                                    (ngModelChange)="onSelectedGuestTableChange($event)"
+                                    [suggestions]="filterGuestTable"
+                                    (completeMethod)="searchGuestTable.emit($event)"
+                                    optionLabel="name"
+                                    [dropdown]="true"
+                                    [disabled]="!!order.reservationId"
+                                    placeholder="Chọn bàn...">
+                        <ng-template let-table pTemplate="item">
+                            <div class="table-option">
+                                <div class="table-info">
+                                    <i class="pi pi-table"></i>
+                                    <span>{{table.name}}</span>
+                                </div>
+                                <p-tag [value]="table.status?.name || 'Chưa rõ'" 
+                                      [severity]="table.status?.code === 'TABLE_AVAILABLE' ? 'success' : 'danger'"
+                                      class="table-status" />
+                            </div>
+                        </ng-template>
+                    </p-autoComplete>
+                </div>
+
+                <div class="form-field">
+                    <label for="paidAmount">Số tiền đã trả</label>
+                    <p-inputNumber id="paidAmount" [ngModel]="order.paidAmount" (ngModelChange)="onPaidAmountChange($event)"
+                                  mode="currency" currency="VND" locale="vi-VN" />
+                </div>
+
+                <div class="form-field">
+                    <label for="description">Ghi chú</label>
+                    <textarea pInputTextarea id="description" [(ngModel)]="order.description" rows="4" placeholder="Nhập ghi chú..."></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label for="guestPhone">
+                        Số điện thoại khách hàng
+                        <small class="hint-text">(Nhập để hưởng giảm giá 3%)</small>
+                    </label>
+                    <div class="phone-input-group">
+                        <input pInputText id="guestPhone" [ngModel]="guestPhone" (ngModelChange)="onGuestPhoneChange($event)"
+                               (input)="searchGuestByPhone.emit()" placeholder="Nhập số điện thoại..." maxlength="10" />
+                        <button pButton icon="pi pi-search" class="btn-search-phone" (click)="searchGuestByPhone.emit()"
+                                [disabled]="!guestPhone || guestPhone.length < 10"></button>
+                    </div>
+                </div>
+                  
+                <!-- Hiển thị thông tin khách hàng khi tìm thấy -->
+                <div *ngIf="guestName" class="guest-info">
+                    <div class="guest-card">
+                        <div class="guest-header">
+                            <i class="pi pi-user"></i>
+                            <div class="guest-details">
+                                <span class="guest-name">{{guestName}}</span>
+                                <span class="guest-points">
+                                    <i class="pi pi-star"></i> {{guestPoints}} điểm
+                                </span>
+                            </div>
+                        </div>
+                        <p-tag value="Giảm giá 3%" severity="success" class="discount-tag" />
+                    </div>
+                </div>
+
+                <!-- Sử dụng điểm tích lũy -->
+                <div *ngIf="guestName && pointsAvailable >= minPoints" class="points-section">
+                    <div class="section-header">
+                        <h4><i class="pi pi-star-fill"></i> Sử dụng điểm tích lũy</h4>
+                        <p-tag [value]="pointsAvailable + ' điểm'" severity="warning" />
+                    </div>
+                    <div class="points-info">
+                        <div class="info-row">
+                            <span class="label">Điểm hiện có:</span>
+                            <span class="value">{{pointsAvailable}} điểm</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Tỉ lệ quy đổi:</span>
+                            <span class="value">50 điểm = 25,000 VND (1 điểm = 500 VND)</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Điểm tối thiểu:</span>
+                            <span class="value">{{minPoints}} điểm (bội số của 50)</span>
+                        </div>
+                        <div *ngIf="maxPoints > 0" class="info-row">
+                            <span class="label">Điểm tối đa có thể dùng:</span>
+                            <span class="value">{{maxPoints}} điểm</span>
+                        </div>
+                    </div>
+                    
+                    <div class="points-control">
+                        <label for="pointsToUse">Số điểm muốn dùng</label>
+                        <div class="points-input-group">
+                            <p-inputNumber id="pointsToUse" [ngModel]="pointsToUse" (ngModelChange)="onPointsToUseChange($event)"
+                                          [min]="minPoints" [max]="maxPoints" (onInput)="onPointsChange.emit()"
+                                          [step]="50" showButtons mode="decimal" [showClear]="true">
+                            </p-inputNumber>
+                            <button pButton icon="pi pi-check" label="Áp dụng điểm" (click)="usePoints.emit()" 
+                                    [disabled]="usePointsButtonDisabled" severity="help">
+                            </button>
+                        </div>
+                        
+                        <div *ngIf="pointsToUse > 0" class="points-preview">
+                            <div class="preview-row">
+                                <i class="pi pi-info-circle"></i>
+                                <span>Sử dụng <strong>{{pointsToUse}} điểm</strong> sẽ được giảm <strong>{{pointsDiscount | number}} VND</strong></span>
+                            </div>
+                            <div class="preview-row">
+                                <i class="pi pi-calculator"></i>
+                                <span>Số điểm còn lại: <strong>{{pointsAvailable - pointsToUse}} điểm</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                  
+                <!-- Cập nhật summary box để hiển thị giảm giá -->
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span>Tổng tiền:</span>
+                        <span class="total-amount">{{order.totalPrice | number}} VND</span>
+                    </div>
+                    <div *ngIf="guestName" class="summary-row discount-row">
+                        <span>Giảm giá (3%):</span>
+                        <span class="discount-amount">-{{order.totalPrice * 0.03 | number}} VND</span>
+                    </div>
+                    <div *ngIf="pointsDiscount > 0" class="summary-row discount-row points-discount">
+                        <span>Giảm giá từ điểm:</span>
+                        <span class="discount-amount">-{{pointsDiscount | number}} VND</span>
+                    </div>
+                    <div class="summary-row final-price-row">
+                        <span>Thành tiền:</span>
+                        <span class="final-price">{{finalPrice | number}} VND</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Đã trả:</span>
+                        <span class="paid-amount">{{order.paidAmount | number}} VND</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tiền thừa:</span>
+                        <span [class.positive]="order.changeAmount >= 0" [class.negative]="order.changeAmount < 0" class="change-amount">
+                            {{order.changeAmount | number}} VND
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách món ăn -->
+        <div class="order-items-section">
+            <div class="items-card">
+                <div class="items-header">
+                    <h3>Danh sách món ăn</h3>
+                    <p-button icon="pi pi-plus" label="Thêm món" severity="success" (onClick)="openAddItemDialog.emit()" />
+                </div>
+
+                <div *ngIf="orderItems.length === 0" class="empty-items">
+                    <i class="pi pi-shopping-bag empty-items-icon"></i>
+                    <h4>Chưa có món nào</h4>
+                    <p>Thêm món ăn vào đơn hàng của bạn</p>
+                    <p-button icon="pi pi-plus" label="Thêm món đầu tiên" severity="info" (onClick)="openAddItemDialog.emit()" />
+                </div>
+
+                <div *ngIf="orderItems.length > 0" class="items-table-container">
+                    <p-table [value]="orderItems" [scrollable]="true" scrollHeight="400px">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 250px">Tên món</th>
+                                <th style="width: 120px">Đơn giá</th>
+                                <th style="width: 100px">Số lượng</th>
+                                <th style="width: 120px">Thành tiền</th>
+                                <th style="width: 80px"></th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item let-i="index">
+                            <tr>
+                                <td>
+                                    <div class="item-info">
+                                        <span class="item-name">{{item.name}}</span>
+                                        <small class="item-desc" *ngIf="item.description">{{item.description}}</small>
+                                    </div>
+                                </td>
+                                <td class="item-price">{{item.salePrice | number}} VND</td>
+                                <td>
+                                    <p-inputNumber [(ngModel)]="item.quantity" [min]="1" [max]="item.item?.quantity" 
+                                                  (onInput)="updateQuantity.emit({item: item, event: $event})" showButtons />
+                                </td>
+                                <td class="item-total">{{getItemTotal(item) | number}} VND</td>
+                                <td class="item-actions">
+                                    <button pButton pRipple icon="pi pi-trash" class="btn-item-delete" (click)="removeOrderItem.emit(i)"></button>
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                            <tr>
+                                <td colspan="3" class="footer-label">Tổng cộng:</td>
+                                <td colspan="2" class="footer-total">{{order.totalPrice | number}} VND</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+
+                <!-- Phần gợi ý món ăn từ AI -->
+                <div *ngIf="orderItems.length > 0" class="recommendations-section">
+                    <div class="recommendations-header">
+                        <h4>
+                            <i class="pi pi-sparkles"></i> 
+                            {{ recommendations.length > 0 && recommendations[0].isFallback ? 'Món ăn phổ biến' : 'Món ăn gợi ý cho bạn' }}
+                        </h4>
+                        <small>{{ recommendations.length > 0 && recommendations[0].isFallback ? 'Dựa trên doanh thu gần đây' : 'Dựa trên các món đã chọn (AI)' }}</small>
+                    </div>
+                    
+                    <div *ngIf="recommendations.length === 0" class="no-recommendations">
+                        <p>Đang tải gợi ý hoặc không có gợi ý phù hợp...</p>
+                    </div>
+
+                    <div *ngIf="recommendations.length > 0" class="recommendations-grid">
+                        <div *ngFor="let rec of recommendations" class="recommendation-chip" (click)="addRecommendedItem.emit(rec)">
+                            <div class="rec-info">
+                                <span class="rec-name">{{rec.item}}</span>
+                            </div>
+                            <i class="pi pi-plus-circle add-rec-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="dialog-footer">
+            <div class="footer-left">
+                <p-button icon="pi pi-print" label="In hóa đơn" [outlined]="true" />
+            </div>
+            <div class="footer-right">
+                <button pButton pRipple icon="pi pi-times" label="Hủy" class="btn-cancel" (click)="hideDialog.emit()"></button>
+                <button pButton pRipple icon="pi pi-check" label="Lưu đơn hàng" severity="primary" 
+                        (click)="saveOrder.emit()" [disabled]="orderItems.length === 0"></button>
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>
