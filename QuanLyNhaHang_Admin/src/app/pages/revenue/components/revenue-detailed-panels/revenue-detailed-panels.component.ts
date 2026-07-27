@@ -32,6 +32,29 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
 
   private charts: Record<string, Chart> = {};
 
+  private verticalLinePlugin = {
+    id: 'verticalLine',
+    afterDraw: (chart: any) => {
+      if (chart.tooltip?._active?.length) {
+        const activePoint = chart.tooltip._active[0];
+        const ctx = chart.ctx;
+        const x = activePoint.element.x;
+        const topY = chart.scales.y.top;
+        const bottomY = chart.scales.y.bottom;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, topY);
+        ctx.lineTo(x, bottomY);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  };
+
   ngOnChanges(changes: SimpleChanges): void {
     setTimeout(() => this.renderAllDetailedCharts(), 0);
   }
@@ -153,6 +176,7 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
           }
         ]
       },
+      plugins: [this.verticalLinePlugin],
       options: this.baseChartOptions(true)
     };
     this.charts[canvasId] = new Chart(ctx, cfg);
@@ -179,6 +203,7 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
           borderRadius: 4
         }]
       },
+      plugins: [this.verticalLinePlugin],
       options: this.baseChartOptions(yMoney)
     };
     this.charts[canvasId] = new Chart(ctx, cfg);
@@ -217,6 +242,10 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
     return {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        mode: 'index' as const,
+        intersect: false
+      },
       scales: {
         y: {
           beginAtZero: true,
