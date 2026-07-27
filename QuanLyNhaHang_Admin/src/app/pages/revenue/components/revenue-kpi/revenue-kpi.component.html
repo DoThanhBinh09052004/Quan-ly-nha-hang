@@ -1,0 +1,18 @@
+<div class="toolbar-section" style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px;">
+  <div class="toolbar-left">
+    <h2 style="margin: 0; font-size: 18px; color: #e2e8f0;">Phân tích lợi nhuận</h2>
+    <p style="margin: 4px 0 0; color: #94a3b8; font-size: 13px;">Kỳ báo cáo hiện tại</p>
+  </div>
+  <div class="toolbar-right">
+    <button class="p-button p-button-sm" [ngClass]="reportPeriod === 'daily' ? 'p-button-primary' : 'p-button-outlined'" (click)="setPeriod('daily')">Theo ngày</button>
+    <button class="p-button p-button-sm" [ngClass]="reportPeriod === 'monthly' ? 'p-button-primary' : 'p-button-outlined'" (click)="setPeriod('monthly')">Theo tháng</button>
+    <button class="p-button p-button-sm" [ngClass]="reportPeriod === 'yearly' ? 'p-button-primary' : 'p-button-outlined'" (click)="setPeriod('yearly')">Theo năm</button>
+  </div>
+</div>
+
+<div class="stats-grid" style="margin-bottom: 24px;">
+  <div class="stat-card stat-blue" style="flex: 1;"><i class="pi pi-chart-line"></i><div class="stat-info"><span class="stat-label">Doanh thu</span><span class="stat-value">{{ formatMoney(kpiRevenue) }}</span></div></div>
+  <div class="stat-card stat-orange" style="flex: 1;"><i class="pi pi-box"></i><div class="stat-info"><span class="stat-label">{{ activeTab === 'gross' ? 'Chi phí nguyên liệu' : 'Tổng chi phí' }}</span><span class="stat-value">{{ formatMoney(kpiCost) }}</span></div></div>
+  <div class="stat-card stat-green" style="flex: 1;"><i class="pi pi-chart-bar"></i><div class="stat-info"><span class="stat-label">Lợi nhuận</span><span class="stat-value">{{ formatMoney(kpiProfit) }}</span></div></div>
+  <div class="stat-card stat-green" style="flex: 1; border-left-color: #a371f7;"><i class="pi pi-percentage" style="color: #a371f7; background: rgba(163, 113, 247, 0.15);"></i><div class="stat-info"><span class="stat-label">Biên lợi nhuận</span><span class="stat-value">{{ kpiMargin }}%</span></div></div>
+</div>

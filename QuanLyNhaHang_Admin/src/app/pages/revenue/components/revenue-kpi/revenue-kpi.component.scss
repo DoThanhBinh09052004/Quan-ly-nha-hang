@@ -1,0 +1,58 @@
+@use "../../revenue.scss";
+.stats-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.stat-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-left: 4px solid #1f6feb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  i {
+    font-size: 24px;
+    padding: 12px;
+    border-radius: 8px;
+  }
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+    .stat-label {
+      color: #8b949e;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .stat-value {
+      color: #f0f6fc;
+      font-size: 24px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+  }
+  &.stat-blue {
+    border-left-color: #58a6ff;
+    i {
+      color: #58a6ff;
+      background: rgba(88, 166, 255, 0.15);
+    }
+  }
+  &.stat-orange {
+    border-left-color: #fb8f44;
+    i {
+      color: #fb8f44;
+      background: rgba(251, 143, 68, 0.15);
+    }
+  }
+  &.stat-green {
+    border-left-color: #3fb950;
+    i {
+      color: #3fb950;
+      background: rgba(63, 185, 80, 0.15);
+    }
+  }
+}
