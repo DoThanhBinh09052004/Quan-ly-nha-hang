@@ -1,9 +1,61 @@
-<p-toast></p-toast><p-confirmDialog></p-confirmDialog>
-<div class="management-container">
-  <app-user-header [selectedCount]="selectedUsers.length" (create)="openNew()" (reload)="loadData();loadScheduleData()" (payroll)="openPayroll()" (deleteSelected)="deleteSelectedUsers()"></app-user-header>
-  <app-weekly-schedule [users]="Users" [shifts]="shifts" [workShifts]="workShifts" [weekStart]="weekStart" [selectedUser]="selectedScheduleUser" [(userDialog)]="scheduleDialog" (previous)="previousWeek()" (next)="nextWeek()" (today)="goToCurrentWeek()" (assign)="openAssignment($event.date,$event.shift,$event.assignment)"></app-weekly-schedule>
-  <app-user-table [users]="Users" [(selected)]="selectedUsers" [shiftCounts]="shiftCounts" (edit)="editUser($event)" (remove)="deleteUser($event)" (schedule)="openUserSchedule($event)"></app-user-table>
-</div>
-<app-user-form-dialog [(visible)]="UserDialog" [user]="User" [roles]="roles" [role]="selectedRole" [submitted]="submitted" (save)="saveForm($event)"></app-user-form-dialog>
-<app-shift-assignment-dialog [(visible)]="assignmentDialog" [date]="selectedDate" [shift]="selectedShift" [users]="Users" [assignments]="selectedAssignments" (add)="assignEmployee($event)" (remove)="removeAssignment($event)"></app-shift-assignment-dialog>
-<app-payroll-report-dialog [(visible)]="payrollDialog" [period]="payrollPeriod" [report]="payrollReport" (periodChange)="onPayrollPeriod($event)" (exportReport)="exportPayroll()"></app-payroll-report-dialog>
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<main class="management-container">
+  <app-user-toolbar
+    [selectedCount]="selectedUsers.length"
+    (create)="openNew()"
+    (reload)="reload()"
+    (payroll)="openPayroll()"
+    (deleteSelected)="deleteSelectedUsers()">
+  </app-user-toolbar>
+
+  <app-weekly-schedule
+    [shifts]="shifts"
+    [workShifts]="workShifts"
+    [weekStart]="weekStart"
+    [selectedUser]="selectedScheduleUser"
+    [(userDialog)]="scheduleDialog"
+    (previous)="previousWeek()"
+    (next)="nextWeek()"
+    (today)="goToCurrentWeek()"
+    (assign)="openAssignment($event.date, $event.shift, $event.assignment)">
+  </app-weekly-schedule>
+
+  <app-user-list
+    [users]="users"
+    [(selected)]="selectedUsers"
+    [shiftCounts]="shiftCounts"
+    (edit)="editUser($event)"
+    (remove)="deleteUser($event)"
+    (schedule)="openUserSchedule($event)">
+  </app-user-list>
+</main>
+
+<app-user-form-dialog
+  [(visible)]="userDialog"
+  [user]="user"
+  [roles]="roles"
+  [role]="selectedRole"
+  [submitted]="submitted"
+  (save)="saveForm($event)">
+</app-user-form-dialog>
+
+<app-shift-assignment-dialog
+  [(visible)]="assignmentDialog"
+  [date]="selectedDate"
+  [shift]="selectedShift"
+  [users]="users"
+  [assignments]="selectedAssignments"
+  (add)="assignEmployee($event)"
+  (penaltyChange)="updateAssignmentPenalty($event)"
+  (remove)="removeAssignment($event)">
+</app-shift-assignment-dialog>
+
+<app-payroll-report-dialog
+  [(visible)]="payrollDialog"
+  [period]="payrollPeriod"
+  [report]="payrollReport"
+  (periodChange)="onPayrollPeriod($event)"
+  (exportReport)="exportPayroll()">
+</app-payroll-report-dialog>

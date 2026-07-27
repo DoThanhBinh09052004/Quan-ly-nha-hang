@@ -1,0 +1,28 @@
+@use '../../shared';
+
+.payroll-toolbar,
+.payroll-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.payroll-toolbar > div {
+  display: flex;
+  gap: 8px;
+}
+
+.payroll-summary {
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  background: #172235;
+}
+
+.payroll-summary span {
+  color: #94a3b8;
+}

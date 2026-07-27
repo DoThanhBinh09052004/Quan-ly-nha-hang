@@ -1,6 +1,7 @@
-// Shared management-page styles: layout, table, dialog, stats and responsive rules.
 @use '../shared';
 
-app-user-header,
-app-user-table,
-app-weekly-schedule { display: block; }
+app-user-toolbar,
+app-user-list,
+app-weekly-schedule {
+  display: block;
+}

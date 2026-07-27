@@ -1,0 +1,68 @@
+<p-dialog
+  [(visible)]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  [style]="{ width: '650px', maxWidth: '95vw' }"
+  header="Phân công ca làm">
+  <div class="assignment-info">
+    <b>{{ shift?.name }}</b>
+    <span>{{ date | date:'EEEE, dd/MM/yyyy':'':'vi-VN' }}</span>
+  </div>
+
+  <section *ngIf="assignments.length" class="current-assignees">
+    <h3>Nhân viên đã phân ca</h3>
+    <div *ngFor="let item of assignments" class="assignment-row">
+      <div class="employee-name">
+        <i class="pi pi-user"></i>
+        <span>{{ item.user?.fullName || item.user?.username }}</span>
+      </div>
+
+      <div class="penalty-field">
+        <label [for]="'penalty-' + item.id">Trừ lương ca này</label>
+        <p-inputNumber
+          [inputId]="'penalty-' + item.id"
+          [(ngModel)]="penaltyAmounts[item.id]"
+          mode="currency"
+          currency="VND"
+          locale="vi-VN"
+          [min]="0">
+        </p-inputNumber>
+      </div>
+
+      <div class="assignment-actions">
+        <button
+          pButton
+          icon="pi pi-check"
+          class="p-button-text"
+          aria-label="Lưu khoản trừ"
+          (click)="savePenalty(item)">
+        </button>
+        <button
+          pButton
+          icon="pi pi-times"
+          class="p-button-text p-button-danger"
+          aria-label="Bỏ phân ca"
+          (click)="remove.emit(item)">
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="form-field">
+    <label for="shift-employee">Chọn nhân viên để thêm vào ca</label>
+    <p-autoComplete
+      inputId="shift-employee"
+      [(ngModel)]="selectedUser"
+      [suggestions]="suggestions"
+      (completeMethod)="searchUsers($event)"
+      (onSelect)="selectUser($event.value)"
+      optionLabel="fullName"
+      [dropdown]="true"
+      [forceSelection]="true"
+      placeholder="Tìm theo họ tên hoặc tên đăng nhập...">
+      <ng-template let-user pTemplate="item">
+        <div>{{ user.fullName || user.username }}</div>
+        <small *ngIf="user.fullName">{{ user.username }}</small>
+      </ng-template>
+    </p-autoComplete>
+  </div>
+</p-dialog>

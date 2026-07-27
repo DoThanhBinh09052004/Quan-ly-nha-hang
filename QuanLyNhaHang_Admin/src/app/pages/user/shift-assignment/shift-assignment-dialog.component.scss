@@ -1,0 +1,82 @@
+@use '../../shared';
+
+.assignment-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  background: #172235;
+}
+
+.assignment-info span {
+  color: #94a3b8;
+}
+
+.current-assignees {
+  margin-bottom: 22px;
+}
+
+.current-assignees h3 {
+  margin: 0 0 10px;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.assignment-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(180px, 1.2fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 9px;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: rgba(30, 41, 59, .7);
+}
+
+.employee-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.employee-name i {
+  color: #60a5fa;
+}
+
+.penalty-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.penalty-field p-inputNumber,
+:host ::ng-deep .penalty-field .p-inputnumber {
+  width: 100%;
+}
+
+.assignment-actions {
+  display: flex;
+  gap: 4px;
+}
+
+@media (max-width: 620px) {
+  .assignment-info,
+  .assignment-row {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-info {
+    flex-direction: column;
+  }
+}
