@@ -1,148 +1,94 @@
 import { Component } from '@angular/core';
-import { RouterModule, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 
-import { Router } from '@angular/router';
-import { ThemeSwitcher } from "../../themeswitcher";
-import { CommonModule } from '@angular/common';
-import { ProgressBar } from 'primeng/progressbar';
-import { Toast } from "primeng/toast";
-
+import { ThemeSwitcher } from '../../themeswitcher';
+import { AuthService } from './service/authservice';
 
 @Component({
-    selector: 'app-root',
-    standalone: true,
-    imports: [MenuModule, MenubarModule, RouterOutlet, RouterModule, ThemeSwitcher, CommonModule],
-    templateUrl: './app.html',
-    styleUrl: './app.scss'
+  selector: 'app-root',
+  standalone: true,
+  imports: [MenuModule, MenubarModule, RouterModule, ThemeSwitcher, CommonModule],
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {
-    protected title = 'QuanLyNhaHang_Admin';
-    items: MenuItem[] = [];
-    get showMenu(): boolean {
-        return this.router.url !== '/login' && this.router.url !=='/change-password';
-    }
-    constructor(public router: Router) {}
+  protected title = 'QuanLyNhaHang_Admin';
+  items: MenuItem[] = [];
 
-    ngOnInit() {
-       
-        this.items = [
-            
-    
-            {
-                label: 'Nhân sự',
-                icon: 'pi pi-user',
-                command: () => {
-                    this.router.navigate(['/user']);
-                }
-            },
-            {
-                label: 'Bàn ăn',
-                icon: 'pi pi-table',
-                command: () => {
-                    this.router.navigate(['/guesttable']);
-                }
-            },
-            {
-                label:' Đơn hàng',
-                icon: 'pi pi-shopping-cart',
-                command: () => {
-                    this.router.navigate(['/order'] );
-                }
-            },
-            {
-                label: 'Món ăn',
-                icon: 'pi pi-calendar',
-                command: () => {
-                    this.router.navigate(['/items'] );
-                }
-             
-            },
-            {
-                label: 'Doanh thu',
-                icon: 'pi pi-chart-bar',
-                command: () => {
-                    this.router.navigate(['/revenue-chart']);
-                }
-            },
-            {
-                label: 'Khách hàng',
-                icon: 'pi pi-users',
-                command: () => {
-                    this.router.navigate(['/guest']);
-                }
-            },
-            {
-                label: 'Nguyên liệu',
-                icon: 'pi pi-box',
-                command: () => {
-                    this.router.navigate(['/ingredient']);
-                }
-            },
-            {
-                label: 'Công thức',
-                icon: 'pi pi-book',
-                command: () => {
-                    this.router.navigate(['/recipe']);
-                }
-            },
-            {
-                label:'Chung',
-                icon: 'pi pi-cog',
-                items: [
-                    {
-                        label: 'Danh mục',
-                        icon: 'pi pi-tags',
-                        command: () => {
-                            this.router.navigate(['/category'] );
-                        }
-                    },
-                    {
-                        label: 'Đơn vị tính',
-                        icon: 'pi pi-calculator',
-                        command: () => {
-                            this.router.navigate(['/unit'] );
-                        }
-                    },
-                    {
-                        label: 'Tình trạng',
-                        icon: 'pi pi-flag',
-                        command: () => {
-                            this.router.navigate(['/status']);
-                        }
-                    }
-                    ,{
-                        label: 'Vai trò',
-                        icon: 'pi pi-shield',
-                        command: () => {
-                            this.router.navigate(['/role']);
-                        }
-                    }
-                    ,{
-                        label: 'Thư viện',
-                        icon: 'pi pi-image',
-                        command: () => {
-                            this.router.navigate(['/item-image']);
-                        }
-                    }
-                ]
-                
-                
-               
-            },
-            
-            {
-                label: 'Logout',
-                icon: 'pi pi-sign-out',
-                command: () => {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('role');
-                    this.router.navigate(['/login']);
-                }
-            }
-        ];
-        
+  get showMenu(): boolean {
+    return this.router.url !== '/login' && this.router.url !== '/change-password';
+  }
+
+  constructor(public router: Router, private readonly auth: AuthService) {}
+
+  ngOnInit(): void {
+    this.router.events.subscribe(() => (this.items = this.buildMenu()));
+    this.items = this.buildMenu();
+  }
+
+  private buildMenu(): MenuItem[] {
+    const role = this.auth.getRole();
+
+    if (role === 'Service Staff') {
+      return [
+        this.menuItem('Đơn hàng & thanh toán', 'pi pi-shopping-cart', '/order'),
+        this.menuItem('Bàn & lịch hẹn', 'pi pi-calendar', '/guesttable'),
+        this.menuItem('Lịch làm của tôi', 'pi pi-calendar-clock', '/my-schedule'),
+        this.logoutItem(),
+      ];
     }
+
+    if (role === 'Kitchen') {
+      return [
+        this.menuItem('Bếp', 'pi pi-receipt', '/kitchen'),
+        this.menuItem('Lịch làm của tôi', 'pi pi-calendar-clock', '/my-schedule'),
+        this.logoutItem(),
+      ];
+    }
+
+    if (role !== 'Manager') {
+      return [];
+    }
+
+    return [
+      this.menuItem('Nhân sự', 'pi pi-user', '/user'),
+      this.menuItem('Bàn ăn', 'pi pi-table', '/guesttable'),
+      this.menuItem('Đơn hàng', 'pi pi-shopping-cart', '/order'),
+      this.menuItem('Bếp', 'pi pi-receipt', '/kitchen'),
+      this.menuItem('Món ăn', 'pi pi-calendar', '/items'),
+      this.menuItem('Doanh thu', 'pi pi-chart-bar', '/revenue-chart'),
+      this.menuItem('Khách hàng', 'pi pi-users', '/guest'),
+      this.menuItem('Nguyên liệu', 'pi pi-box', '/ingredient'),
+      this.menuItem('Công thức', 'pi pi-book', '/recipe'),
+      {
+        label: 'Chung',
+        icon: 'pi pi-cog',
+        items: [
+          this.menuItem('Danh mục', 'pi pi-tags', '/category'),
+          this.menuItem('Đơn vị tính', 'pi pi-calculator', '/unit'),
+          this.menuItem('Tình trạng', 'pi pi-flag', '/status'),
+          this.menuItem('Vai trò', 'pi pi-shield', '/role'),
+          this.menuItem('Thư viện', 'pi pi-image', '/item-image'),
+        ],
+      },
+      this.menuItem('Lịch làm của tôi', 'pi pi-calendar-clock', '/my-schedule'),
+      this.logoutItem(),
+    ];
+  }
+
+  private menuItem(label: string, icon: string, route: string): MenuItem {
+    return { label, icon, command: () => this.router.navigate([route]) };
+  }
+
+  private logoutItem(): MenuItem {
+    return {
+      label: 'Đăng xuất',
+      icon: 'pi pi-sign-out',
+      command: () => this.auth.logout(),
+    };
+  }
 }

@@ -3,6 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
+export type AppRole = 'Manager' | 'Service Staff' | 'Kitchen';
+
+interface LoginResponse {
+  token: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 private apiUrl = `${environment.api}/api/Auth`;
@@ -10,7 +16,7 @@ private apiUrl = `${environment.api}/api/Auth`;
   constructor(private http: HttpClient, private router: Router) {}
 
   login(username: string, password: string) {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/login`, { username, password });
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { username, password });
   }
 
   changeMyPassword(username: string, oldPassword: string, newPassword: string) {
@@ -30,18 +36,38 @@ private apiUrl = `${environment.api}/api/Auth`;
     return localStorage.getItem('token');
   }
 
-  getRole(): string | null {
+  getRole(): AppRole | null {
     const token = this.getToken();
     if (!token) return null;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return (
-      payload['role'] ||
-      payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
-      null
-    );
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const role = payload['role'] || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+      return role === 'Manager' || role === 'Service Staff' || role === 'Kitchen' ? role : null;
+    } catch {
+      return null;
+    }
   }
 
   isLoggedIn(): boolean {
     return !!this.getToken();
+  }
+
+  hasAnyRole(roles: readonly AppRole[]): boolean {
+    const role = this.getRole();
+    return role !== null && roles.includes(role);
+  }
+
+  landingRoute(): string {
+    switch (this.getRole()) {
+      case 'Manager':
+        return '/home';
+      case 'Service Staff':
+        return '/order';
+      case 'Kitchen':
+        return '/kitchen';
+      default:
+        return '/login';
+    }
   }
 }

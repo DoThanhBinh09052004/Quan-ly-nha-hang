@@ -22,9 +22,7 @@ export class LoginComponent {
     this.authService.login(this.username, this.password).subscribe({
       next: (res: any) => {
         localStorage.setItem('token', res.token);
-        localStorage.setItem('role', res.role);
-        console.log('ROLE:', this.authService.getRole());
-        this.router.navigate(['/home']); 
+        this.router.navigateByUrl(this.authService.landingRoute());
       },
       error: (err) => {
         this.errorMessage = 'Sai tên đăng nhập hoặc mật khẩu';
