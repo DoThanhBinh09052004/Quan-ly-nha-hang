@@ -1,0 +1,122 @@
+<div class="management-card">
+  <div class="table-header">
+    <div class="search-section">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" (input)="globalFilter.emit($event)" placeholder="Tìm kiếm..." />
+    </div>
+    <div class="selection-info">
+      <span>Đã chọn: {{selectedOrders.length}}</span>
+    </div>
+  </div>
+  
+  <p-table [value]="orders" [selection]="selectedOrders" (selectionChange)="onSelectionChange($event)" dataKey="id"
+           [paginator]="true" [lazy]="true" [lazyLoadOnInit]="false"
+           [first]="first" [rows]="rows" [totalRecords]="totalRecords"
+           [rowsPerPageOptions]="[5,10,25,50]" [loading]="loading"
+           [showCurrentPageReport]="true" (onLazyLoad)="lazyLoad.emit($event)"
+           currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} đơn hàng"
+           styleClass="custom-table" [sortOrder]="-1" sortField="created">
+      
+      <ng-template pTemplate="header">
+          <tr>
+              <th style="width: 50px"><p-tableHeaderCheckbox /></th>
+              <th pSortableColumn="orderNumber" style="width: 150px">
+                  <div class="column-header">
+                      <span>Số đơn hàng</span>
+                      <p-sortIcon field="orderNumber" />
+                  </div>
+              </th>
+              <th pSortableColumn="guestTable.name" style="width: 100px">
+                  <div class="column-header">
+                      <span>Bàn</span>
+                      <p-sortIcon field="guestTable.name" />
+                  </div>
+              </th>
+              <th pSortableColumn="totalPrice" style="width: 120px">
+                  <div class="column-header">
+                      <span>Thành tiền</span>
+                      <p-sortIcon field="totalPrice" />
+                  </div>
+              </th>
+              <th pSortableColumn="paidAmount" style="width: 120px">
+                  <div class="column-header">
+                      <span>Đã trả</span>
+                      <p-sortIcon field="paidAmount" />
+                  </div>
+              </th>
+              <th pSortableColumn="changeAmount" style="width: 120px">
+                  <div class="column-header">
+                      <span>Tiền thừa</span>
+                      <p-sortIcon field="changeAmount" />
+                  </div>
+              </th>
+              <th pSortableColumn="status.name" style="width: 120px">
+                  <div class="column-header">
+                      <span>Trạng thái</span>
+                      <p-sortIcon field="status.name" />
+                  </div>
+              </th>
+              <th pSortableColumn="created" style="width: 150px">
+                  <div class="column-header">
+                      <span>Ngày tạo</span>
+                      <p-sortIcon field="created" />
+                  </div>
+              </th>
+              <th style="width: 120px">Hành động</th>
+          </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-order>
+          <tr [class.row-processing]="order.status?.name === 'Đang xử lý'">
+              <td><p-tableCheckbox [value]="order" /></td>
+              <td><div class="order-number">{{order.orderNumber}}</div></td>
+              <td>
+                  <p-tag [value]="order.guestTable?.name || 'Không có'" 
+                        [severity]="order.guestTable ? 'success' : 'secondary'"
+                        class="table-tag" />
+              </td>
+              <td class="amount-cell">{{order.finalPrice | number}} VND</td>
+              <td><div class="paid-amount">{{order.paidAmount | number}} VND</div></td>
+              <td>
+                  <div [class.change-positive]="order.changeAmount > 0" 
+                       [class.change-negative]="order.changeAmount < 0"
+                       class="change-amount">
+                      {{order.changeAmount | number}} VND
+                  </div>
+              </td>
+              <td>
+                  <p-tag [value]="order.status?.name" 
+                        [severity]="getStatusSeverity(order.status?.name)"
+                        class="table-tag" />
+              </td>
+              <td>
+                  <div class="date-cell">
+                      <span>{{(order.created) | date:'dd/MM/yyyy'}}</span>
+                      <small>{{(order.created) | date:'HH:mm'}}</small>
+                  </div>
+              </td>
+              <td>
+                  <div class="action-buttons">
+                      <button pButton pRipple icon="pi pi-qrcode" class="btn-qr" pTooltip="Thanh toán QR"
+                              [disabled]="!canPayByQr(order) || (qrLoading && qrOrderId === order.id)"
+                              (click)="payQr.emit(order)"></button>
+                      <button pButton pRipple icon="pi pi-pencil" class="btn-edit" (click)="edit.emit(order)"></button>
+                      <button pButton pRipple icon="pi pi-trash" class="btn-delete" (click)="delete.emit(order)"></button>
+                  </div>
+              </td>
+          </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+          <tr>
+              <td colspan="9" class="empty-state">
+                  <div class="empty-content">
+                      <i class="pi pi-shopping-cart empty-icon"></i>
+                      <h3>Không có đơn hàng nào</h3>
+                      <p>Bắt đầu bằng cách tạo đơn hàng mới</p>
+                  </div>
+              </td>
+          </tr>
+      </ng-template>
+  </p-table>
+</div>

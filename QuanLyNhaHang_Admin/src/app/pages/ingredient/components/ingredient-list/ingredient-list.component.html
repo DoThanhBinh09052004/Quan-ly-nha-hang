@@ -1,0 +1,45 @@
+<section class="management-card table-card">
+  <div class="table-header">
+    <div class="search-section">
+      <i class="pi pi-search"></i>
+      <input pInputText placeholder="Tìm kiếm nguyên liệu..." (input)="filter($event)">
+    </div>
+    <div class="selection-info">Đã chọn: {{ selectedIngredients.length }}</div>
+  </div>
+  
+  <p-table #dt [value]="ingredients" [selection]="selectedIngredients" (selectionChange)="onSelectionChange($event)" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25]" [loading]="loading" [globalFilterFields]="['name','unit']" styleClass="custom-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+        <th pSortableColumn="name">Tên <p-sortIcon field="name"></p-sortIcon></th>
+        <th>Đơn vị</th>
+        <th pSortableColumn="stockQuantity">Tồn kho <p-sortIcon field="stockQuantity"></p-sortIcon></th>
+        <th>Mức tối thiểu</th>
+        <th>Giá/đơn vị</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><p-tableCheckbox [value]="row"></p-tableCheckbox></td>
+        <td><b>{{ row.name }}</b></td>
+        <td>{{ row.unit }}</td>
+        <td>{{ row.stockQuantity | number:'1.0-2' }}</td>
+        <td>{{ row.minStock | number:'1.0-2' }}</td>
+        <td>{{ row.rawMaterialCost | number:'1.0-0' }} ₫</td>
+        <td><p-tag [value]="statusText(row)" [severity]="status(row)"></p-tag></td>
+        <td class="actions">
+          <p-button icon="pi pi-chart-line" [text]="true" (onClick)="showForecast.emit(row)"></p-button>
+          <p-button icon="pi pi-pencil" [text]="true" (onClick)="edit.emit(row)"></p-button>
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="delete.emit(row)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="empty-state">Chưa có nguyên liệu nào.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>
