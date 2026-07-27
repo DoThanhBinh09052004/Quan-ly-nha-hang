@@ -14,24 +14,16 @@ import { ItemPickerDialogComponent, ItemPickerSelection } from './item-picker-di
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
-import { ButtonModule } from 'primeng/button';
-import { FileUploadModule } from 'primeng/fileupload';
-import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { RippleModule } from 'primeng/ripple';
-import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
-import { CardModule } from 'primeng/card';
-import { BadgeModule } from 'primeng/badge';
+
 import { GuestTable } from '../../../model/guesttable.model';
-import { TagModule } from "primeng/tag";
-import { TooltipModule } from 'primeng/tooltip';
 import { OrderListItem, OrderListQuery } from '../../../model/order-list.model';
 import { PaymentStatus, VietQrPayment } from '../../../model/payment.model';
+
+import { OrderToolbarComponent } from './components/order-toolbar/order-toolbar.component';
+import { OrderListComponent } from './components/order-list/order-list.component';
+import { OrderFormDialogComponent } from './components/order-form-dialog/order-form-dialog.component';
+import { OrderQrDialogComponent } from './components/order-qr-dialog/order-qr-dialog.component';
 
 interface Column {
   field: string;
@@ -49,25 +41,13 @@ interface ExportColumn {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    TableModule,
     ToastModule,
-    ToolbarModule,
-    ButtonModule,
-    FileUploadModule,
-    DialogModule,
     ConfirmDialogModule,
-    InputTextModule,
-    InputNumberModule,
-    IconFieldModule,
-    InputIconModule,
-    RippleModule,
-    AutoCompleteModule,
-    CardModule,
-    BadgeModule,
-    TagModule,
-    TooltipModule,
-    ItemPickerDialogComponent
+    ItemPickerDialogComponent,
+    OrderToolbarComponent,
+    OrderListComponent,
+    OrderFormDialogComponent,
+    OrderQrDialogComponent
   ],
   providers: [MessageService, ConfirmationService, MyData],
   templateUrl: './order.html',
@@ -1258,7 +1238,7 @@ searchGuestByPhone() {
     });
   }
 
-  deleteOrder(order: Order) {
+  deleteOrder(order: Order | OrderListItem) {
     this.confirmationService.confirm({
       message: 'Bạn có chắc chắn muốn xóa đơn hàng <strong>' + order.orderNumber + '</strong>?',
       header: 'Xác nhận',
