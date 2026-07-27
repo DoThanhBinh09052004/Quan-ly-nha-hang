@@ -1,0 +1,48 @@
+<div class="chat-float">
+  <button *ngIf="chatMinimized" type="button" class="chat-bubble" (click)="openChat()" title="Mở chatbot">✨</button>
+  <div *ngIf="!chatMinimized" class="chat-panel">
+    <div class="chat-panel-head">
+      <div class="chat-title"><span>✨</span> AI Agent <small>Trợ lý kinh doanh</small></div>
+      <div class="chat-head-actions">
+        <button type="button" (click)="toggleChat()" title="Thu gọn">−</button>
+        <button type="button" class="danger" (click)="closeChat()" title="Đóng">×</button>
+      </div>
+    </div>
+    <div class="chat-message-list" #chatMessageList>
+      <div *ngFor="let msg of chatMessages" class="chat-message" [ngClass]="msg.role">
+        <div class="msg-avatar" *ngIf="msg.role === 'agent'">✨</div>
+        <div class="msg-bubble">
+          <div *ngIf="msg.content" class="msg-text" [class.error-text]="msg.isError">{{ msg.content }}</div>
+          <div *ngIf="msg.isLoading" class="typing-indicator"><span></span><span></span><span></span></div>
+          <div *ngIf="msg.result" class="chatbot-result">
+            <div class="chat-section" *ngIf="msg.result.summary"><b>Tóm tắt</b><div>{{ msg.result.summary }}</div></div>
+            <div class="chat-section" *ngIf="msg.result.insights?.length"><b>Insights</b><ul><li *ngFor="let insight of msg.result.insights">{{ insight }}</li></ul></div>
+            <div class="chat-section" *ngIf="msg.result.answerText"><b>Câu trả lời</b><div>{{ msg.result.answerText }}</div></div>
+            <div class="chat-section" *ngIf="msg.result.actions?.length">
+              <b>Actions</b>
+              <div *ngFor="let action of msg.result.actions" class="action-item">
+                <strong>{{ action.title }}</strong><div>{{ action.why }}</div><ul><li *ngFor="let how of action.how">{{ how }}</li></ul>
+              </div>
+            </div>
+            <div class="chat-section" *ngIf="msg.result.risks?.length"><b>Rủi ro cần theo dõi</b><ul><li *ngFor="let risk of msg.result.risks">{{ risk }}</li></ul></div>
+            <div class="chat-section" *ngIf="msg.result.followUpQuestions?.length">
+              <b>Gợi ý câu hỏi tiếp theo</b>
+              <button *ngFor="let question of msg.result.followUpQuestions" type="button" class="follow-up-question" (click)="setChatInput(question)">{{ question }}</button>
+            </div>
+            <details *ngIf="hasKpis(msg.result.kpis)">
+              <summary>KPI (xem chi tiết)</summary>
+              <pre>{{ msg.result.kpis | json }}</pre>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-panel-footer">
+      <button *ngIf="!chatInput" type="button" class="suggestion-chip" (click)="fillChatSuggestion()">💡 Đánh giá kinh doanh 30 ngày qua</button>
+      <div class="chat-input-area">
+        <textarea rows="1" [(ngModel)]="chatInput" (ngModelChange)="onChatInputChange()" (keydown.enter)="!$any($event).shiftKey && submitBusinessChat(); $event.preventDefault()" placeholder="Nhập câu hỏi cho AI..." [disabled]="chatLoading"></textarea>
+        <button type="button" (click)="submitBusinessChat()" [disabled]="chatLoading || !chatInput.trim()"><i class="pi pi-send"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
