@@ -650,6 +650,27 @@
   }
 }
 
+/* PrimeNG number inputs render a nested input, so component encapsulation requires ::ng-deep. */
+:host ::ng-deep .form-field .p-inputnumber,
+:host ::ng-deep .form-field .p-inputnumber .p-inputnumber-input {
+  width: 100%;
+}
+
+:host ::ng-deep .form-field .p-inputnumber .p-inputnumber-input {
+  padding: 10px 14px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+:host ::ng-deep .form-field .p-inputnumber .p-inputnumber-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+  outline: none;
+}
+
 /* ===== PRIMENG COMPONENT OVERRIDES ===== */
 
 /* Button Overrides */

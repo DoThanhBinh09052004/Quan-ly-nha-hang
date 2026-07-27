@@ -1,225 +1,147 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Quản lý nhà hàng Admin</title>
-    <base href="/">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css" />
-    <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png">
-</head>
-<body>
-    <div class="management-container">
-        <p-toast></p-toast>
-        <p-confirmDialog></p-confirmDialog>
-        
-        <!-- Header -->
-        <div class="management-card">
-            <div class="management-header">
-                <div class="header-title">
-                    <h1>Quản lý bàn ăn</h1>
-                    <p>Quản lý thông tin các bàn ăn trong hệ thống</p>
-                </div>
-            </div>
+<div class="management-container">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
 
-            <!-- Toolbar -->
-            <div class="management-toolbar">
-                <div class="toolbar-left">
-                    <p-button icon="pi pi-plus" label="Thêm bàn ăn" 
-                             [rounded]="true" severity="primary" (click)="openNew()" />
-                    <p-button icon="pi pi-trash" label="Xóa đã chọn" 
-                             [rounded]="true" severity="danger" outlined
-                             [disabled]="!selectedGuestTables || selectedGuestTables.length === 0" 
-                             (click)="deleteSelectedGuestTables(selectedGuestTables)" />
-                </div>
-                
-                <div class="toolbar-right">
-                    <p-button icon="pi pi-refresh" label="Tải lại" 
-                             [text]="true" (click)="loadData()" />
-                </div>
-            </div>
+  <section class="management-card">
+    <div class="header-section">
+      <div class="header-title">
+        <h1>Đặt bàn & lịch hẹn</h1>
+        <p>Theo dõi lịch khách, kiểm tra bàn trống và nhận bàn để tạo đơn hàng.</p>
+      </div>
+      <div class="header-stats">
+        <div class="stats-grid">
+          <div class="stat-card stat-orange"><i class="pi pi-clock"></i><div class="stat-info"><span class="stat-label">Chờ xác nhận</span><span class="stat-value">{{ pendingCount }}</span></div></div>
+          <div class="stat-card stat-blue"><i class="pi pi-calendar"></i><div class="stat-info"><span class="stat-label">Đã xác nhận</span><span class="stat-value">{{ confirmedCount }}</span></div></div>
+          <div class="stat-card stat-green"><i class="pi pi-users"></i><div class="stat-info"><span class="stat-label">Đang phục vụ</span><span class="stat-value">{{ arrivedCount }}</span></div></div>
         </div>
-
-        <!-- Main table -->
-        <div class="management-card">
-            <div class="table-header">
-                <div class="search-section">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Tìm kiếm bàn ăn..." />
-                </div>
-                <div class="selection-info">
-                    <span>Đã chọn: {{selectedGuestTables?.length || 0}}</span>
-                </div>
-            </div>
-            
-            <p-table #dt [value]="GuestTables" [(selection)]="selectedGuestTables" dataKey="id" 
-                     [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50]" 
-                     [loading]="false" [showCurrentPageReport]="true"
-                     currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} bàn ăn"
-                     [globalFilterFields]="['name','description','restaurant.name','status.name']"
-                     styleClass="custom-table">
-                
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th style="width: 50px">
-                            <p-tableHeaderCheckbox />
-                        </th>
-                        <th pSortableColumn="id" style="width: 100px">
-                            <div class="column-header">
-                                <span>MÃ</span>
-                                <p-sortIcon field="id" />
-                            </div>
-                        </th>
-                        <th pSortableColumn="name" style="width: 200px">
-                            <div class="column-header">
-                                <span>TÊN BÀN ĂN</span>
-                                <p-sortIcon field="name" />
-                            </div>
-                        </th>
-                        <th style="width: 150px">
-                            <div class="column-header">
-                                <span>NHÀ HÀNG</span>
-                            </div>
-                        </th>
-                        <th pSortableColumn="status.name" style="width: 120px">
-                            <div class="column-header">
-                                <span>TRẠNG THÁI</span>
-                                <p-sortIcon field="status.name" />
-                            </div>
-                        </th>
-                        <th pSortableColumn="description" style="width: 200px">
-                            <div class="column-header">
-                                <span>CHÚ THÍCH</span>
-                                <p-sortIcon field="description" />
-                            </div>
-                        </th>
-                        <th pSortableColumn="created" style="width: 150px">
-                            <div class="column-header">
-                                <span>NGÀY TẠO</span>
-                                <p-sortIcon field="created" />
-                            </div>
-                        </th>
-                        <th pSortableColumn="updated" style="width: 150px">
-                            <div class="column-header">
-                                <span>CẬP NHẬT</span>
-                                <p-sortIcon field="updated" />
-                            </div>
-                        </th>
-                        <th style="width: 120px">HÀNH ĐỘNG</th>
-                    </tr>
-                </ng-template>
-
-                <ng-template pTemplate="body" let-guestTable>
-                    <tr>
-                        <td>
-                            <p-tableCheckbox [value]="guestTable" />
-                        </td>
-                        <td class="id-cell">{{guestTable.id}}</td>
-                        <td class="name-cell">{{guestTable.name}}</td>
-                        <td class="description-cell">{{guestTable.restaurant?.name}}</td>
-                        <td>
-                            <p-tag [value]="guestTable.status?.name" 
-                                  class="category-tag" />
-                        </td>
-                        <td class="description-cell">{{guestTable.description}}</td>
-                        <td class="">
-                            <span>{{convertToLocalTime(guestTable.created) | date:'dd/MM/yyyy'}}</span>
-                        </td>
-                        <td class="">
-                            <span>{{convertToLocalTime(guestTable.updated) | date:'dd/MM/yyyy'}}</span>
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <button pButton pRipple icon="pi pi-pencil" 
-                                        class="btn-edit"
-                                        (click)="editGuestTable(guestTable)"></button>
-                                <button pButton pRipple icon="pi pi-trash" 
-                                        class="btn-delete"
-                                        (click)="deleteGuestTable(guestTable)"></button>
-                            </div>
-                        </td>
-                    </tr>
-                </ng-template>
-
-                <ng-template pTemplate="emptymessage">
-                    <tr>
-                        <td colspan="9" class="empty-state">
-                            <div class="empty-content">
-                                <i class="pi pi-table empty-icon"></i>
-                                <h3>Không có bàn ăn nào</h3>
-                                <p>Bắt đầu bằng cách thêm bàn ăn mới</p>
-                                <p-button icon="pi pi-plus" label="Thêm bàn ăn" 
-                                         (click)="openNew()" />
-                            </div>
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
-        </div>
-
-        <!-- Dialog bàn ăn -->
-        <p-dialog [(visible)]="GuestTableDialog" [style]="{width: '500px'}" 
-                 [header]="GuestTable.id ? 'Chỉnh sửa bàn ăn' : 'Thêm bàn ăn mới'" 
-                 [modal]="true" [draggable]="false" [resizable]="false">
-            
-            <div class="dialog-form">
-                <div class="form-field">
-                    <label for="name">
-                        Tên bàn ăn <span class="required">*</span>
-                    </label>
-                    <input pInputText id="name" [(ngModel)]="GuestTable.name" 
-                           placeholder="Nhập tên bàn ăn..." />
-                    <small class="text-red-500" *ngIf="submitted && !GuestTable.name">
-                        Tên bàn ăn là bắt buộc
-                    </small>
-                </div>
-
-                <div class="form-field">
-                    <label for="restaurantAutoComplete">Nhà hàng</label>
-                    <p-autoComplete 
-                        [(ngModel)]="Selectedrestaurant"
-                        [suggestions]="filteredRestaurants"
-                        (completeMethod)="searchRestaurant($event)"
-                        optionLabel="name"
-                        [dropdown]="true"
-                        placeholder="Chọn nhà hàng...">
-                        <ng-template let-restaurant pTemplate="item">
-                            <div>{{restaurant.name}}</div>
-                        </ng-template>
-                    </p-autoComplete>
-                </div>
-
-                <div class="form-field">
-                    <label for="statusAutoComplete">Trạng thái</label>
-                    <p-autoComplete 
-                        [(ngModel)]="SelectedStatus"
-                        [suggestions]="filteredStatuses"
-                        (completeMethod)="searchStatus($event)"
-                        optionLabel="name"
-                        [dropdown]="true"
-                        placeholder="Chọn trạng thái...">
-                        <ng-template let-status pTemplate="item">
-                            <div>{{status.name}}</div>
-                        </ng-template>
-                    </p-autoComplete>
-                </div>
-
-                <div class="form-field">
-                    <label for="description">Chú thích</label>
-                    <textarea pInputTextarea id="description" [(ngModel)]="GuestTable.description" 
-                             rows="3" placeholder="Nhập chú thích..."></textarea>
-                </div>
-            </div>
-
-            <ng-template pTemplate="footer">
-                <div class="dialog-footer">
-                    <button pButton pRipple icon="pi pi-times" label="Hủy" 
-                            class="btn-cancel" (click)="hideDialog()"></button>
-                    <button pButton pRipple icon="pi pi-check" label="Lưu" 
-                            severity="primary" (click)="saveGuestTable()"></button>
-                </div>
-            </ng-template>
-        </p-dialog>
+      </div>
     </div>
-</body>
-</html>
+
+    <div class="management-toolbar">
+      <div class="toolbar-left">
+        <p-button icon="pi pi-calendar-plus" label="Tạo lịch hẹn" (click)="openNewReservation()"></p-button>
+        <p-button icon="pi pi-plus" label="Thêm bàn" severity="secondary" [outlined]="true" (click)="openNewTable()"></p-button>
+      </div>
+      <div class="toolbar-right">
+        <p-button icon="pi pi-refresh" label="Tải lại" [text]="true" (click)="refresh()"></p-button>
+      </div>
+    </div>
+  </section>
+
+  <section class="management-card">
+    <div class="reservation-filter">
+      <div class="filter-field">
+        <label for="reservation-date">Ngày</label>
+        <input id="reservation-date" pInputText type="date" [(ngModel)]="selectedDate" (ngModelChange)="loadReservations()">
+      </div>
+      <div class="filter-field">
+        <label for="reservation-table">Bàn</label>
+        <select id="reservation-table" [(ngModel)]="selectedTableId" (ngModelChange)="loadReservations()">
+          <option [ngValue]="undefined">Tất cả bàn</option>
+          <option *ngFor="let table of guestTables" [ngValue]="table.id">{{ table.name }} · {{ table.capacity }} chỗ</option>
+        </select>
+      </div>
+      <div class="filter-summary">{{ reservations.length }} lịch hẹn trong ngày</div>
+    </div>
+
+    <p-table #reservationTable [value]="reservations" [loading]="loadingReservations" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" styleClass="custom-table">
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="reservationTime">Thời gian <p-sortIcon field="reservationTime"></p-sortIcon></th>
+          <th>Khách hàng</th>
+          <th>Bàn</th>
+          <th>Số khách</th>
+          <th>Trạng thái</th>
+          <th>Ghi chú</th>
+          <th class="actions-column">Thao tác</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-reservation>
+        <tr>
+          <td class="date-cell"><span>{{ reservation.reservationTime | date:'HH:mm' }}</span><small>{{ reservation.reservationTime | date:'dd/MM/yyyy' }} · {{ reservation.durationMinutes }} phút</small></td>
+          <td><div class="name-cell">{{ reservation.guestName }}</div><div class="description-cell">{{ reservation.phone }}</div></td>
+          <td><span class="table-name">{{ reservation.guestTableName || ('Bàn #' + reservation.guestTableId) }}</span></td>
+          <td>{{ reservation.partySize }} người</td>
+          <td><p-tag [value]="statusLabel(reservation.status)" [severity]="statusSeverity(reservation.status)"></p-tag></td>
+          <td class="description-cell">{{ reservation.note || '—' }}</td>
+          <td>
+            <div class="reservation-actions">
+              <button *ngIf="isPending(reservation)" pButton pRipple icon="pi pi-check" class="btn-confirm" pTooltip="Xác nhận" (click)="confirmReservation(reservation)"></button>
+              <button *ngIf="canCreateOrder(reservation)" pButton pRipple icon="pi pi-shopping-cart" class="btn-create-order" pTooltip="Nhận bàn & tạo đơn" (click)="createOrderFromReservation(reservation)"></button>
+              <button *ngIf="canEdit(reservation)" pButton pRipple icon="pi pi-pencil" class="btn-edit" pTooltip="Sửa lịch" (click)="editReservation(reservation)"></button>
+              <button *ngIf="canEdit(reservation) && !isCancelledOrNoShow(reservation)" pButton pRipple icon="pi pi-times" class="btn-cancel-reservation" pTooltip="Hủy lịch" (click)="cancelReservation(reservation)"></button>
+              <button *ngIf="isConfirmed(reservation)" pButton pRipple icon="pi pi-user-minus" class="btn-no-show" pTooltip="Khách không đến" (click)="markNoShow(reservation)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="7" class="empty-state"><div class="empty-content"><i class="pi pi-calendar-times empty-icon"></i><h3>Chưa có lịch hẹn</h3><p>Hãy tạo lịch hẹn đầu tiên cho ngày đã chọn.</p><p-button icon="pi pi-calendar-plus" label="Tạo lịch hẹn" (click)="openNewReservation()"></p-button></div></td></tr>
+      </ng-template>
+    </p-table>
+  </section>
+
+  <section class="management-card">
+    <div class="table-overview-header">
+      <div><h2>Danh sách bàn ăn</h2><p>Thông tin bàn, tầng, sức chứa và trạng thái phục vụ hiện tại.</p></div>
+      <span *ngIf="loadingTables" class="description-cell">Đang tải…</span>
+    </div>
+    <div class="table-filter-bar">
+      <span class="p-input-icon-left"><i class="pi pi-search"></i><input pInputText [(ngModel)]="tableSearch" placeholder="Tìm tên bàn, khách hoặc ghi chú"></span>
+      <select [(ngModel)]="tableFloorFilter"><option [ngValue]="undefined">Tất cả tầng</option><option *ngFor="let floor of tableFloors" [ngValue]="floor">Tầng {{ floor }}</option></select>
+      <select [(ngModel)]="tableStatusFilter"><option value="">Tất cả trạng thái</option><option value="available">Bàn trống</option><option value="occupied">Đang phục vụ</option><option value="reserved">Đặt trước</option></select>
+      <span class="table-filter-summary">{{ filteredGuestTables.length }} / {{ guestTables.length }} bàn</span>
+      <span class="table-legend"><span class="legend-dot available"></span> Trống <span class="legend-dot occupied"></span> Đang phục vụ <span class="legend-dot reserved"></span> Đặt trước</span>
+    </div>
+
+    <div *ngIf="!loadingTables && filteredGuestTables.length; else tableEmpty" class="table-card-grid">
+      <article *ngFor="let table of filteredGuestTables" class="table-card" [ngClass]="tableCardClass(table)" tabindex="0" role="button" (click)="openTableDetails(table)" (keyup.enter)="openTableDetails(table)">
+        <div class="table-card-top"><span class="table-id">#{{ table.id }}</span><div class="table-card-actions"><button pButton pRipple icon="pi pi-pencil" class="btn-edit" pTooltip="Sửa bàn" (click)="$event.stopPropagation(); editTable(table)"></button><button pButton pRipple icon="pi pi-trash" class="btn-delete" pTooltip="Xóa bàn" (click)="$event.stopPropagation(); deleteTable(table)"></button></div></div>
+        <div class="table-icon"><i class="pi pi-table"></i></div>
+        <h3>{{ table.name }}</h3>
+        <p-tag [value]="table.status?.name || 'Chưa rõ'" [severity]="tableStatusSeverity(table)"></p-tag>
+        <div class="table-meta"><span><i class="pi pi-building"></i> Tầng {{ table.floor }}</span><span><i class="pi pi-users"></i> {{ table.capacity }} người</span></div>
+        <div *ngIf="table.currentGuestName || table.currentOrderTotal" class="table-order-info"><span>{{ table.currentGuestName || 'Đang phục vụ' }}</span><strong>{{ table.currentOrderTotal | number:'1.0-0' }} đ</strong></div>
+        <div *ngIf="!table.currentGuestName && !table.currentOrderTotal" class="table-empty-info">Nhấn để xem thông tin bàn</div>
+      </article>
+    </div>
+    <ng-template #tableEmpty><div *ngIf="!loadingTables" class="table-grid-empty"><i class="pi pi-table"></i><h3>Không tìm thấy bàn</h3><p>Thử đổi bộ lọc hoặc thêm bàn mới.</p><p-button icon="pi pi-plus" label="Thêm bàn" (click)="openNewTable()"></p-button></div></ng-template>
+  </section>
+
+  <p-dialog [(visible)]="tableDetailDialog" [style]="{ width: '680px', maxWidth: '95vw' }" styleClass="table-detail-dialog" [header]="selectedTableDetail ? selectedTableDetail.name : 'Chi tiết bàn'" [modal]="true" [draggable]="false" [resizable]="false" (onHide)="hideTableDetails()">
+    <div *ngIf="selectedTableDetail" class="table-detail">
+      <div class="table-detail-hero" [ngClass]="tableCardClass(selectedTableDetail)"><i class="pi pi-table"></i><div><span>Bàn #{{ selectedTableDetail.id }}</span><h3>{{ selectedTableDetail.name }}</h3><p-tag [value]="selectedTableDetail.status?.name || 'Chưa rõ'" [severity]="tableStatusSeverity(selectedTableDetail)"></p-tag></div></div>
+      <div class="detail-grid"><div><span>Tầng</span><strong>{{ selectedTableDetail.floor }}</strong></div><div><span>Sức chứa</span><strong>{{ selectedTableDetail.capacity }} người</strong></div><div><span>Khách hiện tại</span><strong>{{ selectedTableDetail.currentGuestName || 'Chưa có khách' }}</strong></div><div><span>Giá trị đơn hàng</span><strong>{{ selectedTableDetail.currentOrderTotal ? (selectedTableDetail.currentOrderTotal | number:'1.0-0') + ' đ' : '—' }}</strong></div></div>
+      <div class="detail-note"><span>Ghi chú</span><p>{{ selectedTableDetail.description || 'Không có ghi chú.' }}</p></div>
+    </div>
+    <ng-template pTemplate="footer"><div class="dialog-footer"><p-button label="Đóng" severity="secondary" [outlined]="true" (click)="hideTableDetails()"></p-button><p-button icon="pi pi-pencil" label="Sửa bàn" (click)="editSelectedTable()"></p-button></div></ng-template>
+  </p-dialog>
+
+  <p-dialog [(visible)]="reservationDialog" [style]="{ width: '720px', maxWidth: '95vw' }" [header]="reservationId ? 'Cập nhật lịch hẹn' : 'Tạo lịch hẹn'" [modal]="true" [draggable]="false" [resizable]="false" (onHide)="hideReservationDialog()">
+    <div class="dialog-form reservation-form">
+      <div class="form-grid">
+        <div class="form-field"><label for="guest-name">Tên khách <span class="required">*</span></label><input id="guest-name" pInputText [(ngModel)]="reservationForm.guestName" placeholder="Nhập tên khách"><small *ngIf="submitted && !reservationForm.guestName.trim()" class="text-red-500">Tên khách là bắt buộc.</small></div>
+        <div class="form-field"><label for="guest-phone">Số điện thoại <span class="required">*</span></label><input id="guest-phone" pInputText [(ngModel)]="reservationForm.phone" placeholder="Nhập số điện thoại"><small *ngIf="submitted && !reservationForm.phone.trim()" class="text-red-500">Số điện thoại là bắt buộc.</small></div>
+        <div class="form-field"><label for="reservation-time">Thời gian đến <span class="required">*</span></label><input id="reservation-time" pInputText type="datetime-local" [(ngModel)]="reservationForm.reservationTime" (change)="findAvailableTables()"></div>
+        <div class="form-field"><label for="party-size">Số khách <span class="required">*</span></label><p-inputNumber inputId="party-size" [(ngModel)]="reservationForm.partySize" [min]="1" [max]="50" (onInput)="findAvailableTables()"></p-inputNumber></div>
+        <div class="form-field"><label for="duration">Thời lượng (phút) <span class="required">*</span></label><p-inputNumber inputId="duration" [(ngModel)]="reservationForm.durationMinutes" [min]="15" [max]="1440" [step]="15" (onInput)="findAvailableTables()"></p-inputNumber></div>
+        <div class="form-field"><label for="available-table">Bàn trống <span class="required">*</span></label><p-autoComplete id="available-table" [(ngModel)]="selectedReservationTable" [suggestions]="availableTables" optionLabel="name" [dropdown]="true" [forceSelection]="true" placeholder="{{ findingTables ? 'Đang tìm bàn…' : 'Chọn bàn phù hợp' }}" (onDropdownClick)="onAvailableTableDropdownClick()" (onSelect)="onReservationTableSelect($event.value)"><ng-template let-table pTemplate="item"><div>{{ table.name }} · tầng {{ table.floor }} · {{ table.capacity }} chỗ</div></ng-template></p-autoComplete><small *ngIf="submitted && !reservationForm.guestTableId" class="text-red-500">Vui lòng chọn bàn còn trống.</small></div>
+      </div>
+      <div class="form-field"><label for="reservation-note">Ghi chú</label><textarea id="reservation-note" [(ngModel)]="reservationForm.note" rows="3" placeholder="Yêu cầu đặc biệt của khách"></textarea></div>
+      <p class="availability-hint"><i class="pi pi-info-circle"></i> Danh sách bàn chỉ hiển thị những bàn đủ sức chứa và không trùng lịch trong khung giờ đã chọn.</p>
+    </div>
+    <ng-template pTemplate="footer"><div class="dialog-footer"><p-button label="Hủy" severity="secondary" [outlined]="true" (click)="hideReservationDialog()"></p-button><p-button icon="pi pi-check" label="Lưu lịch hẹn" (click)="saveReservation()"></p-button></div></ng-template>
+  </p-dialog>
+
+  <p-dialog [(visible)]="tableDialog" [style]="{ width: '520px', maxWidth: '95vw' }" [header]="tableForm.id ? 'Cập nhật bàn' : 'Thêm bàn mới'" [modal]="true" [draggable]="false" [resizable]="false" (onHide)="hideTableDialog()">
+    <div class="dialog-form">
+      <div class="form-field"><label for="table-name">Tên bàn <span class="required">*</span></label><input id="table-name" pInputText [(ngModel)]="tableForm.name" placeholder="Ví dụ: Bàn A1"></div>
+      <div class="form-grid">
+        <div class="form-field"><label for="table-capacity">Sức chứa <span class="required">*</span></label><p-inputNumber inputId="table-capacity" [(ngModel)]="tableForm.capacity" [min]="1" [max]="50"></p-inputNumber></div>
+        <div class="form-field"><label for="table-floor">Tầng <span class="required">*</span></label><p-inputNumber inputId="table-floor" [(ngModel)]="tableForm.floor" [min]="1"></p-inputNumber></div>
+      </div>
+      <div class="form-field"><label for="table-description">Ghi chú</label><textarea id="table-description" [(ngModel)]="tableForm.description" rows="3" placeholder="Vị trí hoặc ghi chú về bàn"></textarea></div>
+    </div>
+    <ng-template pTemplate="footer"><div class="dialog-footer"><p-button label="Hủy" severity="secondary" [outlined]="true" (click)="hideTableDialog()"></p-button><p-button icon="pi pi-check" label="Lưu bàn" (click)="saveTable()"></p-button></div></ng-template>
+  </p-dialog>
+</div>

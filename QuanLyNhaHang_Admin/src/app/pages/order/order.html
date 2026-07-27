@@ -234,6 +234,7 @@
                                 (completeMethod)="searchGuestTable($event)"
                                 optionLabel="name"
                                 [dropdown]="true"
+                                [disabled]="!!order.reservationId"
                                 placeholder="Chọn bàn...">
                                 <ng-template let-table pTemplate="item">
                                     <div class="table-option">

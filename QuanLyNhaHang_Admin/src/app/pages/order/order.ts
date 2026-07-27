@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, forkJoin, Subject } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { MyData } from '../../my-data';
 import { CreateOrderRequest, Order } from '../../../model/order.model';
@@ -79,7 +80,9 @@ export class OrderComponent implements OnInit, OnDestroy {
     private mydata: MyData,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {}
   
   orderDialog: boolean = false;
@@ -144,6 +147,7 @@ export class OrderComponent implements OnInit, OnDestroy {
     this.loadItems();
     this.loadCategories();
     this.loadAvailableGuestTables(); 
+    this.openReservationOrderFromRoute();
     this.cols = [
       { field: 'id', header: 'Mã' },
       { field: 'orderNumber', header: 'Số đơn hàng' },
@@ -578,6 +582,41 @@ searchGuestByPhone() {
     this.selectedGuestTable = null;
     this.loadAvailableGuestTables();
   }
+
+  private openReservationOrderFromRoute() {
+    const reservationId = Number(this.route.snapshot.queryParamMap.get('reservationId'));
+    if (!reservationId || this.route.snapshot.queryParamMap.get('autoCreate') !== 'true') {
+      return;
+    }
+
+    this.mydata.getReservationById(reservationId).subscribe({
+      next: (reservation) => {
+        this.order = this.createEmptyOrder();
+        this.order.reservationId = reservation.id;
+        this.order.guestTableId = reservation.guestTableId;
+        this.order.guestId = reservation.guestId;
+        this.order.partySize = reservation.partySize;
+        this.order.guestPhone = reservation.phone;
+        this.order.description = `Nhận bàn từ lịch hẹn #${reservation.id}.`;
+        this.orderItems = [];
+        this.guestPhone = reservation.phone;
+        this.guestName = reservation.guestName;
+        this.submitted = false;
+        this.orderDialog = true;
+
+        this.mydata.getGuestTableById(reservation.guestTableId).subscribe({
+          next: (table) => {
+            this.selectedGuestTable = table;
+            this.guesttables = [table];
+            this.filterGuestTable = [table];
+            this.cd.markForCheck();
+          },
+          error: (error) => this.handleError(error, 'Không thể tải bàn của lịch hẹn'),
+        });
+      },
+      error: (error) => this.handleError(error, 'Không thể tải lịch hẹn'),
+    });
+  }
   
   hideDialog() {
     this.orderDialog = false;
@@ -596,6 +635,14 @@ searchGuestByPhone() {
     this.discount = 0;
     this.finalPrice = 0;
     this.loadAvailableGuestTables();
+    if (this.route.snapshot.queryParamMap.has('reservationId')) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { reservationId: null, autoCreate: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
   }
 
   openAddItemDialog() {
