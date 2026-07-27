@@ -1,7 +1,8 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Chart, type ChartConfiguration } from 'chart.js';
+import Chart from 'chart.js/auto';
+import { type ChartConfiguration } from 'chart.js';
 
 @Component({
   selector: 'app-revenue-forecast',

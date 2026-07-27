@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chart, type ChartConfiguration } from 'chart.js';
+import Chart from 'chart.js/auto';
+import { type ChartConfiguration } from 'chart.js';
 
 const DOW_VI: Record<string, string> = {
   Sunday: 'Chủ nhật', Monday: 'Thứ hai', Tuesday: 'Thứ ba',
