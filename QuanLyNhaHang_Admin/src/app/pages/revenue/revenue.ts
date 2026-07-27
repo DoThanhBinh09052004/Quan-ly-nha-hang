@@ -1,30 +1,45 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Chart, registerables, type ChartConfiguration } from 'chart.js';
-import { MyData } from '../../my-data';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { FormsModule } from '@angular/forms';
+import { MyData } from '../../my-data';
 import { BusinessChatResponse } from '../../../model/business-chat.model';
 import { GrossProfitMarginReport, NetProfitReport, GrossProfitMarginReportItem, NetProfitReportItem } from '../../../model/revenue.model';
 import { Expense, ExpenseCategory, ExpenseRequest } from '../../../model/expense.model';
 
-Chart.register(...registerables);
-
-const DOW_VI: Record<string, string> = {
-  Sunday: 'Chủ nhật', Monday: 'Thứ hai', Tuesday: 'Thứ ba',
-  Wednesday: 'Thứ tư', Thursday: 'Thứ năm', Friday: 'Thứ sáu', Saturday: 'Thứ bảy'
-};
+import { RevenueHeaderComponent } from './components/revenue-header/revenue-header.component';
+import { RevenueKpiComponent } from './components/revenue-kpi/revenue-kpi.component';
+import { RevenueProfitChartsComponent } from './components/revenue-profit-charts/revenue-profit-charts.component';
+import { RevenueExpensePanelComponent } from './components/revenue-expense-panel/revenue-expense-panel.component';
+import { ExpenseFormDialogComponent } from './components/expense-form-dialog/expense-form-dialog.component';
+import { RevenueForecastComponent } from './components/revenue-forecast/revenue-forecast.component';
+import { RevenueInsightChartsComponent } from './components/revenue-insight-charts/revenue-insight-charts.component';
+import { RevenueDetailedPanelsComponent } from './components/revenue-detailed-panels/revenue-detailed-panels.component';
+import { RevenueAnalysisComponent } from './components/revenue-analysis/revenue-analysis.component';
+import { BusinessChatbotComponent } from './components/business-chatbot/business-chatbot.component';
 
 @Component({
   selector: 'app-revenue',
+  standalone: true,
   templateUrl: './revenue.html',
-  imports: [CommonModule, FormsModule],
-  styleUrls: ['./revenue.scss']
+  styleUrls: ['./revenue.scss'],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    RevenueHeaderComponent,
+    RevenueKpiComponent,
+    RevenueProfitChartsComponent,
+    RevenueExpensePanelComponent,
+    ExpenseFormDialogComponent,
+    RevenueForecastComponent,
+    RevenueInsightChartsComponent,
+    RevenueDetailedPanelsComponent,
+    RevenueAnalysisComponent,
+    BusinessChatbotComponent
+  ]
 })
-export class RevenueComponent implements OnInit, OnDestroy {
-  private charts: Record<string, Chart> = {};
-
+export class RevenueComponent implements OnInit {
   loading = true;
   loadError: string | null = null;
 
@@ -51,7 +66,7 @@ export class RevenueComponent implements OnInit, OnDestroy {
   expenseBreakdown: any[] = [];
   
   showExpenseDialog = false;
-  editingExpense: Partial<ExpenseRequest> = { amount: 0, title: '', expenseCategoryId: 0, expenseDate: '' };
+  editingExpense: Partial<ExpenseRequest> = { amount: 0, title: '', expenseCategoryId: 0, expenseDate: '', note: '' };
   expenseSaving = false;
 
   // KPIs
@@ -116,10 +131,6 @@ export class RevenueComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
-    this.destroyAllCharts();
-  }
-
   setCurrentDate() {
     const now = new Date();
     this.currentDate = now.toLocaleDateString('vi-VN', {
@@ -128,26 +139,6 @@ export class RevenueComponent implements OnInit, OnDestroy {
     this.currentYear = now.getFullYear();
     this.currentMonth = now.getMonth() + 1;
     this.currentDay = now.getDate();
-  }
-
-  formatMoney(value: number): string {
-    if (value == null || value === 0) return '0 ₫';
-    if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1) + ' tỷ ₫';
-    if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + ' triệu ₫';
-    if (value >= 1_000) return (value / 1_000).toFixed(1) + ' nghìn ₫';
-    return value.toLocaleString('vi-VN') + ' ₫';
-  }
-
-  formatNumber(value: number): string {
-    return (value ?? 0).toLocaleString('vi-VN');
-  }
-
-  formatMinutes(m: number): string {
-    if (m == null || !Number.isFinite(m)) return '—';
-    const h = Math.floor(m / 60);
-    const min = Math.round(m % 60);
-    if (h <= 0) return `${min} phút`;
-    return `${h} giờ ${min} phút`;
   }
 
   private toIsoDateLocal(d: Date): string {
@@ -166,16 +157,15 @@ export class RevenueComponent implements OnInit, OnDestroy {
   setTab(tab: 'gross' | 'net' | 'forecast') {
     this.activeTab = tab;
     this.applyKpis();
-    setTimeout(() => this.renderAllCharts(), 0);
   }
 
   setPeriod(period: 'daily' | 'monthly' | 'yearly') {
     this.reportPeriod = period;
     this.applyKpis();
-    setTimeout(() => this.renderMainCharts(), 0);
   }
 
-  onExpenseMonthChange() {
+  onExpenseMonthChange(month: string) {
+    this.expenseMonth = month;
     this.loadExpenses();
   }
 
@@ -190,17 +180,17 @@ export class RevenueComponent implements OnInit, OnDestroy {
     this.showExpenseDialog = true;
   }
 
-  closeExpenseDialog() {
-    this.showExpenseDialog = false;
+  onExpenseDialogChange(visible: boolean) {
+    this.showExpenseDialog = visible;
   }
 
-  saveExpense() {
-    if (!this.editingExpense.title || !this.editingExpense.amount || !this.editingExpense.expenseDate || !this.editingExpense.expenseCategoryId) {
+  saveExpense(expenseRequest: Partial<ExpenseRequest>) {
+    if (!expenseRequest.title || !expenseRequest.amount || !expenseRequest.expenseDate || !expenseRequest.expenseCategoryId) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
     this.expenseSaving = true;
-    this.myData.createExpense(this.editingExpense as ExpenseRequest).subscribe({
+    this.myData.createExpense(expenseRequest as ExpenseRequest).subscribe({
       next: (res) => {
         this.expenseSaving = false;
         this.showExpenseDialog = false;
@@ -232,7 +222,6 @@ export class RevenueComponent implements OnInit, OnDestroy {
         this.expenses = res;
         this.totalExpense = res.reduce((sum, item) => sum + item.amount, 0);
         this.calculateExpenseBreakdown();
-        setTimeout(() => this.renderExpenseChart(), 0);
       },
       error: (err) => console.error('Error loading expenses', err)
     });
@@ -282,8 +271,12 @@ export class RevenueComponent implements OnInit, OnDestroy {
     });
   }
 
-  submitAiPrediction() {
-    this.loadAiPrediction(this.aiInputDate);
+  submitAiPrediction(date: string) {
+    this.loadAiPrediction(date);
+  }
+
+  onInputDateChange(date: string) {
+    this.aiInputDate = date;
   }
 
   private loadAiForecastSeries(startDateIso: string) {
@@ -301,9 +294,6 @@ export class RevenueComponent implements OnInit, OnDestroy {
       this.aiForecastData = rows
         .map((r) => ({ date: r?.date ?? '', predictedRevenue: Number(r?.predictedRevenue ?? 0) }))
         .filter((r) => !!r.date);
-      if (this.activeTab === 'forecast') {
-        setTimeout(() => this.renderForecastChart(), 0);
-      }
     });
   }
 
@@ -345,7 +335,6 @@ export class RevenueComponent implements OnInit, OnDestroy {
         
         this.loading = false;
         this.applyKpis();
-        setTimeout(() => this.renderAllCharts(), 0);
       },
       error: (err) => {
         this.loading = false;
@@ -389,381 +378,8 @@ export class RevenueComponent implements OnInit, OnDestroy {
     }
   }
 
-  private destroyAllCharts() {
-    Object.values(this.charts).forEach((c) => c.destroy());
-    this.charts = {};
-  }
-
-  private renderAllCharts() {
-    this.destroyAllCharts();
-    if (this.activeTab === 'gross' || this.activeTab === 'net') {
-      this.renderMainCharts();
-      this.renderExpenseChart();
-    } else if (this.activeTab === 'forecast') {
-      this.renderForecastChart();
-    }
-    
-    this.renderByHourChart();
-    this.renderByDayOfWeekChart();
-    this.renderPartySizeChart();
-    this.renderBestSellersChart();
-    this.renderRevenuePanelCharts();
-  }
-
-  private renderRevenuePanelCharts() {
-    this.renderRevenuePanelMainChart();
-    const byHour = [...this.byHourData].sort((a, b) => (a.hour ?? 0) - (b.hour ?? 0));
-    this.buildBarChart('chartByHourDetailed', byHour.map(row => `${row.hour ?? 0}h`), byHour.map(row => row.totalRevenue ?? 0), 'Theo giờ', true, '#a371f7');
-    const byDow = [...this.byDayOfWeekData].sort((a, b) => (a.dayOfWeekValue ?? 0) - (b.dayOfWeekValue ?? 0));
-    this.buildBarChart('chartByDowDetailed', byDow.map(row => DOW_VI[row.dayOfWeek] ?? row.dayOfWeek ?? ''), byDow.map(row => row.totalRevenue ?? 0), 'Theo thứ', true, '#3fb950');
-    const party = [...this.byPartySizeData].sort((a, b) => (a.partySize ?? 0) - (b.partySize ?? 0));
-    this.buildBarChart('chartPartyDetailed', party.map(row => `${row.partySize ?? 0} khách`), party.map(row => row.totalRevenue ?? 0), 'Theo số khách', true, '#d29922');
-    const best = this.bestSellersData.slice(0, 10);
-    this.buildHorizontalBarChart('chartBestDetailed', best.map(row => (row.itemName ?? '—').slice(0, 28)), best.map(row => row.totalQuantity ?? 0), 'Số lượng bán');
-    this.renderForecastChart('chartForecastDetailed');
-  }
-
-  private renderRevenuePanelMainChart() {
-    const rows = this.isDaily ? this.dailyData : this.monthlyData;
-    const limit = this.isDaily ? 30 : 12;
-    const displayed = rows.length > limit ? rows.slice(-limit) : rows;
-    const labels = displayed.map(row => this.isDaily ? `${row.day}/${row.month}` : `T${row.month}/${row.year}`);
-    this.buildBarChart('chartMainDetailed', labels, displayed.map(row => row.totalRevenue ?? 0), this.isDaily ? 'Doanh thu theo ngày' : 'Doanh thu theo tháng', true, '#60a5fa');
-  }
-
-  private renderMainCharts() {
-    this.renderMainLineChart();
-    this.renderMarginDonutChart();
-  }
-
-  private renderMainLineChart() {
-    const id = 'chartMain';
-    const canvas = document.getElementById(id) as HTMLCanvasElement;
-    if (!canvas) return;
-    if (this.charts[id]) {
-      this.charts[id].destroy();
-    }
-
-    let labels: string[] = [];
-    let revenueData: number[] = [];
-    let profitData: number[] = [];
-
-    if (this.activeTab === 'gross' && this.grossReport) {
-      const data = this.grossReport[this.reportPeriod] || [];
-      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
-      const displayed = data.length > limit ? data.slice(-limit) : data;
-      
-      labels = displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
-      revenueData = displayed.map(i => i.totalRevenue ?? 0);
-      profitData = displayed.map(i => i.grossProfit ?? 0);
-    } else if (this.activeTab === 'net' && this.netReport) {
-      const data = this.netReport[this.reportPeriod] || [];
-      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
-      const displayed = data.length > limit ? data.slice(-limit) : data;
-      
-      labels = displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
-      revenueData = displayed.map(i => i.totalRevenue ?? 0);
-      profitData = displayed.map(i => i.netProfit ?? 0);
-    } else {
-        return;
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const cfg: ChartConfiguration = {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            type: 'bar',
-            label: 'Doanh thu',
-            data: revenueData,
-            backgroundColor: 'rgba(96, 165, 250, 0.8)',
-            borderRadius: 4
-          },
-          {
-            type: 'line',
-            label: 'Lợi nhuận',
-            data: profitData,
-            borderColor: '#34d399',
-            backgroundColor: '#34d399',
-            borderWidth: 2,
-            tension: 0.3
-          }
-        ]
-      },
-      options: this.baseChartOptions(true)
-    };
-    this.charts[id] = new Chart(ctx, cfg);
-  }
-
-  private renderMarginDonutChart() {
-    const id = 'chartMargin';
-    const canvas = document.getElementById(id) as HTMLCanvasElement;
-    if (!canvas) return;
-    if (this.charts[id]) {
-      this.charts[id].destroy();
-    }
-
-    const margin = this.kpiMargin;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const cfg: any = {
-      type: 'doughnut',
-      data: {
-        labels: ['Biên lợi nhuận', 'Chi phí'],
-        datasets: [{
-          data: [margin, Math.max(0, 100 - margin)],
-          backgroundColor: ['#60a5fa', '#334155'],
-          borderWidth: 0
-        } as any]
-      },
-      options: {
-        cutout: '75%',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (c: any) => `${c.label}: ${c.parsed}%`
-            }
-          }
-        }
-      }
-    };
-    this.charts[id] = new Chart(ctx, cfg);
-  }
-
-  private renderExpenseChart() {
-    const id = 'chartExpense';
-    const canvas = document.getElementById(id) as HTMLCanvasElement;
-    if (!canvas || !this.expenseBreakdown.length) return;
-    if (this.charts[id]) {
-      this.charts[id].destroy();
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const colors = ['#60a5fa', '#34d399', '#fb923c', '#a371f7', '#f472b6', '#38bdf8'];
-
-    const cfg: any = {
-      type: 'doughnut',
-      data: {
-        labels: this.expenseBreakdown.map(e => e.name),
-        datasets: [{
-          data: this.expenseBreakdown.map(e => e.amount),
-          backgroundColor: colors.slice(0, this.expenseBreakdown.length),
-          borderWidth: 0
-        } as any]
-      },
-      options: {
-        cutout: '70%',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (c: any) => `${c.label}: ${this.formatMoney(c.parsed)}`
-            }
-          }
-        }
-      }
-    };
-    this.charts[id] = new Chart(ctx, cfg);
-  }
-
-  private renderByHourChart() {
-    const rows = [...this.byHourData].sort((a, b) => (a.hour ?? 0) - (b.hour ?? 0));
-    const labels = rows.map((r) => `${r.hour ?? 0}h`);
-    const data = rows.map((r) => r.totalRevenue ?? 0);
-    this.buildBarChart('chartByHour', labels, data, 'Theo giờ', true, '#a371f7');
-  }
-
-  private renderByDayOfWeekChart() {
-    const rows = [...this.byDayOfWeekData].sort((a, b) => (a.dayOfWeekValue ?? 0) - (b.dayOfWeekValue ?? 0));
-    const labels = rows.map((r) => DOW_VI[r.dayOfWeek] ?? r.dayOfWeek ?? '');
-    const data = rows.map((r) => r.totalRevenue ?? 0);
-    this.buildBarChart('chartByDow', labels, data, 'Theo thứ trong tuần', true, '#3fb950');
-  }
-
-  private renderPartySizeChart() {
-    const rows = [...this.byPartySizeData].sort((a, b) => (a.partySize ?? 0) - (b.partySize ?? 0));
-    const labels = rows.map((r) => `${r.partySize ?? 0} khách`);
-    const data = rows.map((r) => r.totalRevenue ?? 0);
-    this.buildBarChart('chartParty', labels, data, 'Theo số khách/bàn', true, '#d29922');
-  }
-
-  private renderBestSellersChart() {
-    const rows = this.bestSellersData.slice(0, 10);
-    const labels = rows.map((r) => (r.itemName ?? '—').slice(0, 28));
-    const data = rows.map((r) => r.totalQuantity ?? 0);
-    this.buildHorizontalBarChart('chartBest', labels, data, 'Số lượng bán');
-  }
-
-  private renderForecastChart(canvasId = 'chartForecast') {
-    const hist = this.forecastData?.historicalData ?? [];
-    const fut = this.aiForecastData ?? [];
-    const norm = (d: string) => (typeof d === 'string' ? d.split('T')[0] : '');
-    const allKeys = [
-      ...hist.map((h: any) => norm(h.date)),
-      ...fut.map((f: any) => norm(f.date))
-    ].filter(Boolean);
-    const uniqueSorted = [...new Set(allKeys)].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    
-    if (uniqueSorted.length === 0) {
-      if (this.charts[canvasId]) this.charts[canvasId].destroy();
-      return;
-    }
-    
-    const histMap = new Map<string, number>(hist.map((h: any) => [norm(h.date), Number(h.revenue) || 0]));
-    const futMap = new Map<string, number>(fut.map((f: any) => [norm(f.date), Number(f.predictedRevenue) || 0]));
-    
-    const labels = uniqueSorted.map((k) => {
-      const parts = k.split('-');
-      return `${parts[2] ?? ''}/${parts[1] ?? ''}`;
-    });
-    
-    const histSeries: (number | null)[] = uniqueSorted.map((k) => histMap.has(k) ? histMap.get(k)! : null);
-    const futSeries: (number | null)[] = uniqueSorted.map((k) => futMap.has(k) ? futMap.get(k)! : null);
-
-    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    if (this.charts[canvasId]) this.charts[canvasId].destroy();
-    
-    const cfg: ChartConfiguration = {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Thực tế',
-            data: histSeries,
-            borderColor: '#58a6ff',
-            backgroundColor: 'rgba(88, 166, 255, 0.15)',
-            tension: 0.25,
-            fill: true
-          },
-          {
-            label: 'Dự báo AI',
-            data: futSeries,
-            borderColor: '#f0883e',
-            backgroundColor: 'rgba(240, 136, 62, 0.1)',
-            borderDash: [6, 4],
-            tension: 0.25,
-            fill: false
-          }
-        ]
-      },
-      options: this.baseChartOptions(true)
-    };
-    this.charts[canvasId] = new Chart(ctx, cfg);
-  }
-
-  private buildBarChart(canvasId: string, labels: string[], data: number[], datasetLabel: string, yMoney: boolean, color = '#1f6feb') {
-    if (!labels.length) return;
-    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    if (this.charts[canvasId]) this.charts[canvasId].destroy();
-
-    const cfg: ChartConfiguration = {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: datasetLabel,
-          data,
-          backgroundColor: color + 'aa',
-          borderColor: color,
-          borderWidth: 1,
-          borderRadius: 4
-        }]
-      },
-      options: this.baseChartOptions(yMoney)
-    };
-    this.charts[canvasId] = new Chart(ctx, cfg);
-  }
-
-  private buildHorizontalBarChart(canvasId: string, labels: string[], data: number[], datasetLabel: string) {
-    if (!labels.length) return;
-    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    if (this.charts[canvasId]) this.charts[canvasId].destroy();
-
-    const cfg: ChartConfiguration = {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: datasetLabel,
-          data,
-          backgroundColor: 'rgba(163, 113, 247, 0.65)',
-          borderColor: '#a371f7',
-          borderWidth: 1,
-          borderRadius: 4
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        ...this.baseChartOptions(false)
-      }
-    };
-    this.charts[canvasId] = new Chart(ctx, cfg);
-  }
-
-  private baseChartOptions(yMoney: boolean) {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(48, 54, 61, 0.8)' },
-          border: { display: false },
-          ticks: {
-            color: '#8b949e',
-            callback: (value: string | number) => yMoney ? this.formatMoney(Number(value)) : this.formatNumber(Number(value))
-          }
-        },
-        x: {
-          grid: { color: 'rgba(48, 54, 61, 0.8)' },
-          border: { display: false },
-          ticks: { color: '#8b949e' }
-        }
-      },
-      plugins: {
-        legend: { labels: { color: '#f0f6fc' } }
-      }
-    };
-  }
-  
-  turnoverDetails(): any[] {
-    const d = this.tableTurnover?.details;
-    return Array.isArray(d) ? d : [];
-  }
-
   setMainView(isDaily: boolean) {
     this.isDaily = isDaily;
-    setTimeout(() => this.renderRevenuePanelMainChart(), 0);
-  }
-
-  get selectedReportLabel(): string {
-    return this.reportPeriod === 'daily' ? 'hôm nay' : this.reportPeriod === 'monthly' ? 'tháng này' : 'năm nay';
-  }
-
-  get financialCostRate(): number {
-    return this.kpiRevenue > 0 ? Math.max(0, Math.min(100, (this.kpiCost / this.kpiRevenue) * 100)) : 0;
   }
 
   get topSeller(): any | null {
@@ -774,36 +390,74 @@ export class RevenueComponent implements OnInit, OnDestroy {
     return this.categoryData.reduce((total, item) => total + Number(item?.totalRevenue ?? 0), 0);
   }
 
-  categoryRevenueRate(value: number): number {
-    return this.totalCategoryRevenue > 0 ? Math.max(0, Math.min(100, (value / this.totalCategoryRevenue) * 100)) : 0;
+  get chartLabels(): string[] {
+    if (this.activeTab === 'gross' && this.grossReport) {
+      const data = this.grossReport[this.reportPeriod] || [];
+      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
+      const displayed = data.length > limit ? data.slice(-limit) : data;
+      return displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
+    } else if (this.activeTab === 'net' && this.netReport) {
+      const data = this.netReport[this.reportPeriod] || [];
+      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
+      const displayed = data.length > limit ? data.slice(-limit) : data;
+      return displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
+    }
+    return [];
+  }
+
+  get chartRevenueData(): number[] {
+    if (this.activeTab === 'gross' && this.grossReport) {
+      const data = this.grossReport[this.reportPeriod] || [];
+      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
+      const displayed = data.length > limit ? data.slice(-limit) : data;
+      return displayed.map(i => i.totalRevenue ?? 0);
+    } else if (this.activeTab === 'net' && this.netReport) {
+      const data = this.netReport[this.reportPeriod] || [];
+      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
+      const displayed = data.length > limit ? data.slice(-limit) : data;
+      return displayed.map(i => i.totalRevenue ?? 0);
+    }
+    return [];
+  }
+
+  get chartProfitData(): number[] {
+    if (this.activeTab === 'gross' && this.grossReport) {
+      const data = this.grossReport[this.reportPeriod] || [];
+      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
+      const displayed = data.length > limit ? data.slice(-limit) : data;
+      return displayed.map(i => i.grossProfit ?? 0);
+    } else if (this.activeTab === 'net' && this.netReport) {
+      const data = this.netReport[this.reportPeriod] || [];
+      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
+      const displayed = data.length > limit ? data.slice(-limit) : data;
+      return displayed.map(i => i.netProfit ?? 0);
+    }
+    return [];
   }
 
   // ===== Chatbot methods =====
-  toggleChat() {
+  onToggleChat() {
     this.chatMinimized = !this.chatMinimized;
     if (!this.chatMinimized) {
       this.chatOpen = true;
-      this.scrollToBottom();
     }
   }
 
-  closeChat() {
+  onCloseChat() {
     this.chatOpen = false;
     this.chatMinimized = true;
   }
 
-  openChat() {
+  onOpenChat() {
     this.chatOpen = true;
     this.chatMinimized = false;
-    this.scrollToBottom();
   }
 
-  fillChatSuggestion() {
-    this.chatInput = 'Đánh giá tình hình 30 ngày gần đây, giờ nào cao điểm/thấp điểm, món nào cần đẩy, đề xuất 3 hành động cụ thể để tăng doanh thu và giảm rủi ro.';
+  onChatInputChange(input: string) {
+    this.chatInput = input;
   }
 
-  submitBusinessChat() {
-    const msg = (this.chatInput ?? '').trim();
+  submitBusinessChat(msg: string) {
     if (!msg) return;
 
     this.chatMessages.push({ id: ++this.chatMessageId, role: 'user', content: msg });
@@ -812,7 +466,6 @@ export class RevenueComponent implements OnInit, OnDestroy {
 
     const agentMsgId = ++this.chatMessageId;
     this.chatMessages.push({ id: agentMsgId, role: 'agent', isLoading: true });
-    this.scrollToBottom();
 
     const payload = {
       message: msg,
@@ -833,7 +486,8 @@ export class RevenueComponent implements OnInit, OnDestroy {
           this.chatMessages[msgIndex].isLoading = false;
           this.chatMessages[msgIndex].result = this.normalizeBusinessChatResponse(res);
         }
-        this.scrollToBottom();
+        // force trigger angular change detection copy
+        this.chatMessages = [...this.chatMessages];
       },
       error: (err) => {
         this.chatLoading = false;
@@ -844,7 +498,7 @@ export class RevenueComponent implements OnInit, OnDestroy {
           this.chatMessages[msgIndex].isError = true;
           this.chatMessages[msgIndex].content = errorMsg;
         }
-        this.scrollToBottom();
+        this.chatMessages = [...this.chatMessages];
       }
     });
   }
@@ -863,16 +517,5 @@ export class RevenueComponent implements OnInit, OnDestroy {
       risks: Array.isArray(response?.risks) ? response.risks : [],
       followUpQuestions: Array.isArray(response?.followUpQuestions) ? response.followUpQuestions : []
     };
-  }
-
-  hasKpis(kpis: Record<string, unknown> | null | undefined): boolean {
-    return !!kpis && Object.keys(kpis).length > 0;
-  }
-
-  scrollToBottom() {
-    setTimeout(() => {
-      const el = document.querySelector('.chat-message-list');
-      if (el) el.scrollTop = el.scrollHeight;
-    }, 100);
   }
 }
