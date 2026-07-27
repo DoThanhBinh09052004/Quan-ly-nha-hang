@@ -1,16 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DialogModule } from 'primeng/dialog';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { RippleModule } from 'primeng/ripple';
-import { Table, TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
 import { MyData } from '../../my-data';
@@ -20,6 +12,12 @@ import {
   Ingredient,
 } from '../../../model/ingredient.model';
 
+import { IngredientToolbarComponent } from './components/ingredient-toolbar/ingredient-toolbar.component';
+import { IngredientListComponent } from './components/ingredient-list/ingredient-list.component';
+import { IngredientFormDialogComponent } from './components/ingredient-form-dialog/ingredient-form-dialog.component';
+import { IngredientForecastDialogComponent } from './components/ingredient-forecast-dialog/ingredient-forecast-dialog.component';
+import { IngredientRestockDialogComponent } from './components/ingredient-restock-dialog/ingredient-restock-dialog.component';
+
 @Component({
   selector: 'app-ingredient',
   standalone: true,
@@ -27,22 +25,17 @@ import {
   styleUrl: './ingredient.scss',
   imports: [
     CommonModule,
-    FormsModule,
-    ButtonModule,
     ConfirmDialogModule,
-    DialogModule,
-    InputNumberModule,
-    InputTextModule,
-    RippleModule,
-    TableModule,
-    TagModule,
     ToastModule,
+    IngredientToolbarComponent,
+    IngredientListComponent,
+    IngredientFormDialogComponent,
+    IngredientForecastDialogComponent,
+    IngredientRestockDialogComponent
   ],
   providers: [MessageService, ConfirmationService],
 })
 export class IngredientComponent implements OnInit {
-  @ViewChild('dt') dt!: Table;
-
   ingredients: Ingredient[] = [];
   selectedIngredients: Ingredient[] = [];
   ingredient = this.emptyIngredient();
@@ -52,7 +45,6 @@ export class IngredientComponent implements OnInit {
   dialogVisible = false;
   forecastVisible = false;
   restockVisible = false;
-  submitted = false;
   loading = false;
   restockLoading = false;
   forecastDays = 14;
@@ -127,36 +119,39 @@ export class IngredientComponent implements OnInit {
     });
   }
 
-  status(ingredient: Ingredient): 'danger' | 'warn' | 'success' {
-    if (ingredient.stockQuantity <= ingredient.minStock) return 'danger';
-    return ingredient.stockQuantity <= ingredient.minStock * 1.25 ? 'warn' : 'success';
-  }
-
-  statusText(ingredient: Ingredient): string {
-    if (ingredient.stockQuantity <= ingredient.minStock) return 'Cần nhập hàng';
-    return ingredient.stockQuantity <= ingredient.minStock * 1.25 ? 'Sắp thiếu' : 'Đủ hàng';
-  }
-
   openNew(): void {
     this.ingredient = this.emptyIngredient();
-    this.submitted = false;
     this.dialogVisible = true;
   }
 
   edit(row: Ingredient): void {
     this.ingredient = { ...row };
-    this.submitted = false;
     this.dialogVisible = true;
   }
 
-  save(): void {
-    this.submitted = true;
-    if (!this.ingredient.name.trim() || !this.ingredient.unit.trim()) return;
-    if (this.ingredient.stockQuantity < 0 || this.ingredient.minStock < 0 || this.ingredient.rawMaterialCost < 0) return;
+  closeDialog(visible: boolean): void {
+    this.dialogVisible = visible;
+  }
 
-    const request = this.ingredient.id
-      ? this.data.updateIngredient(this.ingredient.id, this.ingredient)
-      : this.data.createIngredient(this.ingredient);
+  closeForecast(visible: boolean): void {
+    this.forecastVisible = visible;
+  }
+
+  closeRestock(visible: boolean): void {
+    this.restockVisible = visible;
+  }
+  
+  onSelectionChange(selection: Ingredient[]): void {
+    this.selectedIngredients = selection;
+  }
+
+  save(savedIngredient: Ingredient): void {
+    if (!savedIngredient.name.trim() || !savedIngredient.unit.trim()) return;
+    if (savedIngredient.stockQuantity < 0 || savedIngredient.minStock < 0 || savedIngredient.rawMaterialCost < 0) return;
+
+    const request = savedIngredient.id
+      ? this.data.updateIngredient(savedIngredient.id, savedIngredient)
+      : this.data.createIngredient(savedIngredient);
 
     request.subscribe({
       next: () => {
@@ -216,10 +211,6 @@ export class IngredientComponent implements OnInit {
         detail: 'Cần thêm dữ liệu đơn hàng hoàn tất để huấn luyện.',
       }),
     });
-  }
-
-  filter(event: Event): void {
-    this.dt.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   private normalizeRestockRow(value: unknown): AiIngredientRestockRow {

@@ -2,92 +2,47 @@
 <p-confirmDialog></p-confirmDialog>
 
 <main class="management-container item-management-container inventory-page">
-  <section class="management-card">
-    <div class="header-section">
-      <div class="header-title">
-        <h1>Quản lý Nguyên liệu</h1>
-        <p>Theo dõi tồn kho, định mức và nhu cầu nhập hàng.</p>
-      </div>
+  <app-ingredient-toolbar
+    [totalIngredients]="ingredients.length"
+    [lowStockCount]="lowStockCount"
+    [totalStock]="totalStock"
+    [selectedCount]="selectedIngredients.length"
+    (create)="openNew()"
+    (forecast)="openRestockForecast()"
+    (deleteSelected)="deleteSelected()"
+    (reload)="loadData()">
+  </app-ingredient-toolbar>
 
-      <div class="header-stats">
-        <div class="stats-grid">
-          <div class="stat-card stat-blue"><i class="pi pi-box"></i><div class="stat-info"><span class="stat-label">Tổng nguyên liệu</span><span class="stat-value">{{ ingredients.length }}</span></div></div>
-          <div class="stat-card stat-orange"><i class="pi pi-exclamation-triangle"></i><div class="stat-info"><span class="stat-label">Cần nhập</span><span class="stat-value">{{ lowStockCount }}</span></div></div>
-          <div class="stat-card stat-green"><i class="pi pi-database"></i><div class="stat-info"><span class="stat-label">Tổng tồn kho</span><span class="stat-value">{{ totalStock | number:'1.0-2' }}</span></div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="toolbar-section">
-      <div class="toolbar-left">
-        <p-button icon="pi pi-plus" label="Thêm nguyên liệu" severity="primary" [rounded]="true" (click)="openNew()"></p-button>
-        <p-button icon="pi pi-sparkles" label="Dự đoán nhập hàng" severity="info" [rounded]="true" [outlined]="true" (click)="openRestockForecast()"></p-button>
-        <p-button icon="pi pi-trash" label="Xóa đã chọn" severity="danger" [rounded]="true" [outlined]="true" [disabled]="!selectedIngredients.length" (click)="deleteSelected()"></p-button>
-      </div>
-      <div class="toolbar-right"><p-button icon="pi pi-refresh" label="Tải lại" [text]="true" (click)="loadData()"></p-button></div>
-    </div>
-  </section>
-
-  <section class="management-card table-card">
-    <div class="table-header"><div class="search-section"><i class="pi pi-search"></i><input pInputText placeholder="Tìm kiếm nguyên liệu..." (input)="filter($event)"></div><div class="selection-info">Đã chọn: {{ selectedIngredients.length }}</div></div>
-    <p-table #dt [value]="ingredients" [(selection)]="selectedIngredients" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25]" [loading]="loading" [globalFilterFields]="['name','unit']" styleClass="custom-table">
-      <ng-template pTemplate="header"><tr><th><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th><th pSortableColumn="name">Tên <p-sortIcon field="name"></p-sortIcon></th><th>Đơn vị</th><th pSortableColumn="stockQuantity">Tồn kho <p-sortIcon field="stockQuantity"></p-sortIcon></th><th>Mức tối thiểu</th><th>Giá/đơn vị</th><th>Trạng thái</th><th>Thao tác</th></tr></ng-template>
-      <ng-template pTemplate="body" let-row><tr><td><p-tableCheckbox [value]="row"></p-tableCheckbox></td><td><b>{{ row.name }}</b></td><td>{{ row.unit }}</td><td>{{ row.stockQuantity | number:'1.0-2' }}</td><td>{{ row.minStock | number:'1.0-2' }}</td><td>{{ row.rawMaterialCost | number:'1.0-0' }} ₫</td><td><p-tag [value]="statusText(row)" [severity]="status(row)"></p-tag></td><td class="actions"><p-button icon="pi pi-chart-line" [text]="true" (click)="showForecast(row)"></p-button><p-button icon="pi pi-pencil" [text]="true" (click)="edit(row)"></p-button><p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="delete(row)"></p-button></td></tr></ng-template>
-    </p-table>
-  </section>
+  <app-ingredient-list
+    [ingredients]="ingredients"
+    [selectedIngredients]="selectedIngredients"
+    [loading]="loading"
+    (selectedIngredientsChange)="onSelectionChange($event)"
+    (edit)="edit($event)"
+    (delete)="delete($event)"
+    (showForecast)="showForecast($event)">
+  </app-ingredient-list>
 </main>
 
-<p-dialog [(visible)]="dialogVisible" [modal]="true" [style]="{width:'34rem'}" [header]="ingredient.id ? 'Cập nhật nguyên liệu' : 'Thêm nguyên liệu'">
-  <div class="dialog-form form-grid">
-    <div class="form-field"><label for="ingredient-name">Tên nguyên liệu <span class="required">*</span></label><input pInputText id="ingredient-name" [(ngModel)]="ingredient.name" placeholder="Nhập tên nguyên liệu..."></div>
-    <div class="form-field"><label for="ingredient-unit">Đơn vị <span class="required">*</span></label><input pInputText id="ingredient-unit" [(ngModel)]="ingredient.unit" placeholder="kg, lít, chai..."></div>
-    <div class="form-field"><label for="ingredient-cost">Giá/đơn vị</label><p-inputNumber inputId="ingredient-cost" [(ngModel)]="ingredient.rawMaterialCost" mode="currency" currency="VND" locale="vi-VN"></p-inputNumber></div>
-    <div class="form-field"><label for="ingredient-stock">Tồn kho</label><p-inputNumber inputId="ingredient-stock" [(ngModel)]="ingredient.stockQuantity" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="3"></p-inputNumber></div>
-    <div class="form-field"><label for="ingredient-min-stock">Mức tồn tối thiểu</label><p-inputNumber inputId="ingredient-min-stock" [(ngModel)]="ingredient.minStock" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="3"></p-inputNumber></div>
-  </div>
-  <ng-template pTemplate="footer"><div class="dialog-footer"><button pButton pRipple icon="pi pi-times" label="Hủy" class="btn-cancel" (click)="dialogVisible=false"></button><button pButton pRipple icon="pi pi-check" label="Lưu" severity="primary" (click)="save()"></button></div></ng-template>
-</p-dialog>
+<app-ingredient-form-dialog
+  [visible]="dialogVisible"
+  [ingredient]="ingredient"
+  (visibleChange)="closeDialog($event)"
+  (save)="save($event)">
+</app-ingredient-form-dialog>
 
-<p-dialog [(visible)]="forecastVisible" [modal]="true" [style]="{width:'38rem'}" header="Dự báo nhu cầu nguyên liệu">
-  <p><b>{{ ingredient.name }}</b> — {{ forecastDays }} ngày tới</p>
-  <p-table [value]="forecastRows"><ng-template pTemplate="header"><tr><th>Ngày</th><th>Dự đoán sử dụng</th></tr></ng-template><ng-template pTemplate="body" let-row><tr><td>{{ row.date | date:'dd/MM/yyyy' }}</td><td>{{ row.predictedQtyUsed | number:'1.0-2' }} {{ ingredient.unit }}</td></tr></ng-template><ng-template pTemplate="emptymessage"><tr><td colspan="2">Chưa có đủ dữ liệu dự báo.</td></tr></ng-template></p-table>
-</p-dialog>
+<app-ingredient-forecast-dialog
+  [visible]="forecastVisible"
+  [ingredient]="ingredient"
+  [forecastDays]="forecastDays"
+  [forecastRows]="forecastRows"
+  (visibleChange)="closeForecast($event)">
+</app-ingredient-forecast-dialog>
 
-<p-dialog
-  [(visible)]="restockVisible"
-  [modal]="true"
-  [style]="{width: 'min(92vw, 900px)'}"
-  header="AI dự đoán nhập nguyên liệu">
-  <p class="forecast-description">
-    Dự báo nhu cầu trong {{ forecastDays }} ngày tới, dựa trên đơn hoàn tất và công thức món ăn.
-  </p>
-
-  <div class="forecast-loading" *ngIf="restockLoading">
-    <i class="pi pi-spin pi-spinner"></i>
-    Đang tạo dự báo...
-  </div>
-
-  <p-table *ngIf="!restockLoading" [value]="restockRows" styleClass="custom-table">
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Nguyên liệu</th>
-        <th>Tồn kho</th>
-        <th>Mức tối thiểu</th>
-        <th>Dự kiến sử dụng</th>
-        <th>Cần nhập thêm</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-row>
-      <tr>
-        <td><b>{{ row.name }}</b><small class="unit">{{ row.unit }}</small></td>
-        <td>{{ row.stockQuantity | number:'1.0-2' }} {{ row.unit }}</td>
-        <td>{{ row.minStock | number:'1.0-2' }} {{ row.unit }}</td>
-        <td>{{ row.forecastTotalUsed | number:'1.0-2' }} {{ row.unit }}</td>
-        <td><b [class.need-restock]="row.suggestedBuy > 0">{{ row.suggestedBuy | number:'1.0-2' }} {{ row.unit }}</b></td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr><td colspan="5">Chưa có dữ liệu dự báo. Kiểm tra AI service hoặc bổ sung dữ liệu đơn hàng hoàn tất.</td></tr>
-    </ng-template>
-  </p-table>
-</p-dialog>
+<app-ingredient-restock-dialog
+  [visible]="restockVisible"
+  [forecastDays]="forecastDays"
+  [loading]="restockLoading"
+  [restockRows]="restockRows"
+  (visibleChange)="closeRestock($event)">
+</app-ingredient-restock-dialog>
