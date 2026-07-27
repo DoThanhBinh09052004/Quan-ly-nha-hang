@@ -1,32 +1,36 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { TagModule } from 'primeng/tag';
 import { forkJoin } from 'rxjs';
 import { Guest } from '../../../model/guest.model';
 import { AiCustomerSegmentResponse, MyData } from '../../my-data';
+
+import { GuestToolbarComponent } from './components/guest-toolbar/guest-toolbar.component';
+import { GuestListComponent } from './components/guest-list/guest-list.component';
+import { GuestFormDialogComponent } from './components/guest-form-dialog/guest-form-dialog.component';
+import { GuestAnalysisDialogComponent } from './components/guest-analysis-dialog/guest-analysis-dialog.component';
 
 interface FeatureRow { key: string; label: string; value: number; center: number; format: 'number' | 'currency' | 'percent' | 'days' | 'minutes'; }
 
 @Component({
   selector: 'app-guest',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ToastModule, ToolbarModule, ButtonModule, DialogModule, ConfirmDialogModule, InputTextModule, InputNumberModule, TagModule],
+  imports: [
+    CommonModule, 
+    ToastModule, 
+    ConfirmDialogModule,
+    GuestToolbarComponent,
+    GuestListComponent,
+    GuestFormDialogComponent,
+    GuestAnalysisDialogComponent
+  ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './guest.html',
   styleUrl: './guest.scss'
 })
 export class GuestComponent implements OnInit {
-  @ViewChild('dt') table!: Table;
   guests: Guest[] = [];
   selectedGuests: Guest[] = [];
   guestDialog = false;
@@ -69,18 +73,19 @@ export class GuestComponent implements OnInit {
     });
   }
 
-  filter(event: Event): void { this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains'); }
   openNew(): void { this.editingGuest = this.emptyGuest(); this.submitted = false; this.guestDialog = true; }
   edit(guest: Guest): void { this.editingGuest = { ...guest }; this.submitted = false; this.guestDialog = true; }
-  closeGuestDialog(): void { this.guestDialog = false; this.submitted = false; }
+  closeGuestDialog(visible: boolean): void { this.guestDialog = visible; this.submitted = false; }
+  closeAnalysisDialog(visible: boolean): void { this.analysisDialog = visible; }
+  onSelectionChange(selection: Guest[]): void { this.selectedGuests = selection; }
 
-  saveGuest(): void {
+  saveGuest(savedGuest: Guest): void {
     this.submitted = true;
-    if (!this.editingGuest.name.trim() || !this.editingGuest.phone.trim()) return;
-    const request = { ...this.editingGuest };
+    if (!savedGuest.name.trim() || !savedGuest.phone.trim()) return;
+    const request = { ...savedGuest };
     const result = request.id ? this.data.updateGuest(request.id, request) : this.data.createGuest(request);
     result.subscribe({
-      next: () => { this.messages.add({ severity: 'success', summary: 'Thành công', detail: request.id ? 'Đã cập nhật khách hàng.' : 'Đã thêm khách hàng.' }); this.closeGuestDialog(); this.loadGuests(); },
+      next: () => { this.messages.add({ severity: 'success', summary: 'Thành công', detail: request.id ? 'Đã cập nhật khách hàng.' : 'Đã thêm khách hàng.' }); this.closeGuestDialog(false); this.loadGuests(); },
       error: () => this.messages.add({ severity: 'error', summary: 'Không thể lưu', detail: 'Vui lòng kiểm tra lại dữ liệu.' })
     });
   }
@@ -111,14 +116,6 @@ export class GuestComponent implements OnInit {
       next: analysis => { this.analysis = analysis; this.loadingAnalysis = false; },
       error: () => { this.loadingAnalysis = false; this.messages.add({ severity: 'error', summary: 'Không thể phân tích', detail: 'Dữ liệu AI chưa sẵn sàng.' }); }
     });
-  }
-
-  formatFeature(row: FeatureRow, value: number): string {
-    if (row.format === 'currency') return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
-    if (row.format === 'percent') return new Intl.NumberFormat('vi-VN', { style: 'percent', maximumFractionDigits: 0 }).format(value);
-    if (row.format === 'days') return `${Math.round(value)} ngày`;
-    if (row.format === 'minutes') return `${Math.round(value)} phút`;
-    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(value);
   }
 
   private emptyGuest(): Guest { return { id: 0, name: '', phone: '', description: '', points: 0, created: new Date(), updated: new Date(), deleted: false }; }
