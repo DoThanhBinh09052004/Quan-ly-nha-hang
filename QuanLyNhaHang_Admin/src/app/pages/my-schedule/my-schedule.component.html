@@ -1,0 +1,46 @@
+<main class="schedule-container">
+  <section class="schedule-header">
+    <div>
+      <p class="eyebrow"><i class="pi pi-calendar-clock"></i> LỊCH CÁ NHÂN</p>
+      <h1>Lịch làm của tôi</h1>
+      <p>Xem các ca làm việc đã được quản lý phân công.</p>
+    </div>
+    <div class="week-controls">
+      <button pButton icon="pi pi-chevron-left" class="p-button-text" aria-label="Tuần trước" (click)="previousWeek()"></button>
+      <strong>{{ weekStart | date:'dd/MM' }} – {{ days[6] | date:'dd/MM/yyyy' }}</strong>
+      <button pButton icon="pi pi-chevron-right" class="p-button-text" aria-label="Tuần sau" (click)="nextWeek()"></button>
+      <button pButton label="Tuần này" class="p-button-outlined" (click)="goToCurrentWeek()"></button>
+    </div>
+  </section>
+
+  <section *ngIf="isLoading" class="schedule-state">
+    <p-progressSpinner strokeWidth="4" ariaLabel="Đang tải lịch làm việc"></p-progressSpinner>
+    <p>Đang tải lịch làm việc…</p>
+  </section>
+
+  <section *ngIf="!isLoading && errorMessage" class="schedule-state error-state">
+    <i class="pi pi-exclamation-circle"></i>
+    <p>{{ errorMessage }}</p>
+    <button pButton icon="pi pi-refresh" label="Tải lại" (click)="goToCurrentWeek()"></button>
+  </section>
+
+  <section *ngIf="!isLoading && !errorMessage" class="day-grid" aria-label="Lịch làm việc trong tuần">
+    <article *ngFor="let day of days" class="day-card">
+      <header>
+        <span>{{ day | date:'EEEE':'':'vi-VN' }}</span>
+        <strong>{{ day | date:'dd/MM' }}</strong>
+      </header>
+      <div *ngIf="shiftsFor(day).length; else noShift" class="shift-list">
+        <div *ngFor="let workShift of shiftsFor(day); trackBy: trackShift" class="shift-card">
+          <i class="pi pi-clock"></i>
+          <div>
+            <strong>{{ workShift.shift?.name || 'Ca làm việc' }}</strong>
+            <span>{{ time(workShift.shift?.startTime) }} – {{ time(workShift.shift?.endTime) }}</span>
+            <small *ngIf="workShift.note">{{ workShift.note }}</small>
+          </div>
+        </div>
+      </div>
+      <ng-template #noShift><p class="no-shift">Chưa có ca làm việc</p></ng-template>
+    </article>
+  </section>
+</main>
