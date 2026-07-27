@@ -1,0 +1,22 @@
+<p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width:'38rem'}" header="Dự báo nhu cầu nguyên liệu">
+  <p><b>{{ ingredient?.name }}</b> — {{ forecastDays }} ngày tới</p>
+  <p-table [value]="forecastRows">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Ngày</th>
+        <th>Dự đoán sử dụng</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.date | date:'dd/MM/yyyy' }}</td>
+        <td>{{ row.predictedQtyUsed | number:'1.0-2' }} {{ ingredient?.unit }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="2">Chưa có đủ dữ liệu dự báo.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>

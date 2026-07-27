@@ -1,0 +1,52 @@
+<p-dialog [(visible)]="visible" header="Thanh toán bằng mã QR"
+          [modal]="true" [style]="{width: '95vw', maxWidth: '520px'}"
+          [draggable]="false" [resizable]="false" [closable]="!loading"
+          (onHide)="closeQrDialog.emit()">
+    <div class="qr-payment-dialog">
+        <div *ngIf="loading" class="qr-state">
+            <i class="pi pi-spin pi-spinner"></i>
+            <h3>Đang tạo mã QR</h3>
+            <p>Vui lòng chờ trong giây lát.</p>
+        </div>
+
+        <div *ngIf="!loading && payment && !expired" class="qr-content">
+            <div class="qr-countdown">
+                <i class="pi pi-clock"></i>
+                <span>Mã QR còn hiệu lực</span>
+                <strong>{{ remainingTimeStr }}</strong>
+            </div>
+            <img [src]="payment.qrText" class="qr-image" alt="Mã QR thanh toán" />
+            <div class="qr-amount">{{ payment.amount | number }} VND</div>
+            <p class="qr-instruction">Quét mã bằng ứng dụng ngân hàng để thanh toán.</p>
+            <div class="qr-details">
+                <div><span>Ngân hàng</span><strong>{{ payment.bankCode }}</strong></div>
+                <div><span>Số tài khoản</span><strong>{{ payment.accountNo }}</strong></div>
+                <div *ngIf="payment.accountName"><span>Chủ tài khoản</span><strong>{{ payment.accountName }}</strong></div>
+                <div><span>Nội dung</span><strong>{{ payment.addInfo }}</strong></div>
+            </div>
+            <p *ngIf="error" class="qr-error"><i class="pi pi-exclamation-circle"></i>{{ error }}</p>
+        </div>
+
+        <div *ngIf="!loading && expired" class="qr-state qr-expired-state">
+            <i class="pi pi-clock"></i>
+            <h3>Mã QR đã hết hạn</h3>
+            <p>Hãy tạo mã mới để tiếp tục thanh toán đơn hàng.</p>
+        </div>
+
+        <div *ngIf="!loading && error && !payment" class="qr-state qr-error-state">
+            <i class="pi pi-exclamation-triangle"></i>
+            <h3>Không thể tạo mã QR</h3>
+            <p>{{ error }}</p>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="qr-dialog-footer">
+            <button pButton pRipple label="Đóng" class="btn-cancel" [disabled]="loading" (click)="closeQrDialog.emit()"></button>
+            <button *ngIf="expired || (!payment && error)" pButton pRipple icon="pi pi-refresh"
+                    label="Tạo mã QR mới" severity="primary" [loading]="loading" (click)="createQrPayment.emit()"></button>
+            <button *ngIf="payment && error && !expired" pButton pRipple icon="pi pi-sync"
+                    label="Kiểm tra lại" severity="primary" (click)="retryPaymentStatus.emit()"></button>
+        </div>
+    </ng-template>
+</p-dialog>

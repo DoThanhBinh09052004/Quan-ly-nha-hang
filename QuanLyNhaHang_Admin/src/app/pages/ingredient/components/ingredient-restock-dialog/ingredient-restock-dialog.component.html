@@ -1,0 +1,36 @@
+<p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width: 'min(92vw, 900px)'}" header="AI dự đoán nhập nguyên liệu">
+  <p class="forecast-description">
+    Dự báo nhu cầu trong {{ forecastDays }} ngày tới, dựa trên đơn hoàn tất và công thức món ăn.
+  </p>
+
+  <div class="forecast-loading" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner"></i>
+    Đang tạo dự báo...
+  </div>
+
+  <p-table *ngIf="!loading" [value]="restockRows" styleClass="custom-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Nguyên liệu</th>
+        <th>Tồn kho</th>
+        <th>Mức tối thiểu</th>
+        <th>Dự kiến sử dụng</th>
+        <th>Cần nhập thêm</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><b>{{ row.name }}</b><small class="unit">{{ row.unit }}</small></td>
+        <td>{{ row.stockQuantity | number:'1.0-2' }} {{ row.unit }}</td>
+        <td>{{ row.minStock | number:'1.0-2' }} {{ row.unit }}</td>
+        <td>{{ row.forecastTotalUsed | number:'1.0-2' }} {{ row.unit }}</td>
+        <td><b [class.need-restock]="row.suggestedBuy > 0">{{ row.suggestedBuy | number:'1.0-2' }} {{ row.unit }}</b></td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">Chưa có dữ liệu dự báo. Kiểm tra AI service hoặc bổ sung dữ liệu đơn hàng hoàn tất.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>

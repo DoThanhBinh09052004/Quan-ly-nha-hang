@@ -1,0 +1,64 @@
+<p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width: 'min(90vw, 760px)'}" header="Phân tích AI - Khách hàng" [closable]="!loading">
+  <div class="ai-analysis" *ngIf="!loading; else loadingTemplate">
+    <section class="cluster-card">
+      <div>
+        <strong>{{ guest?.name }}</strong>
+        <p>{{ analysis?.guestProfileName || 'Khách hàng hiện tại' }}</p>
+        <p>{{ analysis?.guestProfileDescription }}</p>
+      </div>
+      <p-tag [value]="analysis?.clusterName || 'Chưa xác định'" severity="info" />
+    </section>
+    
+    <section class="cluster-card">
+      <div>
+        <strong>Thông tin cụm</strong>
+        <p>{{ analysis?.clusterDescription || 'Chưa có mô tả cụm.' }}</p>
+      </div>
+      <p-tag [value]="'Mã cụm: ' + ((analysis?.cluster ?? -1) + 1)" severity="secondary" />
+    </section>
+    
+    <section class="behavior-card" *ngIf="analysis?.behaviorDescription; else unavailable">
+      <h3>{{ analysis?.behaviorLabel }}</h3>
+      <p>{{ analysis?.behaviorDescription }}</p>
+      <div class="trait-list" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+        <p-tag *ngFor="let trait of analysis?.behaviorTraits" [value]="trait" severity="success" />
+      </div>
+    </section>
+    
+    <ng-template #unavailable>
+      <section class="behavior-card unavailable">
+        <h3>Nhận hành vi AI</h3>
+        <p>Phân cụm đã sẵn sàng. Nhận định ChatGPT sẽ hiển thị sau khi cấu hình <code>OPENAI_API_KEY</code>.</p>
+      </section>
+    </ng-template>
+    
+    <h3 class="comparison-title" style="margin-top: 1.5rem; color: #e2e8f0; font-size: 1rem;">So sánh feature</h3>
+    <table class="feature-table" style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 0.5rem;">
+      <thead>
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <th style="padding: 12px; color: #94a3b8; font-size: 13px;">Chỉ số</th>
+          <th style="padding: 12px; color: #94a3b8; font-size: 13px;">Khách hiện tại</th>
+          <th style="padding: 12px; color: #94a3b8; font-size: 13px;">Trung tâm cụm</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of featureRows" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <td style="padding: 12px; color: #cbd5e1;">{{ row.label }}</td>
+          <td style="padding: 12px; color: #f8fafc; font-weight: 500;">{{ formatFeature(row, row.value) }}</td>
+          <td style="padding: 12px; color: #94a3b8;">{{ formatFeature(row, row.center) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <ng-template #loadingTemplate>
+    <div class="analysis-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; color: #94a3b8;">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <span>Đang phân tích cụm khách hàng...</span>
+    </div>
+  </ng-template>
+  
+  <ng-template #footer>
+    <p-button label="Đóng" icon="pi pi-times" severity="secondary" [outlined]="true" (onClick)="closeDialog()" />
+  </ng-template>
+</p-dialog>
