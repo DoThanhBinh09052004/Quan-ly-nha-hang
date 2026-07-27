@@ -1,0 +1,118 @@
+<div class="export-dialog-wrapper">
+  <p-dialog
+    [(visible)]="visible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="export-dialog"
+    header=""
+    [style]="{ width: '520px' }"
+    (onHide)="onClose()">
+
+    <ng-template pTemplate="header">
+      <div class="dialog-header-custom">
+        <span class="dialog-icon"><i class="pi pi-file-excel"></i></span>
+        <div>
+          <h2>Xuất Báo Cáo Excel</h2>
+          <p>Tải báo cáo tài chính đa trang tính về máy</p>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="export-form">
+      <!-- Date range -->
+      <div class="form-section">
+        <label class="form-label">
+          <i class="pi pi-calendar"></i>
+          Kỳ báo cáo Doanh thu
+        </label>
+        <div class="date-row">
+          <div class="date-field">
+            <span class="date-sub-label">Từ ngày</span>
+            <input
+              id="export-from-date"
+              type="date"
+              class="p-inputtext"
+              [(ngModel)]="fromDate"
+              [max]="toDate" />
+          </div>
+          <div class="date-sep">
+            <i class="pi pi-arrow-right"></i>
+          </div>
+          <div class="date-field">
+            <span class="date-sub-label">Đến ngày</span>
+            <input
+              id="export-to-date"
+              type="date"
+              class="p-inputtext"
+              [(ngModel)]="toDate"
+              [min]="fromDate"
+              [max]="today" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick select -->
+      <div class="quick-select">
+        <span class="quick-label">Chọn nhanh:</span>
+        <button class="quick-btn" (click)="selectRange('this-month')">Tháng này</button>
+        <button class="quick-btn" (click)="selectRange('last-month')">Tháng trước</button>
+        <button class="quick-btn" (click)="selectRange('this-quarter')">Quý này</button>
+        <button class="quick-btn" (click)="selectRange('this-year')">Năm nay</button>
+      </div>
+
+      <!-- Payroll toggle -->
+      <div class="form-section payroll-section">
+        <label class="toggle-label">
+          <div class="toggle-info">
+            <i class="pi pi-users"></i>
+            <div>
+              <span class="toggle-title">Tích hợp Bảng Lương Nhân Sự</span>
+              <span class="toggle-sub">Thêm sheet lương dựa trên tháng bắt đầu kỳ báo cáo</span>
+            </div>
+          </div>
+          <p-toggleswitch
+            id="export-payroll-toggle"
+            [(ngModel)]="includePayroll">
+          </p-toggleswitch>
+        </label>
+      </div>
+
+      <!-- Sheet preview -->
+      <div class="sheets-preview">
+        <span class="sheets-label">Các sheet sẽ được tạo:</span>
+        <div class="sheet-tags">
+          <span class="sheet-tag overview">Tổng quan</span>
+          <span class="sheet-tag gross">LNG - Theo Ngày</span>
+          <span class="sheet-tag gross">LNG - Theo Tháng</span>
+          <span class="sheet-tag net">LNT - Theo Ngày</span>
+          <span class="sheet-tag net">LNT - Theo Tháng</span>
+          <span class="sheet-tag payroll" *ngIf="includePayroll">Bảng Lương</span>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorMsg" class="export-error">
+        <i class="pi pi-exclamation-triangle"></i>
+        {{ errorMsg }}
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="dialog-footer">
+        <button class="btn-cancel" (click)="onClose()" [disabled]="exporting">
+          <i class="pi pi-times"></i> Huỷ
+        </button>
+        <button
+          class="btn-export"
+          (click)="onExport()"
+          [disabled]="exporting || !fromDate || !toDate">
+          <i [class]="exporting ? 'pi pi-spin pi-spinner' : 'pi pi-download'"></i>
+          {{ exporting ? 'Đang tạo báo cáo...' : 'Tải xuống Excel' }}
+        </button>
+      </div>
+    </ng-template>
+
+  </p-dialog>
+</div>

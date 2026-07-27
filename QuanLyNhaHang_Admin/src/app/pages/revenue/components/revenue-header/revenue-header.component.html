@@ -3,12 +3,16 @@
     <h1><i class="pi pi-chart-bar" style="margin-right: 8px;"></i> Thống kê doanh thu</h1>
     <p>Doanh thu, lợi nhuận, chi phí và dự báo</p>
   </div>
-  <div class="header-actions" style="display: flex; gap: 16px; align-items: center;">
-    <span style="color: #94a3b8; font-size: 14px;"><i class="pi pi-calendar" style="margin-right: 6px;"></i>{{ currentDate }}</span>
-    <button class="p-button p-button-outlined" (click)="onRefresh()" [disabled]="loading">
-      <i class="pi pi-refresh" style="margin-right: 8px;"></i> Làm mới
-    </button>
-  </div>
+    <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
+      <span style="color: #94a3b8; font-size: 14px;"><i class="pi pi-calendar" style="margin-right: 6px;"></i>{{ currentDate }}</span>
+      <button class="p-button p-button-outlined" (click)="onRefresh()" [disabled]="loading">
+        <i class="pi pi-refresh" style="margin-right: 8px;"></i> Làm mới
+      </button>
+      <button class="p-button export-excel-btn" (click)="onExport()" [disabled]="loading"
+        style="background: linear-gradient(135deg,#16a34a,#15803d); border: none; color:#fff; font-weight:600; display:flex; align-items:center; gap:6px; padding: 8px 16px; border-radius: 8px; cursor:pointer; box-shadow: 0 2px 8px rgba(22,163,74,0.3);">
+        <i class="pi pi-file-excel"></i> Xuất báo cáo
+      </button>
+    </div>
 </div>
 
 <div class="revenue-tabs" style="display: flex; gap: 12px; margin-bottom: 24px;">

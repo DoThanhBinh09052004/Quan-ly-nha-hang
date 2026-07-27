@@ -19,7 +19,7 @@ import { Recipe } from "../model/recipe.model";
 import { PaymentStatus, VietQrPayment } from "../model/payment.model";
 import { BusinessChatRequest, BusinessChatResponse } from "../model/business-chat.model";
 import { Reservation, ReservationRequest, ReservationTableQuery } from "../model/reservation.model";
-import { GrossProfitMarginReport, NetProfitReport } from "../model/revenue.model";
+import { BusinessOverview, GrossProfitMarginReport, NetProfitReport, PayrollReport } from "../model/revenue.model";
 import { Expense, ExpenseCategory, ExpenseRequest } from "../model/expense.model";
 import { KitchenDashboard, KitchenOrderItem, UpdateKitchenItemStatusRequest } from "../model/kitchen.model";
 import { WorkShift } from '../model/workshift.model';
@@ -433,14 +433,31 @@ export class MyData {
     return this.httpClient.get<any[]>(url, this.httpOptions);
   }
 
-  public getGrossProfitMarginReport(): Observable<GrossProfitMarginReport> {
-    const url = `${this.REST_API_SERVER}/revenue/gross-profit-margin`;
-    return this.httpClient.get<GrossProfitMarginReport>(url, this.httpOptions);
+  public getBusinessOverview(fromDate: string, toDate: string): Observable<BusinessOverview> {
+    const url = `${this.REST_API_SERVER}/revenue/business-overview`;
+    const params = new HttpParams().set('fromDate', fromDate).set('toDate', toDate);
+    return this.httpClient.get<BusinessOverview>(url, { ...this.httpOptions, params });
   }
 
-  public getNetProfitReport(): Observable<NetProfitReport> {
+  public getGrossProfitMarginReport(fromDate?: string, toDate?: string): Observable<GrossProfitMarginReport> {
+    let params = new HttpParams();
+    if (fromDate) params = params.set('fromDate', fromDate);
+    if (toDate) params = params.set('toDate', toDate);
+    const url = `${this.REST_API_SERVER}/revenue/gross-profit-margin`;
+    return this.httpClient.get<GrossProfitMarginReport>(url, { ...this.httpOptions, params });
+  }
+
+  public getNetProfitReport(fromDate?: string, toDate?: string): Observable<NetProfitReport> {
+    let params = new HttpParams();
+    if (fromDate) params = params.set('fromDate', fromDate);
+    if (toDate) params = params.set('toDate', toDate);
     const url = `${this.REST_API_SERVER}/revenue/net-profit`;
-    return this.httpClient.get<NetProfitReport>(url, this.httpOptions);
+    return this.httpClient.get<NetProfitReport>(url, { ...this.httpOptions, params });
+  }
+
+  public getPayrollReport(period: 'weekly' | 'monthly', date: string): Observable<PayrollReport> {
+    const url = `${this.REST_API_SERVER}/payroll/${period}?date=${encodeURIComponent(date)}`;
+    return this.httpClient.get<PayrollReport>(url, this.httpOptions);
   }
 
   public getExpenseCategories(): Observable<ExpenseCategory[]> {

@@ -15,9 +15,14 @@ export class RevenueHeaderComponent {
 
   @Output() refresh = new EventEmitter<void>();
   @Output() tabChange = new EventEmitter<'gross' | 'net' | 'forecast'>();
+  @Output() exportClick = new EventEmitter<void>();
 
   onRefresh() {
     this.refresh.emit();
+  }
+
+  onExport() {
+    this.exportClick.emit();
   }
 
   setTab(tab: 'gross' | 'net' | 'forecast') {

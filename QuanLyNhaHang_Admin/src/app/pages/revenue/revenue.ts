@@ -18,6 +18,7 @@ import { RevenueInsightChartsComponent } from './components/revenue-insight-char
 import { RevenueDetailedPanelsComponent } from './components/revenue-detailed-panels/revenue-detailed-panels.component';
 import { RevenueAnalysisComponent } from './components/revenue-analysis/revenue-analysis.component';
 import { BusinessChatbotComponent } from './components/business-chatbot/business-chatbot.component';
+import { RevenueExportDialogComponent } from './components/revenue-export-dialog/revenue-export-dialog.component';
 
 @Component({
   selector: 'app-revenue',
@@ -36,7 +37,8 @@ import { BusinessChatbotComponent } from './components/business-chatbot/business
     RevenueInsightChartsComponent,
     RevenueDetailedPanelsComponent,
     RevenueAnalysisComponent,
-    BusinessChatbotComponent
+    BusinessChatbotComponent,
+    RevenueExportDialogComponent
   ]
 })
 export class RevenueComponent implements OnInit {
@@ -46,6 +48,7 @@ export class RevenueComponent implements OnInit {
   activeTab: 'gross' | 'net' | 'forecast' = 'gross';
   reportPeriod: 'daily' | 'monthly' | 'yearly' = 'daily';
   isDaily = true;
+  showExportDialog = false;
 
   currentDate = '';
   currentYear = new Date().getFullYear();

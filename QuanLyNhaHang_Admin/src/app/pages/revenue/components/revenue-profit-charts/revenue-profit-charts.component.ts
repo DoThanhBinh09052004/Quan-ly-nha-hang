@@ -18,6 +18,29 @@ export class RevenueProfitChartsComponent implements OnChanges, OnDestroy {
 
   private charts: Record<string, Chart> = {};
 
+  private verticalLinePlugin = {
+    id: 'verticalLine',
+    afterDraw: (chart: any) => {
+      if (chart.tooltip?._active?.length) {
+        const activePoint = chart.tooltip._active[0];
+        const ctx = chart.ctx;
+        const x = activePoint.element.x;
+        const topY = chart.scales.y.top;
+        const bottomY = chart.scales.y.bottom;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, topY);
+        ctx.lineTo(x, bottomY);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  };
+
   ngOnChanges(changes: SimpleChanges): void {
     setTimeout(() => {
       this.renderMainLineChart();
@@ -78,9 +101,14 @@ export class RevenueProfitChartsComponent implements OnChanges, OnDestroy {
           }
         ]
       },
+      plugins: [this.verticalLinePlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'index' as const,
+          intersect: false
+        },
         scales: {
           y: {
             beginAtZero: true,
