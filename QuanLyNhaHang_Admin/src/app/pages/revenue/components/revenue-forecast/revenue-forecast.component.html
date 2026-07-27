@@ -1,0 +1,14 @@
+<div class="management-card">
+  <div class="toolbar-section" style="margin-bottom: 24px;">
+    <div class="toolbar-left">
+      <h2 style="margin: 0; font-size: 18px; color: #e2e8f0;">Dự báo (Web API)</h2>
+    </div>
+    <div class="toolbar-right" style="display: flex; gap: 12px; align-items: center;">
+      <input type="date" class="p-inputtext" [(ngModel)]="inputDate" (ngModelChange)="onDateChange()" style="background: #1e293b; border: 1px solid #475569; color: #e2e8f0; padding: 8px 12px; border-radius: 6px;">
+      <button class="p-button p-button-primary" (click)="submitPredict()" [disabled]="aiLoading">Dự đoán</button>
+    </div>
+  </div>
+  <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+    <div style="height: 400px;"><canvas id="chartForecast"></canvas></div>
+  </div>
+</div>

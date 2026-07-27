@@ -1,0 +1,15 @@
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+  <div style="flex: 2; min-width: 400px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+    <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Doanh thu & lợi nhuận</h3>
+    <div style="height: 300px;"><canvas id="chartMain"></canvas></div>
+  </div>
+  <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+    <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Tỷ suất lợi nhuận</h3>
+    <div style="height: 300px; position: relative;">
+      <canvas id="chartMargin"></canvas>
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+        <div style="font-size: 24px; font-weight: bold; color: #e2e8f0;">{{ kpiMargin }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
