@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { environment } from "../environments/environment";
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
-import { catchError, Observable, tap, throwError } from "rxjs";
+import { catchError, map, Observable, tap, throwError } from "rxjs";
 import { Restaurant } from "../model/restaurant.model";
 import { Role } from "../model/role.model";
 import { Status } from "../model/status.model";
@@ -18,6 +18,12 @@ import { AiIngredientDailyForecastRow, AiIngredientRestockRow, Ingredient } from
 import { Recipe } from "../model/recipe.model";
 import { PaymentStatus, VietQrPayment } from "../model/payment.model";
 import { BusinessChatRequest, BusinessChatResponse } from "../model/business-chat.model";
+import { Reservation, ReservationRequest, ReservationTableQuery } from "../model/reservation.model";
+import { GrossProfitMarginReport, NetProfitReport } from "../model/revenue.model";
+import { Expense, ExpenseCategory, ExpenseRequest } from "../model/expense.model";
+import { KitchenDashboard, KitchenOrderItem, UpdateKitchenItemStatusRequest } from "../model/kitchen.model";
+import { WorkShift } from '../model/workshift.model';
+
 
 export interface AiCustomerSegmentResponse {
   guestId: number;
@@ -32,6 +38,22 @@ export interface AiCustomerSegmentResponse {
   behaviorLabel: string;
   behaviorDescription: string;
   behaviorTraits: string[];
+  features: Record<string, number>;
+}
+
+interface AiCustomerSegmentApiResponse {
+  guest_id: number;
+  cluster: number;
+  cluster_name: string;
+  cluster_description: string;
+  cluster_traits: string[];
+  guest_profile_name: string;
+  guest_profile_description: string;
+  guest_profile_traits: string[];
+  cluster_features: Record<string, number>;
+  behavior_label: string;
+  behavior_description: string;
+  behavior_traits: string[];
   features: Record<string, number>;
 }
 
@@ -130,6 +152,51 @@ export class MyData {
   public getGuestTablesByRestaurantId(restaurantId: number): Observable<GuestTable[]> {
     const url = `${this.REST_API_SERVER}/guesttable/restaurant/${restaurantId}`;
     return this.httpClient.get<GuestTable[]>(url, this.httpOptions);
+  }
+
+  // ===== LỊCH ĐẶT BÀN =====
+  public getReservations(date?: string, tableId?: number): Observable<Reservation[]> {
+    const url = `${this.REST_API_SERVER}/reservation`;
+    let params = new HttpParams();
+    if (date) params = params.set('date', date);
+    if (tableId) params = params.set('tableId', tableId);
+    return this.httpClient.get<Reservation[]>(url, { ...this.httpOptions, params });
+  }
+
+  public getReservationById(id: number): Observable<Reservation> {
+    return this.httpClient.get<Reservation>(`${this.REST_API_SERVER}/reservation/${id}`, this.httpOptions);
+  }
+
+  public getReservationAvailableTables(query: ReservationTableQuery): Observable<GuestTable[]> {
+    const url = `${this.REST_API_SERVER}/reservation/available-tables`;
+    let params = new HttpParams()
+      .set('start', query.start)
+      .set('durationMinutes', query.durationMinutes)
+      .set('partySize', query.partySize);
+    if (query.excludedReservationId) {
+      params = params.set('excludedReservationId', query.excludedReservationId);
+    }
+    return this.httpClient.get<GuestTable[]>(url, { ...this.httpOptions, params });
+  }
+
+  public createReservation(reservation: ReservationRequest): Observable<Reservation> {
+    return this.httpClient.post<Reservation>(`${this.REST_API_SERVER}/reservation`, reservation, this.httpOptions);
+  }
+
+  public updateReservation(id: number, reservation: ReservationRequest): Observable<Reservation> {
+    return this.httpClient.put<Reservation>(`${this.REST_API_SERVER}/reservation/${id}`, reservation, this.httpOptions);
+  }
+
+  public confirmReservation(id: number): Observable<Reservation> {
+    return this.httpClient.put<Reservation>(`${this.REST_API_SERVER}/reservation/${id}/confirm`, {}, this.httpOptions);
+  }
+
+  public cancelReservation(id: number): Observable<Reservation> {
+    return this.httpClient.put<Reservation>(`${this.REST_API_SERVER}/reservation/${id}/cancel`, {}, this.httpOptions);
+  }
+
+  public markReservationNoShow(id: number): Observable<Reservation> {
+    return this.httpClient.put<Reservation>(`${this.REST_API_SERVER}/reservation/${id}/no-show`, {}, this.httpOptions);
   }
 
   // ===== ĐƠN HÀNG (ORDER) =====
@@ -264,6 +331,22 @@ export class MyData {
     return this.httpClient.delete<void>(url, this.httpOptions);
   }
 
+  // ===== BẾP (KITCHEN) =====
+  public getKitchenPendingItems(): Observable<KitchenOrderItem[]> {
+    const url = `${this.REST_API_SERVER}/orderitem/kitchen/pending`;
+    return this.httpClient.get<KitchenOrderItem[]>(url, this.httpOptions);
+  }
+
+  public updateKitchenItemStatus(request: UpdateKitchenItemStatusRequest): Observable<void> {
+    const url = `${this.REST_API_SERVER}/orderitem/kitchen/update-status`;
+    return this.httpClient.put<void>(url, request, this.httpOptions);
+  }
+
+  public getKitchenDashboard(): Observable<KitchenDashboard> {
+    const url = `${this.REST_API_SERVER}/orderitem/kitchen/dashboard`;
+    return this.httpClient.get<KitchenDashboard>(url, this.httpOptions);
+  }
+
   // ===== ĐƠN VỊ TÍNH (UNIT) =====
   public getAllUnits(): Observable<Unit[]> {
     const url = `${this.REST_API_SERVER}/unit`;
@@ -350,6 +433,45 @@ export class MyData {
     return this.httpClient.get<any[]>(url, this.httpOptions);
   }
 
+  public getGrossProfitMarginReport(): Observable<GrossProfitMarginReport> {
+    const url = `${this.REST_API_SERVER}/revenue/gross-profit-margin`;
+    return this.httpClient.get<GrossProfitMarginReport>(url, this.httpOptions);
+  }
+
+  public getNetProfitReport(): Observable<NetProfitReport> {
+    const url = `${this.REST_API_SERVER}/revenue/net-profit`;
+    return this.httpClient.get<NetProfitReport>(url, this.httpOptions);
+  }
+
+  public getExpenseCategories(): Observable<ExpenseCategory[]> {
+    const url = `${this.REST_API_SERVER}/expense/categories`;
+    return this.httpClient.get<ExpenseCategory[]>(url, this.httpOptions);
+  }
+
+  public getExpenses(fromDate?: string, toDate?: string): Observable<Expense[]> {
+    let url = `${this.REST_API_SERVER}/expense`;
+    let params = new HttpParams();
+    if (fromDate) params = params.set('fromDate', fromDate);
+    if (toDate) params = params.set('toDate', toDate);
+    return this.httpClient.get<Expense[]>(url, { headers: this.httpOptions.headers, params });
+  }
+
+  public createExpense(expense: ExpenseRequest): Observable<Expense> {
+    const url = `${this.REST_API_SERVER}/expense`;
+    return this.httpClient.post<Expense>(url, expense, this.httpOptions);
+  }
+
+  public updateExpense(id: number, expense: ExpenseRequest): Observable<Expense> {
+    const url = `${this.REST_API_SERVER}/expense/${id}`;
+    return this.httpClient.put<Expense>(url, expense, this.httpOptions);
+  }
+
+  public deleteExpense(id: number): Observable<void> {
+    const url = `${this.REST_API_SERVER}/expense/${id}`;
+    return this.httpClient.delete<void>(url, this.httpOptions);
+  }
+
+
   public predictRevenueByAi(date: string): Observable<{ date: string; predictedRevenue: number }> {
     const url = `${this.REST_API_SERVER}/revenue/ai-predict`;
     return this.httpClient.post<{ date: string; predictedRevenue: number }>(
@@ -381,6 +503,11 @@ export class MyData {
 
   public getRevenueByPartySize(days = 90): Observable<any[]> {
     const url = `${this.REST_API_SERVER}/revenue/by-party-size?days=${days}`;
+    return this.httpClient.get<any[]>(url, this.httpOptions);
+  }
+
+  public getRevenueByCategory(days = 30): Observable<any[]> {
+    const url = `${this.REST_API_SERVER}/revenue/by-category?days=${days}`;
     return this.httpClient.get<any[]>(url, this.httpOptions);
   }
 
@@ -522,7 +649,23 @@ export class MyData {
   // ===== AI SERVICE CUSTOMER SEGMENTATION =====
   public getCustomerSegment(guestId: number): Observable<AiCustomerSegmentResponse> {
     const url = `${this.REST_API_SERVER}/guest/${guestId}/ai-segment`;
-    return this.httpClient.get<AiCustomerSegmentResponse>(url, this.httpOptions);
+    return this.httpClient.get<AiCustomerSegmentApiResponse>(url, this.httpOptions).pipe(
+      map(response => ({
+        guestId: response.guest_id,
+        cluster: response.cluster,
+        clusterName: response.cluster_name,
+        clusterDescription: response.cluster_description,
+        clusterTraits: response.cluster_traits,
+        guestProfileName: response.guest_profile_name,
+        guestProfileDescription: response.guest_profile_description,
+        guestProfileTraits: response.guest_profile_traits,
+        clusterFeatures: response.cluster_features,
+        behaviorLabel: response.behavior_label,
+        behaviorDescription: response.behavior_description,
+        behaviorTraits: response.behavior_traits,
+        features: response.features
+      }))
+    );
   }
 
   public getAiIngredientRestock(days: number = 14): Observable<AiIngredientRestockRow[]> {
@@ -541,8 +684,17 @@ export class MyData {
     return this.httpClient.get<any[]>(url, this.httpOptions);
   }
 
+  public getMyWorkShifts(fromDate: string, toDate: string): Observable<WorkShift[]> {
+    const url = `${this.REST_API_SERVER}/workshift/mine?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
+    return this.httpClient.get<WorkShift[]>(url, this.httpOptions);
+  }
+
   public createWorkShift(workShift: any): Observable<any> {
     return this.httpClient.post<any>(`${this.REST_API_SERVER}/workshift`, workShift, this.httpOptions);
+  }
+
+  public updateWorkShift(id: number, workShift: any): Observable<any> {
+    return this.httpClient.put<any>(`${this.REST_API_SERVER}/workshift/${id}`, workShift, this.httpOptions);
   }
 
   public deleteWorkShift(id: number): Observable<void> {

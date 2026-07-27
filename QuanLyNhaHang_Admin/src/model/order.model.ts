@@ -15,6 +15,8 @@ export interface Order {
     guestTable?: GuestTable;
     guestPhone?: string;
     guestId?: number;
+    partySize?: number;
+    reservationId?: number;
     discount?: number;
     pointsUsed?: number; 
     finalPrice?: number;
