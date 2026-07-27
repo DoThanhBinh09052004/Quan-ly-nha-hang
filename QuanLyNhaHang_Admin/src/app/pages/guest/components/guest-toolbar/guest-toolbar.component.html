@@ -1,0 +1,26 @@
+<section class="management-card">
+  <div class="management-header">
+    <div class="header-title">
+      <h1>Quản lý Khách hàng</h1>
+      <p>Theo dõi khách hàng và khám phá hành vi theo cụm AI.</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-card stat-blue">
+        <i class="pi pi-users"></i>
+        <div class="stat-info">
+          <span class="stat-label">Tổng khách hàng</span>
+          <strong class="stat-value">{{ guestCount }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="management-toolbar">
+    <div class="toolbar-left">
+      <p-button label="Thêm khách" icon="pi pi-plus" (onClick)="create.emit()" />
+      <p-button label="Xóa đã chọn" icon="pi pi-trash" severity="danger" [outlined]="true" [disabled]="selectedCount === 0" (onClick)="deleteSelected.emit()" />
+    </div>
+    <div class="toolbar-right">
+      <p-button label="Tải lại" icon="pi pi-refresh" [text]="true" (onClick)="reload.emit()" />
+    </div>
+  </div>
+</section>

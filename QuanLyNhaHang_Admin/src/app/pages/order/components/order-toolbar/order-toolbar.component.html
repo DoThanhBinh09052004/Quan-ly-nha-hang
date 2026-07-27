@@ -1,0 +1,38 @@
+<div class="management-card">
+  <div class="header-section">
+    <div class="header-title">
+      <h1>Quản lý đơn hàng</h1>
+      <p>Tổng quan và quản lý tất cả đơn hàng</p>
+    </div>
+    <div class="header-stats">
+      <div class="stats-grid">
+        <div class="stat-card stat-blue">
+          <i class="pi pi-shopping-cart"></i>
+          <div class="stat-info">
+            <span class="stat-label">Tổng đơn hàng</span>
+            <span class="stat-value">{{totalRecords}}</span>
+          </div>
+        </div>
+        <div class="stat-card stat-green">
+          <i class="pi pi-money-bill"></i>
+          <div class="stat-info">
+            <span class="stat-label">Doanh thu hôm nay</span>
+            <span class="stat-value">{{todayRevenue | number}} VND</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar-section">
+    <div class="toolbar-left">
+      <p-button icon="pi pi-plus" label="Thêm đơn hàng" [rounded]="true" severity="primary" (onClick)="create.emit()"></p-button>
+      <p-button icon="pi pi-trash" label="Xóa đã chọn" [rounded]="true" severity="danger" [outlined]="true" [disabled]="selectedCount === 0" (onClick)="deleteSelected.emit()"></p-button>
+    </div>
+    
+    <div class="toolbar-right">
+      <p-button icon="pi pi-download" label="Xuất CSV" [outlined]="true" (onClick)="exportCSV.emit()"></p-button>
+      <p-button icon="pi pi-refresh" label="Tải lại" [text]="true" (onClick)="reload.emit()"></p-button>
+    </div>
+  </div>
+</div>
