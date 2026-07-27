@@ -43,7 +43,10 @@
         <div class="selection-total"><span>Tạm tính</span><strong>{{ salePrice(selectedItem) * quantity | number }} VND</strong></div>
       </div>
       <ng-template #emptySelection><div class="selection-empty"><i class="pi pi-shopping-bag"></i><p>Chọn món ở danh sách để xem chi tiết và thêm vào đơn.</p></div></ng-template>
-      <div class="selection-actions"><button pButton type="button" label="Hủy" icon="pi pi-times" class="p-button-outlined" (click)="close()"></button><button pButton type="button" label="Thêm món" icon="pi pi-plus" severity="success" [disabled]="!selectedItem || quantity < 1 || quantity > (selectedItem?.quantity || 0)" (click)="confirm()"></button></div>
+      <div class="selection-actions">
+        <button pButton type="button" label="Hủy" icon="pi pi-times" class="p-button-outlined" (click)="close()"></button>
+        <button pButton type="button" label="Thêm món" icon="pi pi-plus" severity="success" [disabled]="!selectedItem || quantity < 1 || quantity > (selectedItem.quantity || 0)" (click)="confirm()"></button>
+      </div>
     </aside>
   </div>
 </p-dialog>
