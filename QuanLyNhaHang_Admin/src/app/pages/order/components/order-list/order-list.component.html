@@ -71,7 +71,7 @@
               <td><p-tableCheckbox [value]="order" /></td>
               <td><div class="order-number">{{order.orderNumber}}</div></td>
               <td>
-                  <p-tag [value]="order.guestTable?.name || 'Không có'" 
+                  <p-tag [value]="order.guestTable?.name || 'Mang về'" 
                         [severity]="order.guestTable ? 'success' : 'secondary'"
                         class="table-tag" />
               </td>

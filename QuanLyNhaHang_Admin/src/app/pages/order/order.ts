@@ -387,7 +387,7 @@ searchGuestByPhone() {
     const exportData = this.orders.map(order => ({
       'Mã': order.id,
       'Số đơn hàng': order.orderNumber,
-      'Bàn': order.guestTable?.name || '',
+      'Bàn': order.guestTable?.name || 'Mang về',
       'Tổng tiền': order.totalPrice,
       'Đã trả': order.paidAmount,
       'Tiền thừa': order.changeAmount,

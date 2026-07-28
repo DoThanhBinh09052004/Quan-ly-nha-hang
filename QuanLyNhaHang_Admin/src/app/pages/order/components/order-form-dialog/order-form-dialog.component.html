@@ -14,7 +14,7 @@
                 </div>
 
                 <div class="form-field">
-                    <label for="tableAutoComplete">Bàn <span class="required">*</span></label>
+                    <label for="tableAutoComplete">Bàn</label>
                     <p-autoComplete id="tableAutoComplete"
                                     [ngModel]="selectedGuestTable"
                                     (ngModelChange)="onSelectedGuestTableChange($event)"
@@ -22,8 +22,9 @@
                                     (completeMethod)="searchGuestTable.emit($event)"
                                     optionLabel="name"
                                     [dropdown]="true"
+                                    [showClear]="true"
                                     [disabled]="!!order.reservationId"
-                                    placeholder="Chọn bàn...">
+                                    placeholder="Chọn bàn (để trống nếu mang về)...">
                         <ng-template let-table pTemplate="item">
                             <div class="table-option">
                                 <div class="table-info">
