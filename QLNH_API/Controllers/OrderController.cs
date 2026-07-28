@@ -173,14 +173,14 @@ namespace QLNH_API.Controllers
                     return BadRequest(new { message = "Đơn hàng phải có ít nhất một món hợp lệ" });
                 }
 
-                if (!request.GuestTableId.HasValue)
+                GuestTable? table = null;
+                Reservation? reservation = null;
+                if (request.GuestTableId.HasValue)
                 {
-                    return BadRequest(new { message = "Vui lòng chọn bàn ăn." });
+                    table = await _reservationService.LockTableAsync(request.GuestTableId.Value);
+                    reservation = await _reservationService.EnsureTableCanAcceptOrderAsync(
+                        table, request.ReservationId);
                 }
-
-                var table = await _reservationService.LockTableAsync(request.GuestTableId.Value);
-                var reservation = await _reservationService.EnsureTableCanAcceptOrderAsync(
-                    table, request.ReservationId);
 
                 var pendingItemStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
                 var occupiedTableStatusId = await _statusResolver.GetIdAsync(StatusResolver.TableOccupied);
@@ -251,10 +251,13 @@ namespace QLNH_API.Controllers
                     }
                 }
 
-                // 4. Cập nhật trạng thái bàn
-                table.StatusId = occupiedTableStatusId;
-                table.StatusManuallyOverridden = false;
-                table.Updated = DateTime.Now;
+                // 4. Cập nhật trạng thái bàn (nếu có chọn bàn)
+                if (table != null)
+                {
+                    table.StatusId = occupiedTableStatusId;
+                    table.StatusManuallyOverridden = false;
+                    table.Updated = DateTime.Now;
+                }
                 order.CheckInTime = DateTime.Now;
                 if (reservation != null)
                 {
@@ -424,20 +427,18 @@ namespace QLNH_API.Controllers
 
                 if (request.GuestTableId != previousGuestTableId)
                 {
-                    if (!request.GuestTableId.HasValue)
+                    if (request.GuestTableId.HasValue)
                     {
-                        return BadRequest(new { message = "Vui lòng chọn bàn ăn." });
-                    }
+                        var targetTable = await _reservationService.LockTableAsync(request.GuestTableId.Value);
+                        await _reservationService.EnsureTableCanAcceptOrderAsync(
+                            targetTable, null, existingOrder.Id);
+                        targetTable.StatusManuallyOverridden = false;
 
-                    var targetTable = await _reservationService.LockTableAsync(request.GuestTableId.Value);
-                    await _reservationService.EnsureTableCanAcceptOrderAsync(
-                        targetTable, null, existingOrder.Id);
-                    targetTable.StatusManuallyOverridden = false;
-
-                    if (existingOrder.Reservation != null)
-                    {
-                        await _reservationService.TransferReservationAsync(
-                            existingOrder.Reservation, targetTable.Id);
+                        if (existingOrder.Reservation != null)
+                        {
+                            await _reservationService.TransferReservationAsync(
+                                existingOrder.Reservation, targetTable.Id);
+                        }
                     }
                 }
 
