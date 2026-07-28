@@ -26,6 +26,7 @@ export class GuestListComponent {
   @ViewChild('dt') table!: Table;
 
   onSelectionChange(selection: Guest[]) {
+    this.selectedGuests = selection;
     this.selectedGuestsChange.emit(selection);
   }
 

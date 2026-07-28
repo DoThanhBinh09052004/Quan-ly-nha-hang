@@ -15,7 +15,7 @@
     #userTable
     [value]="users"
     [(selection)]="selected"
-    (selectionChange)="selectedChange.emit($event)"
+    (selectionChange)="onSelectionChange($event)"
     dataKey="id"
     [paginator]="true"
     [rows]="10"

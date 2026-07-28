@@ -26,6 +26,7 @@ export class IngredientListComponent {
   @ViewChild('dt') table!: Table;
 
   onSelectionChange(selection: Ingredient[]) {
+    this.selectedIngredients = selection;
     this.selectedIngredientsChange.emit(selection);
   }
 

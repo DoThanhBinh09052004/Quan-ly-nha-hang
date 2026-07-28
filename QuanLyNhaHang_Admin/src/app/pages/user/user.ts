@@ -190,7 +190,6 @@ export class UserComponent implements OnInit {
       penaltyAmount: 0,
     }).subscribe({
       next: () => {
-        this.assignmentDialog = false;
         this.loadScheduleData();
         this.showSuccess(`${user.fullName || user.username} đã được xếp ca.`);
       },

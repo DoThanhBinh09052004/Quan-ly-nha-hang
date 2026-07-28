@@ -5,6 +5,7 @@ import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocompl
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { User } from '../../../../model/user.model';
 import { Shift, WorkShift } from '../models/user-management.models';
@@ -24,6 +25,7 @@ export interface PenaltyChange {
     ButtonModule,
     DialogModule,
     InputNumberModule,
+    TooltipModule,
   ],
   templateUrl: './shift-assignment-dialog.component.html',
   styleUrl: './shift-assignment-dialog.component.scss',
@@ -54,7 +56,7 @@ export class ShiftAssignmentDialogComponent implements OnChanges {
   }
 
   searchUsers(event: AutoCompleteCompleteEvent): void {
-    const query = event.query.trim().toLocaleLowerCase('vi-VN');
+    const query = (event.query || '').trim().toLocaleLowerCase('vi-VN');
     this.suggestions = this.users.filter((user) => {
       if (this.has(user)) {
         return false;
@@ -66,6 +68,7 @@ export class ShiftAssignmentDialogComponent implements OnChanges {
   }
 
   selectUser(user: User): void {
+    if (!user) return;
     this.add.emit(user);
     this.selectedUser = null;
     this.suggestions = [];
@@ -76,6 +79,11 @@ export class ShiftAssignmentDialogComponent implements OnChanges {
       assignment,
       penaltyAmount: this.penaltyAmounts[assignment.id] ?? 0,
     });
+  }
+
+  closeDialog(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
   }
 
   has(user: User): boolean {

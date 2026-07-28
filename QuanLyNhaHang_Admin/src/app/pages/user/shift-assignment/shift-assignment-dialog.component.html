@@ -1,68 +1,139 @@
 <p-dialog
   [(visible)]="visible"
   (visibleChange)="visibleChange.emit($event)"
-  [style]="{ width: '650px', maxWidth: '95vw' }"
+  [modal]="true"
+  [dismissableMask]="true"
+  [resizable]="false"
+  [draggable]="false"
+  [style]="{ width: '640px', maxWidth: '95vw' }"
+  styleClass="shift-assignment-dialog"
   header="Phân công ca làm">
-  <div class="assignment-info">
-    <b>{{ shift?.name }}</b>
-    <span>{{ date | date:'EEEE, dd/MM/yyyy':'':'vi-VN' }}</span>
-  </div>
-
-  <section *ngIf="assignments.length" class="current-assignees">
-    <h3>Nhân viên đã phân ca</h3>
-    <div *ngFor="let item of assignments" class="assignment-row">
-      <div class="employee-name">
-        <i class="pi pi-user"></i>
-        <span>{{ item.user?.fullName || item.user?.username }}</span>
+  
+  <div class="dialog-body">
+    <!-- Banner thông tin ca làm việc -->
+    <div class="shift-banner">
+      <div class="banner-left">
+        <div class="shift-title">
+          <i class="pi pi-clock banner-icon"></i>
+          <span class="shift-name">{{ shift?.name || 'Ca làm việc' }}</span>
+        </div>
+        <div class="shift-date">
+          <i class="pi pi-calendar"></i>
+          <span>{{ date | date:'EEEE, dd/MM/yyyy':'':'vi-VN' }}</span>
+        </div>
       </div>
-
-      <div class="penalty-field">
-        <label [for]="'penalty-' + item.id">Trừ lương ca này</label>
-        <p-inputNumber
-          [inputId]="'penalty-' + item.id"
-          [(ngModel)]="penaltyAmounts[item.id]"
-          mode="currency"
-          currency="VND"
-          locale="vi-VN"
-          [min]="0">
-        </p-inputNumber>
-      </div>
-
-      <div class="assignment-actions">
-        <button
-          pButton
-          icon="pi pi-check"
-          class="p-button-text"
-          aria-label="Lưu khoản trừ"
-          (click)="savePenalty(item)">
-        </button>
-        <button
-          pButton
-          icon="pi pi-times"
-          class="p-button-text p-button-danger"
-          aria-label="Bỏ phân ca"
-          (click)="remove.emit(item)">
-        </button>
+      <div class="banner-right">
+        <span class="selection-info">
+          <i class="pi pi-users"></i>
+          {{ assignments.length }} nhân viên
+        </span>
       </div>
     </div>
-  </section>
 
-  <div class="form-field">
-    <label for="shift-employee">Chọn nhân viên để thêm vào ca</label>
-    <p-autoComplete
-      inputId="shift-employee"
-      [(ngModel)]="selectedUser"
-      [suggestions]="suggestions"
-      (completeMethod)="searchUsers($event)"
-      (onSelect)="selectUser($event.value)"
-      optionLabel="fullName"
-      [dropdown]="true"
-      [forceSelection]="true"
-      placeholder="Tìm theo họ tên hoặc tên đăng nhập...">
-      <ng-template let-user pTemplate="item">
-        <div>{{ user.fullName || user.username }}</div>
-        <small *ngIf="user.fullName">{{ user.username }}</small>
-      </ng-template>
-    </p-autoComplete>
+    <!-- Ô tìm kiếm và chọn nhân viên thêm vào ca -->
+    <div class="form-field">
+      <label for="shift-employee">
+        <i class="pi pi-user-plus"></i> Thêm nhân viên vào ca
+      </label>
+      <p-autoComplete
+        inputId="shift-employee"
+        [(ngModel)]="selectedUser"
+        [suggestions]="suggestions"
+        (completeMethod)="searchUsers($event)"
+        (onSelect)="selectUser($event.value)"
+        optionLabel="fullName"
+        [dropdown]="true"
+        [forceSelection]="true"
+        appendTo="body"
+        panelStyleClass="shift-employee-autocomplete-panel"
+        placeholder="Nhập họ tên hoặc tên đăng nhập để tìm nhân viên...">
+        <ng-template let-user pTemplate="item">
+          <div class="user-item-option">
+            <div class="user-avatar">
+              <i class="pi pi-user"></i>
+            </div>
+            <div class="user-details">
+              <span class="user-name">{{ user.fullName || user.username }}</span>
+              <small class="user-username">&#64;{{ user.username }}</small>
+            </div>
+          </div>
+        </ng-template>
+      </p-autoComplete>
+    </div>
+
+    <!-- Danh sách nhân viên trong ca -->
+    <div class="assigned-staff-section">
+      <div class="section-header">
+        <h3><i class="pi pi-list"></i> Danh sách nhân viên trong ca</h3>
+      </div>
+
+      <div *ngIf="!assignments.length" class="empty-state">
+        <div class="empty-content">
+          <i class="pi pi-users empty-icon"></i>
+          <h3>Chưa có nhân viên</h3>
+          <p>Sử dụng ô tìm kiếm ở trên để phân công nhân viên vào ca làm.</p>
+        </div>
+      </div>
+
+      <div *ngIf="assignments.length" class="staff-list">
+        <div *ngFor="let item of assignments" class="staff-card">
+          <div class="staff-info">
+            <div class="staff-avatar">
+              <i class="pi pi-user"></i>
+            </div>
+            <div class="staff-names">
+              <span class="staff-fullname">{{ item.user?.fullName || item.user?.username }}</span>
+              <small class="text-gray-500">&#64;{{ item.user?.username }}</small>
+            </div>
+          </div>
+
+          <div class="penalty-input-wrapper">
+            <label [for]="'penalty-' + item.id">Trừ lương ca này</label>
+            <p-inputNumber
+              [inputId]="'penalty-' + item.id"
+              [(ngModel)]="penaltyAmounts[item.id]"
+              mode="currency"
+              currency="VND"
+              locale="vi-VN"
+              [min]="0"
+              placeholder="0 VNĐ">
+            </p-inputNumber>
+          </div>
+
+          <div class="staff-action-buttons">
+            <button
+              pButton
+              icon="pi pi-check"
+              class="save-btn"
+              pTooltip="Lưu khoản trừ"
+              tooltipPosition="top"
+              aria-label="Lưu khoản trừ"
+              (click)="savePenalty(item)">
+            </button>
+            <button
+              pButton
+              icon="pi pi-trash"
+              class="delete-btn"
+              pTooltip="Bỏ phân ca"
+              tooltipPosition="top"
+              aria-label="Bỏ phân ca"
+              (click)="remove.emit(item)">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button
+        pButton
+        icon="pi pi-check"
+        label="Hoàn tất"
+        class="p-button-primary"
+        (click)="closeDialog()">
+      </button>
+    </div>
+  </ng-template>
 </p-dialog>

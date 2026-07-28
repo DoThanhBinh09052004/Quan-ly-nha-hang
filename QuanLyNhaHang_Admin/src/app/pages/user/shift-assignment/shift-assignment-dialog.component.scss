@@ -1,82 +1,361 @@
 @use '../../shared';
 
-.assignment-info {
+:host ::ng-deep .shift-assignment-dialog {
+  .p-dialog-header {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border-bottom: 1px solid #334155;
+    padding: 18px 24px;
+    color: #e2e8f0;
+
+    .p-dialog-title {
+      font-weight: 700;
+      font-size: 18px;
+      color: #f8fafc;
+    }
+
+    .p-dialog-header-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .p-dialog-header-icon,
+    .p-dialog-header-close {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: #94a3b8 !important;
+      background: transparent !important;
+      border: none !important;
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 8px !important;
+      transition: all 0.3s ease !important;
+      cursor: pointer !important;
+
+      &:hover {
+        color: #e2e8f0 !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+      }
+
+      .p-dialog-header-close-icon,
+      .p-icon,
+      i,
+      span,
+      svg {
+        font-size: 16px !important;
+        color: inherit !important;
+        fill: currentColor !important;
+      }
+    }
+  }
+
+  .p-dialog-content {
+    background: #0f172a;
+    padding: 20px 24px;
+    color: #e2e8f0;
+  }
+
+  .p-dialog-footer {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border-top: 1px solid #334155;
+    padding: 16px 24px;
+  }
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* 1. Shift Banner */
+.shift-banner {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
-  padding: 12px;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  color: #e2e8f0;
-  background: #172235;
-}
-
-.assignment-info span {
-  color: #94a3b8;
-}
-
-.current-assignees {
-  margin-bottom: 22px;
-}
-
-.current-assignees h3 {
-  margin: 0 0 10px;
-  color: #e2e8f0;
-  font-size: 14px;
-}
-
-.assignment-row {
-  display: grid;
-  grid-template-columns: minmax(130px, 1fr) minmax(180px, 1.2fr) auto;
-  align-items: end;
-  gap: 12px;
-  margin-bottom: 9px;
-  padding: 12px;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  background: rgba(30, 41, 59, .7);
-}
-
-.employee-name {
-  display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 38px;
-  color: #e2e8f0;
-  font-weight: 600;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid #334155;
+  border-radius: 12px;
 }
 
-.employee-name i {
-  color: #60a5fa;
-}
-
-.penalty-field label {
-  display: block;
-  margin-bottom: 5px;
-  color: #94a3b8;
-  font-size: 11px;
-  text-transform: uppercase;
-}
-
-.penalty-field p-inputNumber,
-:host ::ng-deep .penalty-field .p-inputnumber {
-  width: 100%;
-}
-
-.assignment-actions {
+.banner-left {
   display: flex;
+  flex-direction: column;
   gap: 4px;
 }
 
-@media (max-width: 620px) {
-  .assignment-info,
-  .assignment-row {
-    align-items: stretch;
-    grid-template-columns: 1fr;
+.shift-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .banner-icon {
+    color: #60a5fa;
+    font-size: 16px;
   }
 
-  .assignment-info {
-    flex-direction: column;
+  .shift-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+}
+
+.shift-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.selection-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 20px;
+  color: #60a5fa;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 2. AutoComplete Overlay Panel biệt lập */
+::ng-deep .shift-employee-autocomplete-panel {
+  background: #1e293b !important;
+  border: 1px solid #475569 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  max-height: 240px;
+
+  .p-autocomplete-items {
+    padding: 4px;
+
+    .p-autocomplete-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: #e2e8f0;
+      transition: background 0.15s ease;
+
+      &:hover, &.p-highlight {
+        background: #334155 !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+}
+
+.user-item-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+
+  .user-name {
+    font-weight: 600;
+    color: #f8fafc;
+    font-size: 14px;
+  }
+
+  .user-username {
+    color: #94a3b8;
+    font-size: 12px;
+  }
+}
+
+/* 3. Assigned Staff List */
+.assigned-staff-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+
+  i {
+    color: #60a5fa;
+  }
+}
+
+.staff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.staff-card {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(160px, 1fr) auto;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: #475569;
+  }
+}
+
+.staff-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  align-self: center;
+}
+
+.staff-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.staff-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.staff-fullname {
+  font-weight: 600;
+  color: #f8fafc;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.penalty-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  p-inputNumber,
+  :host ::ng-deep .p-inputnumber {
+    width: 100%;
+
+    .p-inputnumber-input {
+      width: 100%;
+      background: #0f172a !important;
+      border: 1px solid #334155 !important;
+      border-radius: 6px !important;
+      padding: 6px 10px !important;
+      color: #f8fafc !important;
+      font-size: 13px !important;
+
+      &:focus {
+        border-color: #60a5fa !important;
+        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
+        outline: none !important;
+      }
+    }
+  }
+}
+
+/* Nút bấm thao tác trên từng thẻ nhân viên (Lưu & Xóa) */
+.staff-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+
+    .p-button-icon,
+    i,
+    span {
+      font-size: 14px !important;
+      margin: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    &.save-btn {
+      color: #34d399 !important;
+      border-color: rgba(52, 211, 153, 0.3) !important;
+      background: rgba(52, 211, 153, 0.1) !important;
+
+      &:hover {
+        background: rgba(52, 211, 153, 0.2) !important;
+        border-color: #34d399 !important;
+      }
+    }
+
+    &.delete-btn {
+      color: #f87171 !important;
+      border-color: rgba(248, 113, 113, 0.3) !important;
+      background: rgba(248, 113, 113, 0.1) !important;
+
+      &:hover {
+        background: rgba(248, 113, 113, 0.2) !important;
+        border-color: #f87171 !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 580px) {
+  .staff-card {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 }

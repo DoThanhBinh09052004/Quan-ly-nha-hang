@@ -540,13 +540,32 @@
       -webkit-text-fill-color: transparent;
     }
     
-    .p-dialog-header-icon {
+    .p-dialog-header-icon,
+    .p-dialog-header-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       color: #94a3b8;
+      border: none;
+      background: transparent;
       transition: all 0.3s ease;
+      cursor: pointer;
       
       &:hover {
         color: #e2e8f0;
         background: rgba(255, 255, 255, 0.1);
+      }
+
+      .p-dialog-header-close-icon,
+      .p-icon,
+      i,
+      span,
+      svg {
+        font-size: 16px;
+        color: inherit;
       }
     }
   }
@@ -692,6 +711,17 @@
   user-select: none;
   gap: 8px;
   outline: none;
+
+  &.p-button-icon-only,
+  &.p-dialog-header-close,
+  &.p-dialog-header-icon {
+    padding: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    gap: 0 !important;
+  }
 
   &:focus-visible {
     box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);

@@ -25,6 +25,11 @@ export class UserListComponent {
   @Output() remove = new EventEmitter<User>();
   @Output() schedule = new EventEmitter<User>();
 
+  onSelectionChange(selection: User[]) {
+    this.selected = selection;
+    this.selectedChange.emit(selection);
+  }
+
   onFilter(event: Event, table: Table): void {
     const value = (event.target as HTMLInputElement).value;
     table.filterGlobal(value, 'contains');
