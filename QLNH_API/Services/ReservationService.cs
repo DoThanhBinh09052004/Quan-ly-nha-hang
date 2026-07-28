@@ -496,22 +496,37 @@ namespace QLNH_API.Services
                 return StatusResolver.TableOccupied;
             }
 
-            if (table.StatusManuallyOverridden && table.Status != null)
-            {
-                return table.Status.Code;
-            }
-
             if (reservations.Any(r => r.Status == ReservationStatuses.Arrived))
             {
                 return StatusResolver.TableOccupied;
             }
 
+            // A manual non-available state remains stricter than a reservation hold.
+            if (table.StatusManuallyOverridden && table.Status != null &&
+                table.Status.Code != StatusResolver.TableAvailable)
+            {
+                return table.Status.Code;
+            }
+
+            // A confirmed reservation owns the table during the configured policy window.
+            // This must take precedence over a manual "available" status so it cannot
+            // appear in the normal order-creation dropdown.
             var hasReservationHold = reservations.Any(r =>
                 r.Status == ReservationStatuses.Confirmed &&
                 now >= r.ReservationTime.AddMinutes(-_policy.LockBeforeMinutes) &&
                 now <= r.ReservationTime.AddMinutes(_policy.LateArrivalGraceMinutes));
 
-            return hasReservationHold ? StatusResolver.TableReserved : StatusResolver.TableAvailable;
+            if (hasReservationHold)
+            {
+                return StatusResolver.TableReserved;
+            }
+
+            if (table.StatusManuallyOverridden && table.Status != null)
+            {
+                return table.Status.Code;
+            }
+
+            return StatusResolver.TableAvailable;
         }
     }
 
