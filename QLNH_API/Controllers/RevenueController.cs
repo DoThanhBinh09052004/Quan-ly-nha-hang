@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QLNH_API.DTO;
@@ -108,6 +108,18 @@ namespace QLNH_API.Controllers
         public async Task<IActionResult> GetRevenueForecast([FromQuery] int days = 7)
         {
             var result = await _service.GetRevenueForecast(days);
+            return Ok(result);
+        }
+
+        [HttpGet("business-overview")]
+        public async Task<IActionResult> GetBusinessOverview(
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            CancellationToken cancellationToken = default)
+        {
+            var from = fromDate?.Date ?? DateTime.Today.AddMonths(-1);
+            var to = toDate?.Date ?? DateTime.Today;
+            var result = await _service.GetBusinessOverviewAsync(from, to, cancellationToken);
             return Ok(result);
         }
 
