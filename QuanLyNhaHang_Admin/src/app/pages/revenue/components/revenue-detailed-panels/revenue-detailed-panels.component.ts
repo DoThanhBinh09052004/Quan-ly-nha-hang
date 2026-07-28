@@ -3,11 +3,6 @@ import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
 import { type ChartConfiguration } from 'chart.js';
 
-const DOW_VI: Record<string, string> = {
-  Sunday: 'Chủ nhật', Monday: 'Thứ hai', Tuesday: 'Thứ ba',
-  Wednesday: 'Thứ tư', Thursday: 'Thứ năm', Friday: 'Thứ sáu', Saturday: 'Thứ bảy'
-};
-
 @Component({
   selector: 'app-revenue-detailed-panels',
   standalone: true,
@@ -31,29 +26,6 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
   @Output() mainViewChange = new EventEmitter<boolean>();
 
   private charts: Record<string, Chart> = {};
-
-  private verticalLinePlugin = {
-    id: 'verticalLine',
-    afterDraw: (chart: any) => {
-      if (chart.tooltip?._active?.length) {
-        const activePoint = chart.tooltip._active[0];
-        const ctx = chart.ctx;
-        const x = activePoint.element.x;
-        const topY = chart.scales.y.top;
-        const bottomY = chart.scales.y.bottom;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(x, topY);
-        ctx.lineTo(x, bottomY);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.setLineDash([4, 4]);
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-  };
 
   ngOnChanges(changes: SimpleChanges): void {
     setTimeout(() => this.renderAllDetailedCharts(), 0);
@@ -87,23 +59,18 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
 
   private formatMoney(value: number): string {
     if (value == null || value === 0) return '0 ₫';
-    if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1) + ' tỷ ₫';
-    if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + ' triệu ₫';
-    if (value >= 1_000) return (value / 1_000).toFixed(1) + ' nghìn ₫';
-    return value.toLocaleString('vi-VN') + ' ₫';
+    const isNegative = value < 0;
+    const absVal = Math.abs(value);
+    let res = '';
+    if (absVal >= 1_000_000_000) res = (absVal / 1_000_000_000).toFixed(1) + ' tỷ ₫';
+    else if (absVal >= 1_000_000) res = (absVal / 1_000_000).toFixed(1) + ' triệu ₫';
+    else if (absVal >= 1_000) res = (absVal / 1_000).toFixed(1) + ' nghìn ₫';
+    else res = absVal.toLocaleString('vi-VN') + ' ₫';
+    return isNegative ? `-${res}` : res;
   }
 
   private renderAllDetailedCharts() {
     this.renderRevenuePanelMainChart();
-    
-    const byHour = [...this.byHourData].sort((a, b) => (a.hour ?? 0) - (b.hour ?? 0));
-    this.buildBarChart('chartByHourDetailed', byHour.map(row => `${row.hour ?? 0}h`), byHour.map(row => row.totalRevenue ?? 0), 'Theo giờ', true, '#a371f7');
-    
-    const byDow = [...this.byDayOfWeekData].sort((a, b) => (a.dayOfWeekValue ?? 0) - (b.dayOfWeekValue ?? 0));
-    this.buildBarChart('chartByDowDetailed', byDow.map(row => DOW_VI[row.dayOfWeek] ?? row.dayOfWeek ?? ''), byDow.map(row => row.totalRevenue ?? 0), 'Theo thứ', true, '#3fb950');
-    
-    const party = [...this.byPartySizeData].sort((a, b) => (a.partySize ?? 0) - (b.partySize ?? 0));
-    this.buildBarChart('chartPartyDetailed', party.map(row => `${row.partySize ?? 0} khách`), party.map(row => row.totalRevenue ?? 0), 'Theo số khách', true, '#d29922');
     
     const best = this.bestSellersData.slice(0, 10);
     this.buildHorizontalBarChart('chartBestDetailed', best.map(row => (row.itemName ?? '—').slice(0, 28)), best.map(row => row.totalQuantity ?? 0), 'Số lượng bán');
@@ -163,7 +130,9 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
             borderColor: '#58a6ff',
             backgroundColor: 'rgba(88, 166, 255, 0.15)',
             tension: 0.25,
-            fill: true
+            fill: true,
+            pointHoverRadius: 6,
+            pointRadius: 4
           },
           {
             label: 'Dự báo AI',
@@ -172,11 +141,12 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
             backgroundColor: 'rgba(240, 136, 62, 0.1)',
             borderDash: [6, 4],
             tension: 0.25,
-            fill: false
+            fill: false,
+            pointHoverRadius: 6,
+            pointRadius: 4
           }
         ]
       },
-      plugins: [this.verticalLinePlugin],
       options: this.baseChartOptions(true)
     };
     this.charts[canvasId] = new Chart(ctx, cfg);
@@ -197,13 +167,14 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
         datasets: [{
           label: datasetLabel,
           data,
-          backgroundColor: color + 'aa',
+          backgroundColor: color + 'bb',
+          hoverBackgroundColor: color,
           borderColor: color,
-          borderWidth: 1,
-          borderRadius: 4
+          borderWidth: 1.5,
+          borderRadius: 6,
+          maxBarThickness: 42
         }]
       },
-      plugins: [this.verticalLinePlugin],
       options: this.baseChartOptions(yMoney)
     };
     this.charts[canvasId] = new Chart(ctx, cfg);
@@ -224,10 +195,12 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
         datasets: [{
           label: datasetLabel,
           data,
-          backgroundColor: 'rgba(163, 113, 247, 0.65)',
+          backgroundColor: 'rgba(163, 113, 247, 0.75)',
+          hoverBackgroundColor: '#a371f7',
           borderColor: '#a371f7',
-          borderWidth: 1,
-          borderRadius: 4
+          borderWidth: 1.5,
+          borderRadius: 6,
+          maxBarThickness: 28
         }]
       },
       options: {
@@ -243,8 +216,8 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
       responsive: true,
       maintainAspectRatio: false,
       interaction: {
-        mode: 'index' as const,
-        intersect: false
+        mode: 'nearest' as const,
+        intersect: true
       },
       scales: {
         y: {
@@ -263,7 +236,24 @@ export class RevenueDetailedPanelsComponent implements OnChanges, OnDestroy {
         }
       },
       plugins: {
-        legend: { labels: { color: '#f0f6fc' } }
+        legend: { labels: { color: '#f0f6fc', font: { size: 12, weight: 600 } } },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleColor: '#e2e8f0',
+          bodyColor: '#60a5fa',
+          borderColor: 'rgba(255, 255, 255, 0.15)',
+          borderWidth: 1,
+          padding: 12,
+          displayColors: true,
+          callbacks: {
+            label: (c: any) => {
+              const label = c.dataset.label || '';
+              const val = c.parsed.y !== undefined ? c.parsed.y : (c.parsed.x !== undefined ? c.parsed.x : c.raw);
+              return ` ${label}: ${yMoney ? this.formatMoney(Number(val)) : this.formatNumber(Number(val))}`;
+            }
+          }
+        }
       }
     };
   }

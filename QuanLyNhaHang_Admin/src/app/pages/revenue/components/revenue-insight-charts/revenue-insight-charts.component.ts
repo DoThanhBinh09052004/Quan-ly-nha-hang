@@ -37,19 +37,33 @@ export class RevenueInsightChartsComponent implements OnChanges, OnDestroy {
 
   private formatMoney(value: number): string {
     if (value == null || value === 0) return '0 ₫';
-    if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1) + ' tỷ ₫';
-    if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + ' triệu ₫';
-    if (value >= 1_000) return (value / 1_000).toFixed(1) + ' nghìn ₫';
-    return value.toLocaleString('vi-VN') + ' ₫';
+    const isNegative = value < 0;
+    const absVal = Math.abs(value);
+    let res = '';
+    if (absVal >= 1_000_000_000) res = (absVal / 1_000_000_000).toFixed(1) + ' tỷ ₫';
+    else if (absVal >= 1_000_000) res = (absVal / 1_000_000).toFixed(1) + ' triệu ₫';
+    else if (absVal >= 1_000) res = (absVal / 1_000).toFixed(1) + ' nghìn ₫';
+    else res = absVal.toLocaleString('vi-VN') + ' ₫';
+    return isNegative ? `-${res}` : res;
   }
 
   private buildBarChart(canvasId: string, labels: string[], data: number[], datasetLabel: string, yMoney: boolean, color = '#1f6feb') {
     if (!labels.length) return;
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     if (!canvas) return;
+    if (this.charts[canvasId]) {
+      this.charts[canvasId].data.labels = labels;
+      this.charts[canvasId].data.datasets[0].data = data;
+      this.charts[canvasId].update('none');
+      return;
+    }
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    if (this.charts[canvasId]) this.charts[canvasId].destroy();
+
+    // Create glossy gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, 250);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, color + '22');
 
     const cfg: ChartConfiguration = {
       type: 'bar',
@@ -58,15 +72,20 @@ export class RevenueInsightChartsComponent implements OnChanges, OnDestroy {
         datasets: [{
           label: datasetLabel,
           data,
-          backgroundColor: color + 'aa',
+          backgroundColor: grad,
+          hoverBackgroundColor: color,
           borderColor: color,
-          borderWidth: 1,
-          borderRadius: 4
+          borderWidth: 1.5,
+          borderRadius: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'nearest',
+          intersect: true
+        },
         scales: {
           y: {
             beginAtZero: true,
@@ -78,13 +97,29 @@ export class RevenueInsightChartsComponent implements OnChanges, OnDestroy {
             }
           },
           x: {
-            grid: { color: 'rgba(48, 54, 61, 0.8)' },
+            grid: { color: 'rgba(48, 54, 61, 0.4)' },
             border: { display: false },
             ticks: { color: '#8b949e' }
           }
         },
         plugins: {
-          legend: { labels: { color: '#f0f6fc' } }
+          legend: { labels: { color: '#f0f6fc', font: { size: 12, weight: 600 } } },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleColor: '#e2e8f0',
+            bodyColor: color,
+            borderColor: 'rgba(255, 255, 255, 0.15)',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: (c: any) => {
+                const label = c.dataset.label || '';
+                const val = c.parsed.y !== undefined ? c.parsed.y : c.raw;
+                return ` ${label}: ${yMoney ? this.formatMoney(Number(val)) : Number(val).toLocaleString('vi-VN')}`;
+              }
+            }
+          }
         }
       }
     };

@@ -1,52 +1,175 @@
-<div class="management-card" style="background: linear-gradient(145deg, #162032 0%, #0c1222 100%); border-color: #1e293b;">
-  <div class="toolbar-section" style="margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px;">
-    <div class="toolbar-left">
-      <h2 style="margin: 0; font-size: 18px; color: #e2e8f0;">Chi phí vận hành theo tháng</h2>
-      <p style="margin: 4px 0 0; color: #94a3b8; font-size: 13px;">Hạch toán theo tháng lịch</p>
+<div class="expense-panel-card">
+  <!-- Header Bar -->
+  <div class="expense-header">
+    <div class="header-info">
+      <div class="icon-wrap">
+        <i class="pi pi-wallet"></i>
+      </div>
+      <div>
+        <h2>Chi phí vận hành theo tháng</h2>
+        <p>So sánh biến động chi phí giữa các tháng và hạch toán chi tiết kỳ xem</p>
+      </div>
     </div>
-    <div class="toolbar-right" style="display: flex; gap: 12px; align-items: center;">
-      <input type="month" class="p-inputtext" [(ngModel)]="expenseMonth" (change)="onExpenseMonthChange()" style="background: #1e293b; border: 1px solid #475569; color: #e2e8f0; padding: 8px 12px; border-radius: 6px;">
-      <button class="p-button p-button-primary" (click)="openExpenseDialog()">Thêm chi phí</button>
+    <div class="header-actions">
+      <div class="month-picker-wrap">
+        <i class="pi pi-calendar"></i>
+        <input 
+          type="month" 
+          class="month-input" 
+          [(ngModel)]="expenseMonth" 
+          (change)="onExpenseMonthChange()">
+      </div>
+      <button type="button" class="btn-add-expense" (click)="openExpenseDialog()">
+        <i class="pi pi-plus"></i> Thêm chi phí
+      </button>
     </div>
   </div>
 
-  <div style="display: flex; gap: 16px; margin-bottom: 24px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
-    <div style="flex: 1;">
-      <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">Kỳ đang xem</div>
-      <div style="color: #e2e8f0; font-weight: bold; font-size: 18px;">{{ expenseMonth }}</div>
+  <!-- Stat Summary Cards -->
+  <div class="expense-stats-grid">
+    <div class="stat-box">
+      <div class="stat-label">KỲ HẠCH TOÁN</div>
+      <div class="stat-value highlight">{{ expenseMonth }}</div>
+      <div class="stat-sub">Tháng xem hiện tại</div>
     </div>
-    <div style="flex: 1;">
-      <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">Tổng chi phí</div>
-      <div style="color: #e2e8f0; font-weight: bold; font-size: 18px;">{{ formatMoney(totalExpense) }}</div>
+    <div class="stat-box">
+      <div class="stat-label">TỔNG CHI PHÍ KỲ NÀY</div>
+      <div class="stat-value red">{{ formatMoney(totalExpense) }}</div>
+      <div class="stat-sub">{{ expenses.length }} khoản chi được ghi nhận</div>
     </div>
-    <div style="flex: 1;">
-      <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">Số khoản mục</div>
-      <div style="color: #e2e8f0; font-weight: bold; font-size: 18px;">{{ expenses.length }}</div>
+    <div class="stat-box">
+      <div class="stat-label">CHI PHÍ TRUNG BÌNH/THÁNG</div>
+      <div class="stat-value blue">{{ formatMoney(averageMonthlyExpense) }}</div>
+      <div class="stat-sub">Tính trên lịch sử hạch toán</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">CHI PHÍ LỚN NHẤT KỲ NÀY</div>
+      <div class="stat-value orange">{{ topCategory?.name || 'Chưa có' }}</div>
+      <div class="stat-sub" *ngIf="topCategory">{{ formatMoney(topCategory.amount) }} ({{ getCategoryPercentage(topCategory.amount) }}%)</div>
+      <div class="stat-sub" *ngIf="!topCategory">Không có chi phí</div>
     </div>
   </div>
 
-  <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-      <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Cơ cấu chi phí</h3>
-      <div style="height: 250px;"><canvas id="chartExpense"></canvas></div>
-      <div *ngIf="expenseBreakdown.length === 0" style="text-align: center; color: #94a3b8; padding: 20px;">Không có dữ liệu</div>
+  <!-- Charts Row -->
+  <div class="expense-charts-row">
+    <!-- Bar Chart: Monthly Comparison -->
+    <div class="chart-card flex-2">
+      <div class="chart-card-header">
+        <div>
+          <h3>So sánh chi phí giữa các tháng</h3>
+          <span class="chart-subtitle">Bấm vào từng cột để xem hạch toán tháng tương ứng</span>
+        </div>
+        <span class="badge-tag"><i class="pi pi-chart-bar"></i> Biểu đồ cột</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="chartMonthlyExpenseBar"></canvas>
+      </div>
+      <div *ngIf="!monthlyExpenseData.length" class="empty-chart">
+        Chưa có dữ liệu so sánh các tháng
+      </div>
     </div>
-    <div style="flex: 2; min-width: 400px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-      <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Breakdown theo danh mục</h3>
-      <table style="width: 100%; border-collapse: collapse; text-align: left;">
+
+    <!-- Doughnut Chart: Category Structure -->
+    <div class="chart-card flex-1">
+      <div class="chart-card-header">
+        <div>
+          <h3>Cơ cấu chi phí kỳ này</h3>
+          <span class="chart-subtitle">Tỷ trọng các nhóm chi phí</span>
+        </div>
+        <span class="badge-tag"><i class="pi pi-chart-pie"></i> Doughnut</span>
+      </div>
+      <div class="chart-container doughnut-wrap">
+        <canvas id="chartExpenseDonut"></canvas>
+      </div>
+      <div class="expense-donut-legend" *ngIf="expenseBreakdown.length">
+        <div class="legend-chip" *ngFor="let item of expenseBreakdown.slice(0, 5); let i = index">
+          <span class="chip-dot" [style.background-color]="getCategoryColor(i)"></span>
+          <span class="chip-name">{{ item.name }}:</span>
+          <strong class="chip-val">{{ getCategoryPercentage(item.amount) }}%</strong>
+        </div>
+      </div>
+      <div *ngIf="!expenseBreakdown.length" class="empty-chart">
+        Không có dữ liệu cơ cấu trong kỳ
+      </div>
+    </div>
+  </div>
+
+  <!-- Tables Section -->
+  <div class="expense-tables-section">
+    <div class="tables-header">
+      <div class="tab-buttons">
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeDetailTab === 'category'" 
+          (click)="activeDetailTab = 'category'">
+          <i class="pi pi-list"></i> Breakdown theo danh mục ({{ expenseBreakdown.length }})
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeDetailTab === 'items'" 
+          (click)="activeDetailTab = 'items'">
+          <i class="pi pi-file-edit"></i> Danh sách phiếu chi ({{ expenses.length }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab 1: Category Breakdown -->
+    <div *ngIf="activeDetailTab === 'category'" class="table-container">
+      <table class="expense-table">
         <thead>
-          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-            <th style="padding: 12px; color: #94a3b8; font-size: 12px; font-weight: 600;">DANH MỤC</th>
-            <th style="padding: 12px; color: #94a3b8; font-size: 12px; font-weight: 600;">SỐ TIỀN</th>
+          <tr>
+            <th>STT</th>
+            <th>DANH MỤC CHI PHÍ</th>
+            <th>SỐ TIỀN</th>
+            <th>TỶ TRỌNG</th>
+            <th>THANH TỶ TRỌNG</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of expenseBreakdown" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <td style="padding: 12px; color: #e2e8f0;">{{ item.name }}</td>
-            <td style="padding: 12px; color: #34d399;">{{ formatMoney(item.amount) }}</td>
+          <tr *ngFor="let item of expenseBreakdown; let i = index">
+            <td class="stt-cell">{{ i + 1 }}</td>
+            <td class="cat-name"><i class="pi pi-folder"></i> {{ item.name }}</td>
+            <td class="amount-cell">{{ formatMoney(item.amount) }}</td>
+            <td class="percentage-cell">{{ getCategoryPercentage(item.amount) }}%</td>
+            <td class="bar-cell">
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="getCategoryPercentage(item.amount)"></div>
+              </div>
+            </td>
           </tr>
           <tr *ngIf="expenseBreakdown.length === 0">
-            <td colspan="2" style="padding: 24px; text-align: center; color: #94a3b8;">Không có dữ liệu chi phí trong kỳ</td>
+            <td colspan="5" class="empty-row">Không có dữ liệu chi phí trong kỳ xem</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tab 2: Itemized Expenses List -->
+    <div *ngIf="activeDetailTab === 'items'" class="table-container">
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th>NGÀY HẠCH TOÁN</th>
+            <th>TIÊU ĐỀ KHOẢN CHI</th>
+            <th>DANH MỤC</th>
+            <th>SỐ TIỀN</th>
+            <th>GHI CHÚ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let exp of expenses">
+            <td class="date-cell">{{ exp.expenseDate | date:'dd/MM/yyyy' }}</td>
+            <td class="title-cell font-weight-bold">{{ exp.title }}</td>
+            <td>
+              <span class="cat-tag">{{ exp.expenseCategory?.name || 'Khác' }}</span>
+            </td>
+            <td class="amount-cell red-text">{{ formatMoney(exp.amount) }}</td>
+            <td class="note-cell">{{ exp.note || '-' }}</td>
+          </tr>
+          <tr *ngIf="expenses.length === 0">
+            <td colspan="5" class="empty-row">Chưa có phiếu chi nào được nhập trong tháng này</td>
           </tr>
         </tbody>
       </table>

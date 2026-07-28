@@ -1,9 +1,86 @@
 <div class="revenue-panels">
-  <section class="panel panel-span-2"><div class="panel-head"><div><h2>Biểu đồ chính</h2><p class="endpoint">GET /revenue/monthly · GET /revenue/daily</p></div><div class="filter-buttons"><button type="button" class="filter-btn" [class.active]="isDaily" (click)="setMainView(true)">Hàng ngày</button><button type="button" class="filter-btn" [class.active]="!isDaily" (click)="setMainView(false)">Hàng tháng</button></div></div><div class="panel-body chart-panel" *ngIf="(isDaily ? dailyData.length : monthlyData.length) > 0"><div class="chart-wrap tall"><canvas id="chartMainDetailed"></canvas></div></div><div class="panel-empty" *ngIf="(isDaily ? dailyData.length : monthlyData.length) === 0">Chưa có dữ liệu</div></section>
-  <section class="panel"><div class="panel-head"><div><h2>Theo giờ</h2><p class="endpoint">GET /revenue/by-hour?days={{ queryDays.hour }}</p></div></div><div class="panel-body chart-panel" *ngIf="byHourData.length > 0"><div class="chart-wrap"><canvas id="chartByHourDetailed"></canvas></div></div><div class="panel-empty" *ngIf="byHourData.length === 0">Chưa có dữ liệu</div></section>
-  <section class="panel"><div class="panel-head"><div><h2>Theo thứ</h2><p class="endpoint">GET /revenue/by-day-of-week?days={{ queryDays.dow }}</p></div></div><div class="panel-body chart-panel" *ngIf="byDayOfWeekData.length > 0"><div class="chart-wrap"><canvas id="chartByDowDetailed"></canvas></div></div><div class="panel-empty" *ngIf="byDayOfWeekData.length === 0">Chưa có dữ liệu</div></section>
-  <section class="panel"><div class="panel-head"><div><h2>Theo số khách</h2><p class="endpoint">GET /revenue/by-party-size?days={{ queryDays.party }}</p></div></div><div class="panel-body chart-panel" *ngIf="byPartySizeData.length > 0"><div class="chart-wrap"><canvas id="chartPartyDetailed"></canvas></div></div><div class="panel-empty" *ngIf="byPartySizeData.length === 0">Chưa có dữ liệu</div></section>
-  <section class="panel panel-span-2"><div class="panel-head"><div><h2>Bán chạy</h2><p class="endpoint">GET /revenue/best-sellers?days={{ queryDays.best }}&amp;top=10</p></div></div><div class="panel-body chart-panel" *ngIf="bestSellersData.length > 0"><div class="chart-wrap wide"><canvas id="chartBestDetailed"></canvas></div></div><div class="panel-empty" *ngIf="bestSellersData.length === 0">Chưa có dữ liệu</div></section>
-  <section class="panel panel-span-2"><div class="panel-head"><div><h2>Dự báo (Web API)</h2><p class="endpoint">GET /revenue/forecast (history) + POST /revenue/ai-predict × {{ queryDays.forecast }}</p></div></div><div class="panel-body chart-panel" *ngIf="forecastData?.historicalData?.length || forecastData?.forecast?.length"><div class="chart-wrap tall"><canvas id="chartForecastDetailed"></canvas></div></div><div class="panel-empty" *ngIf="!forecastData?.historicalData?.length && !forecastData?.forecast?.length">Chưa có dữ liệu</div></section>
-  <section class="panel panel-span-2 turnover-panel"><div class="panel-head"><div><h2>Luân chuyển bàn</h2><p class="endpoint">GET /revenue/table-turnover?days={{ queryDays.turnover }}</p></div></div><div class="panel-body" *ngIf="tableTurnover"><div class="turnover-kpis"><div class="kpi"><span class="kpi-label">Trung bình</span><span class="kpi-value">{{ formatMinutes(tableTurnover.averageTurnoverMinutes) }}</span></div><div class="kpi"><span class="kpi-label">Ngắn nhất</span><span class="kpi-value">{{ formatMinutes(tableTurnover.minTurnoverMinutes) }}</span></div><div class="kpi"><span class="kpi-label">Dài nhất</span><span class="kpi-value">{{ formatMinutes(tableTurnover.maxTurnoverMinutes) }}</span></div></div><div class="table-wrap" *ngIf="turnoverDetails().length > 0"><table class="data-table"><thead><tr><th>Bàn</th><th>Vào</th><th>Ra</th><th>Phút</th><th>Khách</th></tr></thead><tbody><tr *ngFor="let row of turnoverDetails()"><td>{{ row.tableName }}</td><td>{{ row.checkIn | date:'dd/MM HH:mm' }}</td><td>{{ row.checkOut | date:'dd/MM HH:mm' }}</td><td>{{ formatNumber(row.durationMinutes) }}</td><td>{{ row.partySize }}</td></tr></tbody></table></div><div class="panel-empty subtle" *ngIf="turnoverDetails().length === 0">Không có chi tiết bàn trong khoảng thời gian này</div></div><div class="panel-empty" *ngIf="!tableTurnover">Không tải được dữ liệu</div></section>
+  <!-- Biểu đồ chính doanh thu -->
+  <section class="panel panel-span-2">
+    <div class="panel-head">
+      <div>
+        <h2>Biểu đồ doanh thu chính</h2>
+        <p class="endpoint">Báo cáo doanh thu theo ngày & tháng</p>
+      </div>
+      <div class="filter-buttons">
+        <button type="button" class="filter-btn" [class.active]="isDaily" (click)="setMainView(true)">Hàng ngày</button>
+        <button type="button" class="filter-btn" [class.active]="!isDaily" (click)="setMainView(false)">Hàng tháng</button>
+      </div>
+    </div>
+    <div class="panel-body chart-panel" *ngIf="(isDaily ? dailyData.length : monthlyData.length) > 0">
+      <div class="chart-wrap tall">
+        <canvas id="chartMainDetailed"></canvas>
+      </div>
+    </div>
+    <div class="panel-empty" *ngIf="(isDaily ? dailyData.length : monthlyData.length) === 0">Chưa có dữ liệu</div>
+  </section>
+
+  <!-- Món bán chạy nhất -->
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Top món bán chạy</h2>
+        <p class="endpoint">Xếp hạng theo số lượng bán</p>
+      </div>
+    </div>
+    <div class="panel-body chart-panel" *ngIf="bestSellersData.length > 0">
+      <div class="chart-wrap tall">
+        <canvas id="chartBestDetailed"></canvas>
+      </div>
+    </div>
+    <div class="panel-empty" *ngIf="bestSellersData.length === 0">Chưa có dữ liệu</div>
+  </section>
+
+  <!-- Dự báo Doanh thu -->
+  <section class="panel panel-span-2">
+    <div class="panel-head">
+      <div>
+        <h2>Dự báo xu hướng doanh thu</h2>
+        <p class="endpoint">So sánh chuỗi doanh thu thực tế và mô hình AI dự báo</p>
+      </div>
+    </div>
+    <div class="panel-body chart-panel" *ngIf="forecastData?.historicalData?.length || forecastData?.forecast?.length || aiForecastData?.length">
+      <div class="chart-wrap tall">
+        <canvas id="chartForecastDetailed"></canvas>
+      </div>
+    </div>
+    <div class="panel-empty" *ngIf="!forecastData?.historicalData?.length && !forecastData?.forecast?.length && !aiForecastData?.length">Chưa có dữ liệu</div>
+  </section>
+
+  <!-- Luân chuyển bàn -->
+  <section class="panel turnover-panel">
+    <div class="panel-head">
+      <div>
+        <h2>Luân chuyển bàn & Phục vụ</h2>
+        <p class="endpoint">Thời gian trung bình phục vụ mỗi lượt bàn</p>
+      </div>
+    </div>
+    <div class="panel-body" *ngIf="tableTurnover">
+      <div class="turnover-kpis">
+        <div class="kpi"><span class="kpi-label">Trung bình</span><span class="kpi-value">{{ formatMinutes(tableTurnover.averageTurnoverMinutes) }}</span></div>
+        <div class="kpi"><span class="kpi-label">Nhanh nhất</span><span class="kpi-value">{{ formatMinutes(tableTurnover.minTurnoverMinutes) }}</span></div>
+        <div class="kpi"><span class="kpi-label">Lâu nhất</span><span class="kpi-value">{{ formatMinutes(tableTurnover.maxTurnoverMinutes) }}</span></div>
+      </div>
+      <div class="table-wrap" *ngIf="turnoverDetails().length > 0">
+        <table class="data-table">
+          <thead><tr><th>Bàn</th><th>Vào</th><th>Ra</th><th>Thời gian</th><th>Khách</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let row of turnoverDetails()">
+              <td>{{ row.tableName }}</td>
+              <td>{{ row.checkIn | date:'dd/MM HH:mm' }}</td>
+              <td>{{ row.checkOut | date:'dd/MM HH:mm' }}</td>
+              <td>{{ formatNumber(row.durationMinutes) }} phút</td>
+              <td>{{ row.partySize }} khách</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-empty subtle" *ngIf="turnoverDetails().length === 0">Không có chi tiết bàn trong khoảng thời gian này</div>
+    </div>
+    <div class="panel-empty" *ngIf="!tableTurnover">Không tải được dữ liệu</div>
+  </section>
 </div>

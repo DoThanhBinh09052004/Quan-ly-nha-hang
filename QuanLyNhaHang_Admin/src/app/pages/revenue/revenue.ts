@@ -379,6 +379,7 @@ export class RevenueComponent implements OnInit {
       this.kpiProfit = latest?.netProfit ?? 0;
       this.kpiMargin = latest?.netProfitMargin ?? 0;
     }
+    this.updateChartInputs();
   }
 
   setMainView(isDaily: boolean) {
@@ -393,49 +394,45 @@ export class RevenueComponent implements OnInit {
     return this.categoryData.reduce((total, item) => total + Number(item?.totalRevenue ?? 0), 0);
   }
 
-  get chartLabels(): string[] {
-    if (this.activeTab === 'gross' && this.grossReport) {
-      const data = this.grossReport[this.reportPeriod] || [];
-      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
-      const displayed = data.length > limit ? data.slice(-limit) : data;
-      return displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
-    } else if (this.activeTab === 'net' && this.netReport) {
-      const data = this.netReport[this.reportPeriod] || [];
-      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
-      const displayed = data.length > limit ? data.slice(-limit) : data;
-      return displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
-    }
-    return [];
-  }
+  monthlyExpenseData: Array<{ label: string; yearMonth: string; amount: number }> = [];
 
-  get chartRevenueData(): number[] {
-    if (this.activeTab === 'gross' && this.grossReport) {
-      const data = this.grossReport[this.reportPeriod] || [];
-      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
-      const displayed = data.length > limit ? data.slice(-limit) : data;
-      return displayed.map(i => i.totalRevenue ?? 0);
-    } else if (this.activeTab === 'net' && this.netReport) {
-      const data = this.netReport[this.reportPeriod] || [];
-      const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
-      const displayed = data.length > limit ? data.slice(-limit) : data;
-      return displayed.map(i => i.totalRevenue ?? 0);
-    }
-    return [];
-  }
+  chartLabels: string[] = [];
+  chartRevenueData: number[] = [];
+  chartProfitData: number[] = [];
 
-  get chartProfitData(): number[] {
+  private updateChartInputs() {
     if (this.activeTab === 'gross' && this.grossReport) {
       const data = this.grossReport[this.reportPeriod] || [];
       const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
       const displayed = data.length > limit ? data.slice(-limit) : data;
-      return displayed.map(i => i.grossProfit ?? 0);
+      this.chartLabels = displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
+      this.chartRevenueData = displayed.map(i => i.totalRevenue ?? 0);
+      this.chartProfitData = displayed.map(i => i.grossProfit ?? 0);
     } else if (this.activeTab === 'net' && this.netReport) {
       const data = this.netReport[this.reportPeriod] || [];
       const limit = this.reportPeriod === 'daily' ? 30 : (this.reportPeriod === 'monthly' ? 12 : 5);
       const displayed = data.length > limit ? data.slice(-limit) : data;
-      return displayed.map(i => i.netProfit ?? 0);
+      this.chartLabels = displayed.map(i => this.reportPeriod === 'daily' ? `${i.day}/${i.month}` : (this.reportPeriod === 'monthly' ? `T${i.month}/${i.year}` : `${i.year}`));
+      this.chartRevenueData = displayed.map(i => i.totalRevenue ?? 0);
+      this.chartProfitData = displayed.map(i => i.netProfit ?? 0);
+    } else {
+      this.chartLabels = [];
+      this.chartRevenueData = [];
+      this.chartProfitData = [];
     }
-    return [];
+    
+    if (this.netReport?.monthly && this.netReport.monthly.length > 0) {
+      this.monthlyExpenseData = this.netReport.monthly.map((item) => {
+        const monthStr = String(item.month || 1).padStart(2, '0');
+        return {
+          label: `T${item.month}/${item.year}`,
+          yearMonth: `${item.year}-${monthStr}`,
+          amount: item.operatingExpense ?? 0
+        };
+      });
+    } else {
+      this.monthlyExpenseData = [];
+    }
   }
 
   // ===== Chatbot methods =====

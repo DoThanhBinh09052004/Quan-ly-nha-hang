@@ -22,11 +22,20 @@ export class RevenueKpiComponent {
     this.periodChange.emit(period);
   }
 
+  formatMargin(value: number): string {
+    if (value == null || Number.isNaN(value)) return '0';
+    return (Math.round(value * 10) / 10).toFixed(1);
+  }
+
   formatMoney(value: number): string {
     if (value == null || value === 0) return '0 ₫';
-    if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1) + ' tỷ ₫';
-    if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + ' triệu ₫';
-    if (value >= 1_000) return (value / 1_000).toFixed(1) + ' nghìn ₫';
-    return value.toLocaleString('vi-VN') + ' ₫';
+    const isNegative = value < 0;
+    const absVal = Math.abs(value);
+    let res = '';
+    if (absVal >= 1_000_000_000) res = (absVal / 1_000_000_000).toFixed(1) + ' tỷ ₫';
+    else if (absVal >= 1_000_000) res = (absVal / 1_000_000).toFixed(1) + ' triệu ₫';
+    else if (absVal >= 1_000) res = (absVal / 1_000).toFixed(1) + ' nghìn ₫';
+    else res = absVal.toLocaleString('vi-VN') + ' ₫';
+    return isNegative ? `-${res}` : res;
   }
 }

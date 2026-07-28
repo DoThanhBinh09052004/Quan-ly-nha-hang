@@ -84,7 +84,10 @@ export class RevenueAnalysisComponent implements OnChanges, OnDestroy {
         datasets: [{
           data,
           backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'],
-          borderWidth: 0
+          hoverBackgroundColor: ['#60a5fa', '#a78bfa', '#34d399', '#fbbf24', '#f87171'],
+          borderWidth: 2,
+          borderColor: '#1e293b',
+          hoverOffset: 6
         }]
       },
       options: {
@@ -94,11 +97,21 @@ export class RevenueAnalysisComponent implements OnChanges, OnDestroy {
         plugins: {
           legend: { 
             position: 'right',
-            labels: { color: '#f0f6fc', font: { size: 11 }, boxWidth: 12 }
+            labels: { color: '#f0f6fc', font: { size: 11, weight: 600 }, boxWidth: 12 }
           },
           tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleColor: '#e2e8f0',
+            bodyColor: '#60a5fa',
+            borderColor: 'rgba(255, 255, 255, 0.15)',
+            borderWidth: 1,
+            padding: 10,
             callbacks: {
-              label: (c: any) => ` ${c.label}: ${this.formatMoney(c.parsed)}`
+              label: (c: any) => {
+                const val = c.parsed !== undefined ? c.parsed : c.raw;
+                return ` ${c.label}: ${this.formatMoney(val)}`;
+              }
             }
           }
         }

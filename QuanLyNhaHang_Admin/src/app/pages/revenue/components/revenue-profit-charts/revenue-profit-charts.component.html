@@ -1,14 +1,49 @@
-<div style="display: flex; gap: 24px; flex-wrap: wrap;">
-  <div style="flex: 2; min-width: 400px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-    <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Doanh thu & lợi nhuận</h3>
-    <div style="height: 300px;"><canvas id="chartMain"></canvas></div>
+<div class="profit-charts-grid">
+  <!-- Bar + Line Chart: Doanh thu & Lợi nhuận -->
+  <div class="chart-card-box flex-2">
+    <div class="card-top-bar">
+      <div>
+        <h3 class="chart-title"><i class="pi pi-chart-bar icon-blue"></i> Biểu đồ Doanh thu & Lợi nhuận</h3>
+        <p class="chart-sub">So sánh tương quan giữa tổng doanh thu và lợi nhuận thực tế</p>
+      </div>
+      <div class="custom-legend">
+        <span class="legend-item"><i class="dot bar-dot"></i> Doanh thu (Cột xanh)</span>
+        <span class="legend-item"><i class="dot line-dot"></i> Lợi nhuận (Đường xanh lá)</span>
+      </div>
+    </div>
+    <div class="chart-wrap-container">
+      <canvas id="chartMain"></canvas>
+    </div>
   </div>
-  <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-    <h3 style="text-align: center; color: #e2e8f0; margin-top: 0;">Tỷ suất lợi nhuận</h3>
-    <div style="height: 300px; position: relative;">
+
+  <!-- Doughnut Chart: Tỷ suất lợi nhuận -->
+  <div class="chart-card-box flex-1">
+    <div class="card-top-bar">
+      <div>
+        <h3 class="chart-title"><i class="pi pi-chart-pie icon-cyan"></i> Tỷ suất lợi nhuận</h3>
+        <p class="chart-sub">Phân rã tỷ trọng Biên lợi nhuận & Chi phí</p>
+      </div>
+    </div>
+
+    <div class="chart-wrap-container donut-container">
       <canvas id="chartMargin"></canvas>
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-        <div style="font-size: 24px; font-weight: bold; color: #e2e8f0;">{{ kpiMargin }}%</div>
+      <div class="donut-center-badge">
+        <div class="margin-value">{{ formatMargin(kpiMargin) }}%</div>
+        <div class="margin-label">Biên lợi nhuận</div>
+      </div>
+    </div>
+
+    <!-- Color Legend Footer -->
+    <div class="donut-legend-footer">
+      <div class="legend-pill margin-pill">
+        <span class="color-indicator blue-indicator"></span>
+        <span class="pill-label">Biên lợi nhuận:</span>
+        <strong class="pill-val">{{ formatMargin(kpiMargin) }}%</strong>
+      </div>
+      <div class="legend-pill cost-pill">
+        <span class="color-indicator dark-indicator"></span>
+        <span class="pill-label">Tổng chi phí:</span>
+        <strong class="pill-val">{{ formatMargin(100 - kpiMargin) }}%</strong>
       </div>
     </div>
   </div>
