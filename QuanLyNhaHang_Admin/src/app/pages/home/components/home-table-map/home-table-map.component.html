@@ -1,0 +1,29 @@
+<div class="management-card">
+  <div class="card-header-bar">
+    <div>
+      <h2 class="card-title"><i class="pi pi-th-large icon-blue"></i> Trạng thái bàn thực tế</h2>
+      <p class="card-subtitle">Sơ đồ bàn & tình trạng phục vụ hiện tại</p>
+    </div>
+    <button type="button" class="btn-action" (click)="onViewAllClick()">
+      Sơ đồ chi tiết <i class="pi pi-arrow-right"></i>
+    </button>
+  </div>
+
+  <div class="tables-grid" *ngIf="guestTables.length > 0">
+    <div 
+      *ngFor="let table of guestTables.slice(0, 12)" 
+      class="table-item" 
+      [ngClass]="getTableStatusClass(table)">
+      <div class="table-name">{{ table.name }}</div>
+      <div class="table-capacity"><i class="pi pi-users"></i> {{ table.capacity }} chỗ</div>
+      <span class="table-badge">{{ getTableStatusText(table) }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="guestTables.length === 0" class="empty-state">
+    <div class="empty-content">
+      <i class="pi pi-inbox empty-icon"></i>
+      <h3>Chưa có dữ liệu bàn</h3>
+    </div>
+  </div>
+</div>

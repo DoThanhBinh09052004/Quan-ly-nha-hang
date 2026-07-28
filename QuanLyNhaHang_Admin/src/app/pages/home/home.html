@@ -1,0 +1,65 @@
+<div class="management-container">
+  <div *ngIf="loadError" class="inline-error" style="color: #f87171; padding: 12px; background: rgba(248,113,113,0.1); border-radius: 8px; margin-bottom: 20px;">
+    {{ loadError }}
+  </div>
+
+  <div *ngIf="loading" class="empty-state">
+    <div class="empty-content">
+      <i class="pi pi-spin pi-spinner empty-icon"></i>
+      <h3>Đang tải thông tin tổng quan...</h3>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- Hero / KPI section -->
+    <app-home-hero
+      [businessOverview]="businessOverview"
+      [totalTables]="totalTablesCount"
+      [occupiedTables]="occupiedTablesCount"
+      [lowStockCount]="lowStockIngredients.length"
+      [reservationCount]="reservationCount"
+      [currentUser]="currentUser">
+    </app-home-hero>
+
+    <!-- Main Grid Dashboard -->
+    <div class="dashboard-grid">
+      <!-- Left Column (Tables & Orders) -->
+      <div class="grid-column flex-2">
+        <app-home-table-map
+          [guestTables]="guestTables"
+          (viewAll)="navigateTo('/guesttable')">
+        </app-home-table-map>
+
+        <app-home-recent-orders
+          [recentOrders]="recentOrders"
+          (viewAll)="navigateTo('/order')">
+        </app-home-recent-orders>
+
+        <app-home-revenue-chart
+          [dailyRevenue]="dailyRevenue"
+          [forecastData]="forecastData"
+          (viewAll)="navigateTo('/revenue-chart')">
+        </app-home-revenue-chart>
+      </div>
+
+      <!-- Right Column (Kitchen, Alerts, Best Sellers) -->
+      <div class="grid-column flex-1">
+        <app-home-kitchen-status
+          [kitchenDashboard]="kitchenDashboard"
+          [pendingItems]="pendingKitchenItems"
+          (viewKitchen)="navigateTo('/kitchen')">
+        </app-home-kitchen-status>
+
+        <app-home-ingredient-alerts
+          [lowStockIngredients]="lowStockIngredients"
+          (viewIngredients)="navigateTo('/ingredient')">
+        </app-home-ingredient-alerts>
+
+        <app-home-best-sellers
+          [bestSellers]="bestSellers"
+          (viewAll)="navigateTo('/items')">
+        </app-home-best-sellers>
+      </div>
+    </div>
+  </ng-container>
+</div>

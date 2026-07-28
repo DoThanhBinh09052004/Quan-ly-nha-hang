@@ -1,0 +1,22 @@
+<div class="management-card">
+  <div class="card-header-bar">
+    <div>
+      <h2 class="card-title"><i class="pi pi-line-chart icon-cyan"></i> Xu hướng doanh thu 7 ngày qua</h2>
+      <p class="card-subtitle">Biểu đồ doanh thu thực tế theo ngày</p>
+    </div>
+    <button type="button" class="btn-action" (click)="onViewAllClick()">
+      Báo cáo Doanh thu <i class="pi pi-arrow-right"></i>
+    </button>
+  </div>
+
+  <div class="chart-container" *ngIf="dailyRevenue.length > 0">
+    <canvas id="homeChartRevenueLine"></canvas>
+  </div>
+
+  <div *ngIf="dailyRevenue.length === 0" class="empty-state">
+    <div class="empty-content">
+      <i class="pi pi-chart-line empty-icon"></i>
+      <h3>Chưa có dữ liệu xu hướng</h3>
+    </div>
+  </div>
+</div>

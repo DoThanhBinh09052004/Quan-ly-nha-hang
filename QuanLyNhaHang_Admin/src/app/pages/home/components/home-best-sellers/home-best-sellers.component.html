@@ -1,0 +1,22 @@
+<div class="management-card">
+  <div class="card-header-bar">
+    <div>
+      <h2 class="card-title"><i class="pi pi-trophy icon-yellow"></i> Top món ăn bán chạy</h2>
+      <p class="card-subtitle">Món ăn được ưa chuộng nhất 7 ngày gần đây</p>
+    </div>
+    <button type="button" class="btn-action" (click)="onViewAllClick()">
+      Danh mục món <i class="pi pi-arrow-right"></i>
+    </button>
+  </div>
+
+  <div class="chart-container" *ngIf="bestSellers.length > 0">
+    <canvas id="homeChartBestSellers"></canvas>
+  </div>
+
+  <div *ngIf="bestSellers.length === 0" class="empty-state">
+    <div class="empty-content">
+      <i class="pi pi-chart-bar empty-icon"></i>
+      <h3>Chưa có dữ liệu món bán chạy</h3>
+    </div>
+  </div>
+</div>

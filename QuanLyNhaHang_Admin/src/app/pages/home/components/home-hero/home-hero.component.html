@@ -1,0 +1,55 @@
+<div class="hero-wrapper">
+  <div class="hero-welcome">
+    <div class="welcome-text">
+      <h1>{{ greeting }}, <span class="user-name">{{ currentUser?.fullName || currentUser?.username || 'Quản lý' }}</span> 👋</h1>
+      <p class="subtitle">Đây là tổng quan tình hình kinh doanh nhà hàng hôm nay, {{ today | date:'dd/MM/yyyy' }}.</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <!-- Doanh thu hôm nay -->
+    <div class="stat-card stat-green">
+      <i class="pi pi-wallet"></i>
+      <div class="stat-info">
+        <span class="stat-label">Doanh thu hôm nay</span>
+        <span class="stat-value">{{ formatMoney(businessOverview?.totalRevenue) }}</span>
+      </div>
+    </div>
+
+    <!-- Đơn hàng hôm nay -->
+    <div class="stat-card stat-blue">
+      <i class="pi pi-shopping-cart"></i>
+      <div class="stat-info">
+        <span class="stat-label">Tổng đơn hôm nay</span>
+        <span class="stat-value">{{ businessOverview?.totalOrders || 0 }} đơn</span>
+      </div>
+    </div>
+
+    <!-- Bàn đang phục vụ -->
+    <div class="stat-card stat-orange">
+      <i class="pi pi-users"></i>
+      <div class="stat-info">
+        <span class="stat-label">Bàn đang phục vụ</span>
+        <span class="stat-value">{{ occupiedTables }} / {{ totalTables }} bàn</span>
+      </div>
+    </div>
+
+    <!-- Đặt bàn hôm nay -->
+    <div class="stat-card stat-blue">
+      <i class="pi pi-calendar"></i>
+      <div class="stat-info">
+        <span class="stat-label">Lịch đặt bàn</span>
+        <span class="stat-value">{{ reservationCount }} lượt</span>
+      </div>
+    </div>
+
+    <!-- Cảnh báo nguyên liệu -->
+    <div class="stat-card" [ngClass]="lowStockCount > 0 ? 'stat-red' : 'stat-green'">
+      <i class="pi" [ngClass]="lowStockCount > 0 ? 'pi-exclamation-triangle' : 'pi-check-circle'"></i>
+      <div class="stat-info">
+        <span class="stat-label">Cảnh báo nguyên liệu</span>
+        <span class="stat-value" [class.red-text]="lowStockCount > 0">{{ lowStockCount }} món sắp hết</span>
+      </div>
+    </div>
+  </div>
+</div>

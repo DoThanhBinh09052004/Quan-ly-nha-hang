@@ -1,0 +1,27 @@
+@import '../_shared.scss';
+
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (min-width: 992px) {
+    flex-direction: row;
+  }
+}
+
+.grid-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &.flex-2 {
+    flex: 3;
+    min-width: 0;
+  }
+
+  &.flex-1 {
+    flex: 2;
+    min-width: 0;
+  }
+}

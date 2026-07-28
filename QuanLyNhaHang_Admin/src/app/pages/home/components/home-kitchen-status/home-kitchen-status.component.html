@@ -1,0 +1,47 @@
+<div class="management-card">
+  <div class="card-header-bar">
+    <div>
+      <h2 class="card-title"><i class="pi pi-bell icon-orange"></i> Trạng thái nhà bếp</h2>
+      <p class="card-subtitle">Tiến độ chế biến & danh sách món đang chờ</p>
+    </div>
+    <button type="button" class="btn-action" (click)="onViewKitchenClick()">
+      Màn hình Bếp <i class="pi pi-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- Stat Chips -->
+  <div class="kitchen-counter-row">
+    <div class="counter-chip orange">
+      <span class="count-val">{{ kitchenDashboard?.pending || pendingItems.length || 0 }}</span>
+      <span class="count-lbl">Chờ làm</span>
+    </div>
+    <div class="counter-chip blue">
+      <span class="count-val">{{ kitchenDashboard?.processing || 0 }}</span>
+      <span class="count-lbl">Đang nấu</span>
+    </div>
+    <div class="counter-chip green">
+      <span class="count-val">{{ kitchenDashboard?.completed || 0 }}</span>
+      <span class="count-lbl">Đã xong</span>
+    </div>
+    <div class="counter-chip gray">
+      <span class="count-val">{{ kitchenDashboard?.cancelled || 0 }}</span>
+      <span class="count-lbl">Hủy</span>
+    </div>
+  </div>
+
+  <!-- Pending Items List -->
+  <div class="pending-list" *ngIf="pendingItems.length > 0">
+    <div class="list-title">Món đang chờ ưu tiên:</div>
+    <div class="item-row" *ngFor="let item of pendingItems.slice(0, 4)">
+      <div class="item-info">
+        <span class="item-name">{{ item.name }}</span>
+        <span class="item-table"><i class="pi pi-user"></i> {{ item.tableName || ('Bàn ' + item.guestTableId) || 'Đơn' }}</span>
+      </div>
+      <div class="item-qty">x{{ item.quantity }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="pendingItems.length === 0 && (!kitchenDashboard || kitchenDashboard.pending === 0)" class="kitchen-empty">
+    <i class="pi pi-check-circle"></i> Không có món nào đang chờ trong bếp
+  </div>
+</div>

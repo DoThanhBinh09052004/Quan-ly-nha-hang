@@ -1,0 +1,35 @@
+<div class="management-card">
+  <div class="card-header-bar">
+    <div>
+      <h2 class="card-title"><i class="pi pi-exclamation-triangle icon-red"></i> Cảnh báo kho nguyên liệu</h2>
+      <p class="card-subtitle">Các nguyên liệu chạm mức tối thiểu cần bổ sung</p>
+    </div>
+    <button type="button" class="btn-action" (click)="onViewIngredientsClick()">
+      Quản lý Kho <i class="pi pi-arrow-right"></i>
+    </button>
+  </div>
+
+  <div class="alert-list" *ngIf="lowStockIngredients.length > 0">
+    <div class="alert-item" *ngFor="let item of lowStockIngredients.slice(0, 5)">
+      <div class="item-head">
+        <span class="ing-name">{{ item.name }}</span>
+        <span class="ing-qty red-text">{{ item.stockQuantity }} / {{ item.minStock }} {{ item.unit }}</span>
+      </div>
+      <div class="progress-track">
+        <div 
+          class="progress-fill" 
+          [class.critical]="getStockPercentage(item) <= 30"
+          [style.width.%]="getStockPercentage(item)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="lowStockIngredients.length === 0" class="stock-ok">
+    <i class="pi pi-check-circle icon-ok"></i>
+    <div>
+      <div class="ok-title">Kho nguyên liệu ổn định</div>
+      <div class="ok-sub">Tất cả nguyên liệu đều đáp ứng trên định mức tối thiểu</div>
+    </div>
+  </div>
+</div>
