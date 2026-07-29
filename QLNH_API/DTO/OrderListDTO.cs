@@ -8,6 +8,7 @@ namespace QLNH_API.DTO
         public DateTime Updated { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal Discount { get; set; }
+        public int UsedPoint { get; set; }
         public decimal FinalPrice { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal ChangeAmount { get; set; }

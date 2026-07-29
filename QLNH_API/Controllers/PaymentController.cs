@@ -406,7 +406,8 @@ namespace QLNH_API.Controllers
                     }
                 }
 
-                if (order.GuestId.HasValue && order.Guest != null)
+                // Đơn đã đổi điểm không được tích thêm điểm khi thanh toán.
+                if (order.GuestId.HasValue && order.Guest != null && order.UsedPoint == 0)
                 {
                     var pointsEarned = (int)(order.FinalPrice / 10000m);
                     if (pointsEarned < 1 && order.FinalPrice > 0)

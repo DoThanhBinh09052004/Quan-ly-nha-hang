@@ -9,6 +9,7 @@
         public DateTime Updated { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal Discount { get; set; }
+        public int UsedPoint { get; set; }
         public decimal FinalPrice { get; set; }
         public decimal ActualCost { get; set; }
         public decimal ActualProfit { get; set; }

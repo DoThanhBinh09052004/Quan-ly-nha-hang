@@ -18,13 +18,15 @@ namespace QLNH_API.Controllers
         private readonly StatusResolver _statusResolver;
         private readonly IngredientInventoryService _ingredientInventoryService;
         private readonly IMapper _mapper;
+        private readonly OrderPointsService _orderPointsService;
 
-        public OrderItemController(ApplicationDbcontext context, StatusResolver statusResolver, IngredientInventoryService ingredientInventoryService, IMapper mapper)
+        public OrderItemController(ApplicationDbcontext context, StatusResolver statusResolver, IngredientInventoryService ingredientInventoryService, IMapper mapper, OrderPointsService orderPointsService)
         {
             _context = context;
             _statusResolver = statusResolver;
             _ingredientInventoryService = ingredientInventoryService;
             _mapper = mapper;
+            _orderPointsService = orderPointsService;
         }
 
         [HttpGet]
@@ -234,7 +236,7 @@ namespace QLNH_API.Controllers
 
         // Xóa OrderItem (soft delete)
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<IActionResult> DeleteOrderItem(int id)
         {
@@ -265,7 +267,7 @@ namespace QLNH_API.Controllers
 
         // Xóa tất cả OrderItems theo OrderId
         [HttpDelete("order/{orderId}")]
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager, Service Staff")]
 
         public async Task<IActionResult> DeleteOrderItemsByOrderId(int orderId)
         {
@@ -465,6 +467,11 @@ namespace QLNH_API.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                if (newStatusId == cancelledStatusId && oldStatusId != cancelledStatusId)
+                {
+                    await RecalculateOrderFinancialsAsync(orderItem.OrderId);
+                }
+
                 try
                 {
                     await RecalculateOrderActualProfitAsync(orderItem.OrderId);
@@ -610,6 +617,28 @@ namespace QLNH_API.Controllers
             order.ActualCost = actualCost;
             order.ActualProfit = order.FinalPrice - actualCost;
             order.Updated = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task RecalculateOrderFinancialsAsync(int orderId)
+        {
+            var order = await _context.Order
+                .Include(o => o.OrderItems)
+                .Include(o => o.Guest)
+                .FirstOrDefaultAsync(o => o.Id == orderId && !o.Deleted);
+
+            if (order == null)
+                return;
+
+            var activeItems = order.OrderItems?
+                .Where(item => !item.Deleted && !item.Voided)
+                .ToList() ?? new List<OrderItem>();
+
+            var updatedTotal = activeItems.Sum(item => (decimal)item.SalePrice * item.Quantity);
+
+            order.TotalPrice = updatedTotal;
+            _orderPointsService.RepriceAfterTotalChange(order);
 
             await _context.SaveChangesAsync();
         }

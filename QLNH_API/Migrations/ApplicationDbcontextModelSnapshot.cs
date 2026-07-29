@@ -193,6 +193,9 @@ namespace QLNH_API.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("StatusManuallyOverridden")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<DateTime>("Updated")
                         .HasColumnType("datetime(6)");
 
@@ -413,6 +416,9 @@ namespace QLNH_API.Migrations
                     b.Property<int>("PartySize")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ReservationId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
@@ -426,6 +432,9 @@ namespace QLNH_API.Migrations
                     b.Property<int?>("UpdatedUserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("UsedPoint")
+                        .HasColumnType("int");
+
                     b.Property<bool>("Voided")
                         .HasColumnType("tinyint(1)");
 
@@ -436,6 +445,9 @@ namespace QLNH_API.Migrations
                     b.HasIndex("GuestId");
 
                     b.HasIndex("GuestTableId");
+
+                    b.HasIndex("ReservationId")
+                        .IsUnique();
 
                     b.HasIndex("StatusId");
 
@@ -501,6 +513,45 @@ namespace QLNH_API.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("orderitem", (string)null);
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.OrderItemIngredientAllocation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("ConsumedQuantity")
+                        .HasColumnType("double");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderItemId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("ReservedQuantity")
+                        .HasColumnType("double");
+
+                    b.Property<double>("ReturnedQuantity")
+                        .HasColumnType("double");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("OrderItemId", "IngredientId")
+                        .IsUnique();
+
+                    b.ToTable("orderitemingredientallocation", (string)null);
                 });
 
             modelBuilder.Entity("QLNH_API.Model.Payment", b =>
@@ -986,6 +1037,11 @@ namespace QLNH_API.Migrations
                         .HasForeignKey("GuestTableId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("QLNH_API.Model.Reservation", "Reservation")
+                        .WithOne("Order")
+                        .HasForeignKey("QLNH_API.Model.Order", "ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("QLNH_API.Model.Status", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -1001,6 +1057,8 @@ namespace QLNH_API.Migrations
                     b.Navigation("Guest");
 
                     b.Navigation("GuestTable");
+
+                    b.Navigation("Reservation");
 
                     b.Navigation("Status");
 
@@ -1030,6 +1088,25 @@ namespace QLNH_API.Migrations
                     b.Navigation("Item");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.OrderItemIngredientAllocation", b =>
+                {
+                    b.HasOne("QLNH_API.Model.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QLNH_API.Model.OrderItem", "OrderItem")
+                        .WithMany("IngredientAllocations")
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("OrderItem");
                 });
 
             modelBuilder.Entity("QLNH_API.Model.Payment", b =>
@@ -1167,6 +1244,16 @@ namespace QLNH_API.Migrations
             modelBuilder.Entity("QLNH_API.Model.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.OrderItem", b =>
+                {
+                    b.Navigation("IngredientAllocations");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.Reservation", b =>
+                {
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("QLNH_API.Model.Role", b =>

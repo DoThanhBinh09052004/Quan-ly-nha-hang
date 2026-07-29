@@ -90,6 +90,7 @@ builder.Services.AddScoped<AiClientService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<StatusResolver>();
 builder.Services.AddScoped<IngredientInventoryService>();
+builder.Services.AddScoped<OrderPointsService>();
 builder.Services.Configure<ReservationPolicyOptions>(
     builder.Configuration.GetSection(ReservationPolicyOptions.SectionName));
 builder.Services.AddHostedService<PaymentExpiryService>();

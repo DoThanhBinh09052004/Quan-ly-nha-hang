@@ -21,8 +21,9 @@ namespace QLNH_API.Controllers
         private readonly ReservationService _reservationService;
         private readonly IngredientInventoryService _ingredientInventoryService;
         private readonly RevenueService _revenueService;
+        private readonly OrderPointsService _orderPointsService;
 
-        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService, StatusResolver statusResolver, ReservationService reservationService, IngredientInventoryService ingredientInventoryService, RevenueService revenueService)
+        public OrderController(ApplicationDbcontext context, IMapper mapper, AiClientService aiService, StatusResolver statusResolver, ReservationService reservationService, IngredientInventoryService ingredientInventoryService, RevenueService revenueService, OrderPointsService orderPointsService)
         {
             _context = context;
             _mapper = mapper;
@@ -31,6 +32,7 @@ namespace QLNH_API.Controllers
             _reservationService = reservationService;
             _ingredientInventoryService = ingredientInventoryService;
             _revenueService = revenueService;
+            _orderPointsService = orderPointsService;
         }
 
         [HttpGet]
@@ -49,7 +51,8 @@ namespace QLNH_API.Controllers
 
                 var query = _context.Order
                     .AsNoTracking()
-                    .Where(o => !o.Deleted);
+                    .Where(o => !o.Deleted)
+                    ;
 
                 if (!string.IsNullOrWhiteSpace(search))
                 {
@@ -89,6 +92,7 @@ namespace QLNH_API.Controllers
                         Updated = o.Updated,
                         TotalPrice = o.TotalPrice,
                         Discount = o.Discount,
+                        UsedPoint = o.UsedPoint,
                         FinalPrice = o.FinalPrice,
                         PaidAmount = o.PaidAmount,
                         ChangeAmount = o.ChangeAmount,
@@ -197,8 +201,9 @@ namespace QLNH_API.Controllers
                     GuestId = request.GuestId,
                     GuestTableId = request.GuestTableId,
                     ReservationId = request.ReservationId,
-                    Discount = request.Discount,
-                    FinalPrice = request.FinalPrice,
+                    Discount = 0,
+                    UsedPoint = 0,
+                    FinalPrice = 0,
                     OrderItems = request.OrderItems?.Select(item => new OrderItem
                     {
                         Name = item.Name,
@@ -211,29 +216,38 @@ namespace QLNH_API.Controllers
                     }).ToList()
                 };
 
-                // 1. Xử lý giảm giá nếu có số điện thoại khách hàng
+                if (reservation != null)
+                {
+                    order.GuestId ??= reservation.GuestId;
+                    order.GuestPhone = string.IsNullOrWhiteSpace(order.GuestPhone)
+                        ? reservation.Phone
+                        : order.GuestPhone;
+                }
+
+                // Xác định khách hàng để áp dụng giảm 3% và điểm.
+                Guest? loyaltyGuest = null;
                 if (!string.IsNullOrEmpty(order.GuestPhone))
                 {
-                    var guest = await _context.Guest
+                    loyaltyGuest = await _context.Guest
                         .FirstOrDefaultAsync(g => g.Phone == order.GuestPhone && !g.Deleted);
-
-                    if (guest != null)
-                    {
-                        // Áp dụng giảm giá 3%
-                        order.Discount = order.TotalPrice * 0.03m;
-                        order.GuestId = guest.Id;
-                    }
                 }
-                // THÊM: Ghi nhận số điện thoại cho dù không tìm thấy khách hàng
-                else if (!string.IsNullOrEmpty(order.GuestPhone))
+                else if (order.GuestId.HasValue)
                 {
-                    // Vẫn lưu số điện thoại nhưng không có giảm giá
-                    order.GuestId = null;
-                    order.Discount = 0;
+                    loyaltyGuest = await _context.Guest
+                        .FirstOrDefaultAsync(g => g.Id == order.GuestId && !g.Deleted);
                 }
 
-                // 2. Tính final price - QUAN TRỌNG: finalPrice = totalPrice - discount
-                order.FinalPrice = order.TotalPrice - order.Discount;
+                if (loyaltyGuest != null)
+                {
+                    order.GuestId = loyaltyGuest.Id;
+                }
+
+                _orderPointsService.SetUsedPoint(
+                    order,
+                    previousGuest: null,
+                    targetGuest: loyaltyGuest,
+                    requestedUsedPoint: request.PointsToUse);
+
                 order.ActualCost = 0;
                 order.ActualProfit = order.FinalPrice;
 
@@ -262,10 +276,6 @@ namespace QLNH_API.Controllers
                 if (reservation != null)
                 {
                     _reservationService.MarkArrived(reservation);
-                    order.GuestId ??= reservation.GuestId;
-                    order.GuestPhone = string.IsNullOrWhiteSpace(order.GuestPhone)
-                        ? reservation.Phone
-                        : order.GuestPhone;
                 }
 
                 // 5. Tạo số đơn hàng
@@ -275,14 +285,7 @@ namespace QLNH_API.Controllers
                 order.StatusId = unpaidOrderStatusId;
 
                 // 6. Tính tiền thừa nếu có paidAmount
-                if (order.PaidAmount > 0)
-                {
-                    order.ChangeAmount = Math.Max(0, order.PaidAmount - order.FinalPrice);
-                }
-                else
-                {
-                    order.ChangeAmount = 0;
-                }
+                order.ChangeAmount = order.PaidAmount - order.FinalPrice;
 
                 _context.Order.Add(order);
                 await _context.SaveChangesAsync();
@@ -331,6 +334,10 @@ namespace QLNH_API.Controllers
                     Shortages = ex.Shortages
                 });
             }
+            catch (OrderPointsException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (TableAvailabilityException ex)
             {
                 return Conflict(new
@@ -359,6 +366,7 @@ namespace QLNH_API.Controllers
             {
                 var order = await _context.Order
                     .Include(o => o.OrderItems)
+                    .Include(o => o.Guest)
                     .FirstOrDefaultAsync(o => o.Id == id && !o.Deleted);
                 if (order == null)
                 {
@@ -366,6 +374,8 @@ namespace QLNH_API.Controllers
                 }
 
                 var guestTableId = order.GuestTableId;
+
+                _orderPointsService.RefundAllUsedPoints(order);
 
                 // Soft delete
                 order.Deleted = true;
@@ -442,66 +452,50 @@ namespace QLNH_API.Controllers
                     }
                 }
 
-                // Xử lý giảm giá nếu có thay đổi số điện thoại
                 var paidAmount = request.PaidAmount;
                 var guestPhone = string.IsNullOrWhiteSpace(request.GuestPhone) ? null : request.GuestPhone.Trim();
-                var guestId = request.GuestId;
-                var discount = request.Discount;
+                var previousGuest = existingOrder.Guest;
+                Guest? targetGuest = null;
 
-                if (!string.IsNullOrEmpty(guestPhone) &&
-                    guestPhone != existingOrder.GuestPhone)
+                if (!string.IsNullOrEmpty(guestPhone))
                 {
-                    var guest = await _context.Guest
+                    targetGuest = await _context.Guest
                         .FirstOrDefaultAsync(g => g.Phone == guestPhone && !g.Deleted);
-
-                    if (guest != null)
-                    {
-                        // Áp dụng giảm giá 3%
-                        discount = request.TotalPrice * 0.03m;
-                        guestId = guest.Id;
-                        existingOrder.GuestPhone = guestPhone;
-                    }
-                    else
-                    {
-                        discount = 0;
-                        guestId = null;
-                        existingOrder.GuestPhone = guestPhone;
-                    }
                 }
-                else if (string.IsNullOrEmpty(guestPhone))
+                else if (request.GuestId.HasValue)
                 {
-                    discount = 0;
-                    guestId = null;
-                    existingOrder.GuestPhone = null;
-                }
-                else
-                {
-                    existingOrder.GuestPhone = guestPhone;
+                    targetGuest = await _context.Guest
+                        .FirstOrDefaultAsync(g => g.Id == request.GuestId.Value && !g.Deleted);
                 }
 
-                var finalPrice = request.TotalPrice - discount;
-                var changeAmount = paidAmount > 0
-                    ? Math.Max(0, paidAmount - finalPrice)
-                    : 0;
-
-                // Cập nhật các trường
                 existingOrder.OrderNumber = string.IsNullOrWhiteSpace(request.OrderNumber)
                     ? existingOrder.OrderNumber
                     : request.OrderNumber.Trim();
-                existingOrder.GuestId = guestId;
-                existingOrder.Discount = discount;
-                existingOrder.FinalPrice = finalPrice;
-                existingOrder.TotalPrice = request.TotalPrice;
                 existingOrder.PaidAmount = paidAmount;
                 existingOrder.Description = request.Description;
                 existingOrder.GuestTableId = request.GuestTableId;
-                existingOrder.ChangeAmount = changeAmount;
+                existingOrder.GuestPhone = guestPhone;
                 existingOrder.Updated = DateTime.Now;
 
                 if (request.OrderItems != null)
                 {
                     await SynchronizeOrderItemsAsync(existingOrder, request.OrderItems, pendingItemStatusId);
+                    existingOrder.TotalPrice = request.OrderItems.Sum(
+                        item => (decimal)item.SalePrice * item.Quantity);
                 }
+                else
+                {
+                    existingOrder.TotalPrice = request.TotalPrice;
+                }
+
+                _orderPointsService.SetUsedPoint(
+                    existingOrder,
+                    previousGuest,
+                    targetGuest,
+                    request.UsedPoint ?? existingOrder.UsedPoint);
+
+                existingOrder.Guest = targetGuest;
+                existingOrder.GuestId = targetGuest?.Id;
 
                 Console.WriteLine($"[Order Update] Updating OrderId={id}, TotalPrice={existingOrder.TotalPrice}, Discount={existingOrder.Discount}, FinalPrice={existingOrder.FinalPrice}, PaidAmount={existingOrder.PaidAmount}, ChangeAmount={existingOrder.ChangeAmount}, GuestTableId={existingOrder.GuestTableId}, GuestId={existingOrder.GuestId}, GuestPhone={existingOrder.GuestPhone}");
 
@@ -547,6 +541,10 @@ namespace QLNH_API.Controllers
                     Message = ex.Message,
                     Shortages = ex.Shortages
                 });
+            }
+            catch (OrderPointsException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (TableAvailabilityException ex)
             {
@@ -714,7 +712,8 @@ namespace QLNH_API.Controllers
                 }
 
                 // Tích điểm khi thanh toán (chỉ tích khi thanh toán thành công)
-                if (order.GuestId.HasValue)
+                // Đơn đã đổi điểm không được tích thêm điểm khi thanh toán.
+                if (order.GuestId.HasValue && order.UsedPoint == 0)
                 {
                     var guest = await _context.Guest.FindAsync(order.GuestId.Value);
                     if (guest != null)
@@ -891,6 +890,7 @@ namespace QLNH_API.Controllers
         [Authorize(Roles = "Manager, Service Staff")]
         public async Task<ActionResult<OrderDTO>> UsePoints(int id, [FromBody] UsePointsRequest request)
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
                 var order = await _context.Order
@@ -904,60 +904,29 @@ namespace QLNH_API.Controllers
                 if (order.GuestId == null || order.Guest == null)
                     return BadRequest("Order không có khách hàng");
 
-                // Kiểm tra điểm tối thiểu và bội số của 50
-                if (request.PointsToUse < 50)
-                    return BadRequest($"Số điểm tối thiểu để đổi là 50 điểm");
+                _orderPointsService.SetUsedPoint(
+                    order,
+                    order.Guest,
+                    order.Guest,
+                    request.PointsToUse);
 
-                if (request.PointsToUse % 50 != 0)
-                    return BadRequest($"Số điểm phải là bội số của 50");
-
-                // Kiểm tra điểm khách hàng
-                if (order.Guest.Points < request.PointsToUse)
-                    return BadRequest($"Khách hàng chỉ có {order.Guest.Points} điểm");
-
-                // Tính giá trị giảm giá theo tỷ lệ mới: 50 điểm = 25,000 VND (1 điểm = 500 VND)
-                decimal discountValue = request.PointsToUse * 500m;
-
-             
-                decimal currentDiscount = order.Discount;
-                decimal maxDiscount = order.FinalPrice; 
-
-                // Debug log để kiểm tra
-                Console.WriteLine($"DEBUG - TotalPrice: {order.TotalPrice}, Discount: {order.Discount}, FinalPrice: {order.FinalPrice}");
-                Console.WriteLine($"DEBUG - Max discount allowed: {maxDiscount}");
-
-                if (discountValue > maxDiscount)
-                {
-                    // Tính số điểm tối đa có thể dùng (làm tròn xuống bội số của 50)
-                    int maxPoints = (int)(maxDiscount / 500);
-                    maxPoints = (maxPoints / 50) * 50; // Làm tròn xuống bội số của 50
-
-                    Console.WriteLine($"DEBUG - Max points calculated: {maxPoints}");
-
-                    if (maxPoints < 50)
-                        return BadRequest("Không thể dùng điểm vì giá trị đơn hàng còn lại quá thấp");
-
-                    request.PointsToUse = maxPoints;
-                    discountValue = request.PointsToUse * 500m;
-                }
-
-                // Cập nhật giảm giá và điểm
-                order.Discount += discountValue;
-                order.FinalPrice = order.TotalPrice - order.Discount; // FinalPrice được tính lại sau khi cộng thêm discount
                 await ApplyOrderActualProfitAsync(order);
-                order.Guest.Points -= request.PointsToUse;
-                order.Updated = DateTime.Now;
 
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 var orderDTO = _mapper.Map<OrderDTO>(order);
                 return Ok(new
                 {
-                    Message = $"Đã dùng {request.PointsToUse} điểm để giảm {discountValue:N0} VND",
+                    Message = $"Đơn hàng đang sử dụng {order.UsedPoint} điểm",
                     Order = orderDTO,
                     RemainingPoints = order.Guest.Points,
-                    NewFinalPrice = order.FinalPrice // Thêm để frontend dễ theo dõi
+                    NewFinalPrice = order.FinalPrice
                 });
+            }
+            catch (OrderPointsException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -987,6 +956,7 @@ namespace QLNH_API.Controllers
             public int? ReservationId { get; set; }
             public decimal Discount { get; set; } = 0;
             public decimal FinalPrice { get; set; } = 0;
+            public int PointsToUse { get; set; } = 0;
             public List<CreateOrderItemRequest>? OrderItems { get; set; }
         }
 
@@ -1013,6 +983,7 @@ namespace QLNH_API.Controllers
             public int? GuestTableId { get; set; }
             public decimal Discount { get; set; } = 0;
             public decimal FinalPrice { get; set; } = 0;
+            public int? UsedPoint { get; set; }
             public List<CreateOrderItemRequest>? OrderItems { get; set; }
         }
     }
