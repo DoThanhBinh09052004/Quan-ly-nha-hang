@@ -12,3 +12,4 @@ DB_CONFIG = {
 }
 
 MODEL_PATH = os.getenv('MODEL_PATH', './saved_models/')
+MODEL_ADMIN_API_KEY = os.getenv('MODEL_ADMIN_API_KEY', '')

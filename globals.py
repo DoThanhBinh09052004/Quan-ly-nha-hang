@@ -1,11 +1,5 @@
-# globals.py
-from models.revenue_forecast import RevenueForecastModel
-from models.recommendation import RecommendationModel
-from models.customer_segment import CustomerSegmentModel
-from models.ingredient_demand import IngredientDemandModel
+from runtime.model_registry import ModelRegistry
 
-# Global model instances
-revenue_model = RevenueForecastModel()
-recommend_model = RecommendationModel()
-segment_model = CustomerSegmentModel()
-ingredient_demand_model = IngredientDemandModel()
+# A single registry owns only persisted inference models. Routes must not train
+# or replace these instances directly.
+model_registry = ModelRegistry()

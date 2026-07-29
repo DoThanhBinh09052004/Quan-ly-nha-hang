@@ -1,1 +1,1 @@
-"""Application services for AI endpoints."""
+"""Application services for external integrations."""

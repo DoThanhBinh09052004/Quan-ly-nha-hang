@@ -1,13 +1,8 @@
-import os
 from datetime import timedelta
 
-import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-
-from config import MODEL_PATH
-
 
 class IngredientDemandModel:
     """Dự báo lượng dùng mỗi nguyên liệu theo ngày.
@@ -95,6 +90,7 @@ class IngredientDemandModel:
         return df
 
     def train(self, usage):
+        """Fit model từ usage đã được repository/training pipeline chuẩn bị."""
         self.history = self._calendarize(usage)
         if self.history.empty:
             self.model = None
@@ -117,6 +113,7 @@ class IngredientDemandModel:
         )
 
     def forecast(self, ingredient_id, days=14):
+        """Dự báo tuần tự từ history nằm trong artifact đã được load vào runtime."""
         days = max(1, min(int(days), 90))
         history = self.history[self.history['ingredient_id'] == ingredient_id].copy()
         if history.empty:
@@ -143,13 +140,3 @@ class IngredientDemandModel:
             current = pd.concat([current, pd.DataFrame([{'usage_date': next_date, 'ingredient_id': ingredient_id, 'qty_used': prediction}])], ignore_index=True)
             next_date += timedelta(days=1)
         return rows
-
-    def save_model(self, filename='ingredient_demand.pkl'):
-        os.makedirs(MODEL_PATH, exist_ok=True)
-        joblib.dump({'model': self.model, 'history': self.history, 'global_mean': self.global_mean}, os.path.join(MODEL_PATH, filename))
-
-    def load_model(self, filename='ingredient_demand.pkl'):
-        payload = joblib.load(os.path.join(MODEL_PATH, filename))
-        self.model = payload.get('model')
-        self.history = payload.get('history', self.history)
-        self.global_mean = payload.get('global_mean', 0.0)
