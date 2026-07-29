@@ -71,12 +71,10 @@ namespace QLNH_API.Controllers
             {
                 if (string.IsNullOrWhiteSpace(User.Password))
                 {
-                    User.Password = "123456";
+                    User.Password = BCrypt.Net.BCrypt.HashPassword("123456");
                 }
                 User.Created = DateTime.Now;
                 User.Updated = DateTime.Now;
-
-
                 _context.Add(User);
                 await _context.SaveChangesAsync();
 
