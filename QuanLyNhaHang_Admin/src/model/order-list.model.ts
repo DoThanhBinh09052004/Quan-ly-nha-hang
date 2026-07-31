@@ -20,6 +20,7 @@ export interface OrderListItem {
   updated: Date;
   totalPrice: number;
   discount: number;
+  usedPoint: number;
   finalPrice: number;
   paidAmount: number;
   changeAmount: number;

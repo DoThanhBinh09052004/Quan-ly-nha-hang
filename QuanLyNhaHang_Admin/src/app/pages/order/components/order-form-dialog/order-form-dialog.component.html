@@ -108,7 +108,7 @@
                         <label for="pointsToUse">Số điểm muốn dùng</label>
                         <div class="points-input-group">
                             <p-inputNumber id="pointsToUse" [ngModel]="pointsToUse" (ngModelChange)="onPointsToUseChange($event)"
-                                          [min]="minPoints" [max]="maxPoints" (onInput)="onPointsChange.emit()"
+                                          [min]="0" [max]="maxPoints" (onInput)="onPointsChange.emit()"
                                           [step]="50" showButtons mode="decimal" [showClear]="true">
                             </p-inputNumber>
                             <button pButton icon="pi pi-check" label="Áp dụng điểm" (click)="usePoints.emit()" 

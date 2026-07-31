@@ -18,7 +18,7 @@ export interface Order {
     partySize?: number;
     reservationId?: number;
     discount?: number;
-    pointsUsed?: number; 
+    usedPoint?: number;
     finalPrice?: number;
 }
 
@@ -31,5 +31,24 @@ export interface CreateOrderItemRequest {
 }
 
 export interface CreateOrderRequest extends Omit<Order, 'id' | 'orderItems'> {
+    pointsToUse?: number;
     orderItems: CreateOrderItemRequest[];
+}
+
+export interface UpdateOrderItemRequest extends CreateOrderItemRequest {
+    id: number;
+}
+
+export interface UpdateOrderRequest {
+    orderNumber?: string;
+    description?: string;
+    totalPrice: number;
+    paidAmount: number;
+    guestPhone?: string;
+    guestId?: number;
+    guestTableId?: number;
+    discount?: number;
+    finalPrice?: number;
+    usedPoint?: number;
+    orderItems: UpdateOrderItemRequest[];
 }

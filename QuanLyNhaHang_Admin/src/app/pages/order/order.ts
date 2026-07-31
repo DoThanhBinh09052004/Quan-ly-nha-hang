@@ -5,7 +5,7 @@ import { debounceTime, distinctUntilChanged, forkJoin, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { MyData } from '../../my-data';
-import { CreateOrderRequest, Order } from '../../../model/order.model';
+import { CreateOrderRequest, Order, UpdateOrderRequest } from '../../../model/order.model';
 import { Item } from '../../../model/item.model';
 import { OrderItem } from '../../../model/orderitem.model';
 import { Category } from '../../../model/category.model';
@@ -169,6 +169,7 @@ calculateDiscountAndFinal() {
   this.order.discount = this.discount;
   this.order.finalPrice = this.finalPrice;
   this.order.guestPhone = this.guestPhone;
+  this.calculateChangeAmount();
 }
 
 // Phương thức tính số điểm tối đa có thể dùng
@@ -195,6 +196,13 @@ calculateMaxPoints() {
 
 // Phương thức xử lý khi thay đổi số điểm muốn dùng
 onPointsChange() {
+  if (!this.pointsToUse || this.pointsToUse <= 0) {
+    this.pointsToUse = 0;
+    this.calculateDiscountAndFinal();
+    this.updateUsePointsButtonState();
+    return;
+  }
+
   // Đảm bảo pointsToUse là bội số của 50 và trong khoảng cho phép
   if (this.pointsToUse % 50 !== 0) {
     // Làm tròn xuống bội số gần nhất của 50
@@ -215,16 +223,35 @@ onPointsChange() {
 
 // Cập nhật trạng thái nút sử dụng điểm
 updateUsePointsButtonState() {
-  this.usePointsButtonDisabled = 
-    this.pointsToUse < this.minPoints || 
-    this.pointsToUse % 50 !== 0 || 
-    this.pointsToUse > this.maxPoints ||
-    this.pointsToUse > this.pointsAvailable;
+  const isClearingAppliedPoints =
+    !!this.order.id &&
+    (this.order.usedPoint || 0) > 0 &&
+    this.pointsToUse === 0;
+
+  this.usePointsButtonDisabled =
+    !isClearingAppliedPoints &&
+    (this.pointsToUse < this.minPoints ||
+      this.pointsToUse % 50 !== 0 ||
+      this.pointsToUse > this.maxPoints ||
+      this.pointsToUse > this.pointsAvailable);
 }
 
 // Phương thức sử dụng điểm
 usePoints() {
-  if (this.order.id && this.order.id > 0 && this.pointsToUse > 0) {
+  if (!this.order.id || this.order.id <= 0) {
+    if (this.pointsToUse > 0 && !this.usePointsButtonDisabled) {
+      this.calculateDiscountAndFinal();
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Đã chọn điểm',
+        detail: `Điểm sẽ được áp dụng khi lưu đơn hàng (${this.pointsToUse} điểm).`
+      });
+    }
+    return;
+  }
+
+  if (this.order.id && this.order.id > 0 &&
+      (this.pointsToUse > 0 || (this.order.usedPoint || 0) > 0)) {
     this.usePointsButtonDisabled = true;
     
     this.mydata.usePoints(this.order.id, this.pointsToUse).subscribe({
@@ -238,19 +265,18 @@ usePoints() {
         // Cập nhật thông tin
         if (response.remainingPoints !== undefined) {
           this.guestPoints = response.remainingPoints;
-          this.pointsAvailable = response.remainingPoints;
         }
         
         if (response.order) {
           this.order.discount = response.order.discount;
           this.order.finalPrice = response.order.finalPrice;
+          this.order.usedPoint = response.order.usedPoint || 0;
           this.discount = response.order.discount;
           this.finalPrice = response.order.finalPrice;
+          this.pointsToUse = this.order.usedPoint || 0;
+          this.pointsDiscount = this.pointsToUse * this.exchangeRate;
+          this.pointsAvailable = this.guestPoints + this.pointsToUse;
         }
-        
-        // Reset points
-        this.pointsToUse = 0;
-        this.pointsDiscount = 0;
         
         // Cập nhật lại max points
         this.calculateMaxPoints();
@@ -287,7 +313,11 @@ searchGuestByPhone() {
     next: (guest) => {
       this.guestName = guest.name;
       this.guestPoints = guest.points;
-      this.pointsAvailable = guest.points;
+      const allocatedPoints =
+        this.order.id > 0 && this.order.guestId === guest.id
+          ? (this.order.usedPoint || 0)
+          : 0;
+      this.pointsAvailable = guest.points + allocatedPoints;
       this.order.guestId = guest.id;
       
       // Tính toán lại
@@ -724,7 +754,6 @@ searchGuestByPhone() {
     
     this.calculateDiscountAndFinal();
     this.calculateMaxPoints();
-    this.calculateChangeAmount();
     this.loadRecommendations();
   }
 
@@ -766,7 +795,9 @@ searchGuestByPhone() {
   }
 
   calculateChangeAmount() {
-    this.order.changeAmount = (this.order.paidAmount || 0) - this.finalPrice;
+    // Dùng giá trị đã lưu trên đơn sau khi mọi giảm giá được áp dụng.
+    // Giá trị âm biểu thị số tiền khách vẫn cần thanh toán.
+    this.order.changeAmount = (this.order.paidAmount || 0) - (this.order.finalPrice || 0);
   }
   
   getItemTotal(item: OrderItem): number {
@@ -1006,9 +1037,8 @@ searchGuestByPhone() {
     // Load thông tin giảm giá từ đơn hàng
     this.discount = order.discount || 0;
     this.finalPrice = order.finalPrice || order.totalPrice;
-    
-    // QUAN TRỌNG: Tính toán lại điểm đã sử dụng từ discount
-    this.calculatePointsFromDiscount();
+    this.pointsToUse = order.usedPoint || 0;
+    this.pointsDiscount = this.pointsToUse * this.exchangeRate;
     
     this.mydata.getOrderItemsByOrderId(order.id).subscribe({
       next: (items) => {
@@ -1030,44 +1060,6 @@ searchGuestByPhone() {
     this.orderDialog = true;
     // KHÔNG gọi calculateTotal() ở đây vì sẽ reset discount
   }
-  calculatePointsFromDiscount() {
-    if (!this.discount || this.discount <= 0) {
-      this.pointsToUse = 0;
-      this.pointsDiscount = 0;
-      return;
-    }
-  
-    // Tính giảm giá từ số điện thoại (3%)
-    const phoneDiscount = this.guestName ? this.order.totalPrice * 0.03 : 0;
-    
-    // Giảm giá từ điểm = tổng discount - giảm giá từ điện thoại
-    const pointsDiscount = this.discount - phoneDiscount;
-    
-    if (pointsDiscount <= 0) {
-      this.pointsToUse = 0;
-      this.pointsDiscount = 0;
-      return;
-    }
-    
-    // Tính số điểm đã dùng: pointsDiscount / 500 (vì 1 điểm = 500 VND)
-    let pointsUsed = pointsDiscount / this.exchangeRate;
-    
-    // Làm tròn đến bội số của 50 (vì điểm sử dụng phải là bội số của 50)
-    pointsUsed = Math.round(pointsUsed / 50) * 50;
-    
-    this.pointsToUse = pointsUsed;
-    this.pointsDiscount = pointsUsed * this.exchangeRate;
-    
-    console.log('Calculated points from discount:', {
-      totalDiscount: this.discount,
-      phoneDiscount: phoneDiscount,
-      pointsDiscount: pointsDiscount,
-      pointsUsed: pointsUsed,
-      pointsToUse: this.pointsToUse,
-      pointsDiscountValue: this.pointsDiscount
-    });
-  }
-
   saveOrder() {
     console.log(' Saving order:', this.order);
     console.log(' Order items:', this.orderItems);
@@ -1098,27 +1090,44 @@ searchGuestByPhone() {
       });
       return;
     }
-    this.order.pointsUsed = this.pointsToUse;
+    this.order.usedPoint = this.pointsToUse;
     // Cập nhật tổng tiền
     this.calculateTotal();
 
     this.order.guestTableId = this.selectedGuestTable?.id;
     
     if (this.order.id && this.order.id > 0) {
-      const updateData = {
-        ...this.order,
-        orderItems: undefined, // Loại bỏ orderItems
-        guestTableId: this.selectedGuestTable?.id
+      const updateData: UpdateOrderRequest = {
+        orderNumber: this.order.orderNumber,
+        description: this.order.description,
+        totalPrice: this.order.totalPrice,
+        paidAmount: this.order.paidAmount,
+        guestPhone: this.guestPhone || undefined,
+        guestId: this.order.guestId,
+        guestTableId: this.selectedGuestTable?.id,
+        discount: this.order.discount,
+        finalPrice: this.order.finalPrice,
+        usedPoint: this.pointsToUse,
+        // The API synchronizes these rows and the order total in one transaction.
+        orderItems: this.orderItems.map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || '',
+          quantity: item.quantity,
+          salePrice: item.salePrice,
+          itemId: item.itemId
+        }))
       };
 
       this.mydata.updateOrder(this.order.id, updateData).subscribe({
-        next: (updatedOrder) => {
+        next: () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Thành công',
             detail: 'Cập nhật đơn hàng thành công'
           });
-          this.updateOrderItems(updatedOrder.id);
+          this.loadData();
+          this.hideDialog();
         },
         error: (err) => {
           this.handleError(err, 'Cập nhật đơn hàng thất bại');
@@ -1129,6 +1138,7 @@ searchGuestByPhone() {
       const { id, orderItems: _, ...orderData } = this.order;
       const orderToCreate: CreateOrderRequest = {
         ...orderData,
+        pointsToUse: this.pointsToUse,
         orderItems: this.orderItems.map((item) => ({
           name: item.name,
           description: item.description || '',
