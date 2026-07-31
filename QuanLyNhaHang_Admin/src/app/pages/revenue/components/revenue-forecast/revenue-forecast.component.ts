@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Chart from 'chart.js/auto';
 import { type ChartConfiguration } from 'chart.js';
+import { getAppChartThemeColors } from '../../../../theme';
 
 @Component({
   selector: 'app-revenue-forecast',
@@ -37,7 +38,7 @@ export class RevenueForecastComponent implements OnChanges, OnDestroy {
         ctx.moveTo(x, topY);
         ctx.lineTo(x, bottomY);
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.strokeStyle = getAppChartThemeColors().grid;
         ctx.setLineDash([4, 4]);
         ctx.stroke();
         ctx.restore();

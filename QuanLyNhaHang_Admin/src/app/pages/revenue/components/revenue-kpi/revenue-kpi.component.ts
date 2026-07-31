@@ -15,6 +15,8 @@ export class RevenueKpiComponent {
   @Input() kpiCost = 0;
   @Input() kpiProfit = 0;
   @Input() kpiMargin = 0;
+  @Input() hasRevenue = true;
+  @Input() statusMessage = '';
 
   @Output() periodChange = new EventEmitter<'daily' | 'monthly' | 'yearly'>();
 

@@ -6,17 +6,17 @@
 
 // ===== Dialog override =====
 ::ng-deep .export-dialog .p-dialog-header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  border-bottom: 1px solid #334155;
+  background: linear-gradient(135deg, var(--app-bg) 0%, var(--app-surface) 100%);
+  border-bottom: 1px solid var(--app-border);
   padding: 20px 24px 16px;
 }
 ::ng-deep .export-dialog .p-dialog-content {
-  background: #0f172a;
+  background: var(--app-bg);
   padding: 0;
 }
 ::ng-deep .export-dialog .p-dialog-footer {
-  background: #0f172a;
-  border-top: 1px solid #1e293b;
+  background: var(--app-bg);
+  border-top: 1px solid var(--app-surface);
   padding: 16px 24px;
 }
 
@@ -43,13 +43,13 @@
     margin: 0 0 2px;
     font-size: 17px;
     font-weight: 700;
-    color: #f1f5f9;
+    color: var(--app-text-strong);
   }
 
   p {
     margin: 0;
     font-size: 12px;
-    color: #64748b;
+    color: var(--app-text-subtle);
   }
 }
 
@@ -70,7 +70,7 @@
 .form-label {
   font-size: 13px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -95,12 +95,12 @@
 
 .date-sub-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--app-text-subtle);
   font-weight: 500;
 }
 
 .date-sep {
-  color: #475569;
+  color: var(--app-border-strong);
   font-size: 14px;
   padding-top: 20px;
   flex-shrink: 0;
@@ -108,9 +108,9 @@
 
 input[type="date"] {
   width: 100%;
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #f1f5f9;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  color: var(--app-text-strong);
   border-radius: 8px;
   padding: 9px 12px;
   font-size: 13px;
@@ -133,14 +133,14 @@ input[type="date"] {
 
 .quick-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--app-text-subtle);
   white-space: nowrap;
 }
 
 .quick-btn {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #94a3b8;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  color: var(--app-text-muted);
   border-radius: 20px;
   padding: 4px 12px;
   font-size: 11px;
@@ -156,8 +156,8 @@ input[type="date"] {
 
 // ===== Payroll toggle =====
 .payroll-section {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   padding: 14px 16px;
 }
@@ -185,14 +185,14 @@ input[type="date"] {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--app-text-strong);
   margin-bottom: 2px;
 }
 
 .toggle-sub {
   display: block;
   font-size: 11px;
-  color: #64748b;
+  color: var(--app-text-subtle);
 }
 
 // ===== Sheet tags preview =====
@@ -204,7 +204,7 @@ input[type="date"] {
 
 .sheets-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--app-text-subtle);
   font-weight: 500;
 }
 
@@ -259,8 +259,8 @@ input[type="date"] {
 
 .btn-cancel {
   background: transparent;
-  border: 1px solid #334155;
-  color: #94a3b8;
+  border: 1px solid var(--app-border);
+  color: var(--app-text-muted);
   border-radius: 8px;
   padding: 9px 18px;
   font-size: 13px;
@@ -271,7 +271,7 @@ input[type="date"] {
   gap: 6px;
   transition: all 0.2s;
 
-  &:hover:not(:disabled) { border-color: #64748b; color: #f1f5f9; }
+  &:hover:not(:disabled) { border-color: var(--app-text-subtle); color: var(--app-text-strong); }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 

@@ -10,8 +10,8 @@
 .panel {
   min-width: 0;
   padding: 16px;
-  background: #151f30;
-  border: 1px solid #2b3d54;
+  background: var(--app-surface-alt);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
 }
 .panel-span-2 {
@@ -28,12 +28,12 @@
 }
 .panel-head h2 {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--app-text);
   font-size: 16px;
 }
 .endpoint {
   margin: 4px 0 0;
-  color: #7890aa;
+  color: var(--app-text-muted);
   font-size: 11px;
 }
 .filter-buttons {
@@ -42,10 +42,10 @@
 }
 .filter-btn {
   padding: 6px 9px;
-  color: #a8bad0;
+  color: var(--app-text-muted);
   cursor: pointer;
-  background: #0d1725;
-  border: 1px solid #344861;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
   border-radius: 6px;
 }
 .filter-btn.active {
@@ -67,7 +67,7 @@
   display: grid;
   min-height: 120px;
   place-items: center;
-  color: #8293a8;
+  color: var(--app-text-muted);
   font-size: 13px;
 }
 .panel-empty.subtle {
@@ -77,14 +77,14 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   margin-bottom: 15px;
-  border: 1px solid #30445d;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   overflow: hidden;
 }
 .turnover-kpis .kpi {
   padding: 11px;
   text-align: center;
-  border-right: 1px solid #30445d;
+  border-right: 1px solid var(--app-border);
 }
 .turnover-kpis .kpi:last-child {
   border: 0;
@@ -94,12 +94,12 @@
   display: block;
 }
 .kpi-label {
-  color: #8ea2ba;
+  color: var(--app-text-muted);
   font-size: 11px;
 }
 .kpi-value {
   margin-top: 4px;
-  color: #e2e8f0;
+  color: var(--app-text);
   font-weight: 700;
 }
 .table-wrap {
@@ -112,7 +112,7 @@
   font-size: 13px;
 }
 .data-table th {
-  color: #8ea2ba;
+  color: var(--app-text-muted);
   font-size: 11px;
   text-align: left;
 }
@@ -122,7 +122,7 @@
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 }
 .data-table td {
-  color: #d5e1ef;
+  color: var(--app-text);
 }
 
 @media (max-width: 960px) {
@@ -150,7 +150,7 @@
   }
   .turnover-kpis .kpi {
     border-right: 0;
-    border-bottom: 1px solid #30445d;
+    border-bottom: 1px solid var(--app-border);
   }
   .turnover-kpis .kpi:last-child {
     border-bottom: 0;

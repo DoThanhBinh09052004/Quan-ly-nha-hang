@@ -1,6 +1,6 @@
 @use '../_shared';
 .inventory-page {
-    color: #e2e8f0
+    color: var(--app-text)
 }
 
 .actions,
@@ -27,7 +27,7 @@
 
 .forecast-description {
     margin: 0 0 1rem;
-    color: #94a3b8
+    color: var(--app-text-muted)
 }
 
 .forecast-loading {
@@ -36,7 +36,7 @@
     justify-content: center;
     gap: .75rem;
     min-height: 12rem;
-    color: #94a3b8
+    color: var(--app-text-muted)
 }
 
 .forecast-loading i {
@@ -47,7 +47,7 @@
 .unit {
     display: block;
     margin-top: .2rem;
-    color: #94a3b8
+    color: var(--app-text-muted)
 }
 
 .need-restock {

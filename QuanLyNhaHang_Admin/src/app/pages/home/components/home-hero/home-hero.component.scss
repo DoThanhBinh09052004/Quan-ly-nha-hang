@@ -9,7 +9,7 @@
   h1 {
     font-size: 26px;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--app-text-strong);
     margin: 0 0 6px 0;
 
     .user-name {
@@ -21,7 +21,7 @@
 
   .subtitle {
     margin: 0;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     font-size: 14px;
   }
 }

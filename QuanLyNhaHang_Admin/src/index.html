@@ -5,6 +5,21 @@
     <title>QuanLyNhaHang_Admin</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      (() => {
+        try {
+          const saved = JSON.parse(localStorage.getItem('themeSwitcherState') || 'null');
+          const isDark = typeof saved?.darkTheme === 'boolean' ? saved.darkTheme : true;
+          document.documentElement.classList.toggle('p-dark', isDark);
+          document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+          document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+        } catch {
+          document.documentElement.classList.add('p-dark');
+          document.documentElement.dataset.theme = 'dark';
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
     <link href="https://unpkg.com/primeicons/primeicons.css" rel="stylesheet" />
     <link href="https://unpkg.com/quill@1.3.7/dist/quill.snow.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="https://primefaces.org/cdn/primeng/images/favicon.png" />

@@ -6,13 +6,13 @@
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--app-translucent-08);
 
   .card-title {
     margin: 0 0 4px 0;
     font-size: 17px;
     font-weight: 700;
-    color: #e2e8f0;
+    color: var(--app-text);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -23,7 +23,7 @@
   .card-subtitle {
     margin: 0;
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
   }
 
   .btn-action {
@@ -55,16 +55,16 @@
 
   th {
     padding: 10px 12px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     font-size: 11px;
     font-weight: 600;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--app-translucent-08);
   }
 
   td {
     padding: 10px 12px;
-    color: #e2e8f0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--app-text);
+    border-bottom: 1px solid var(--app-translucent-05);
     vertical-align: middle;
   }
 
@@ -75,7 +75,7 @@
   }
 
   .table-name {
-    i { color: #94a3b8; margin-right: 4px; }
+    i { color: var(--app-text-muted); margin-right: 4px; }
   }
 
   .amount {
@@ -102,7 +102,7 @@
   }
 
   .time-cell {
-    color: #94a3b8;
+    color: var(--app-text-muted);
     font-size: 12px;
   }
 }

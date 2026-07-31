@@ -1,0 +1,17 @@
+:host {
+  display: grid;
+  min-height: calc(100vh - 80px);
+  place-items: center;
+  padding: 24px;
+  background: var(--app-bg);
+  color: var(--app-text-muted);
+}
+
+p {
+  margin: 0;
+  padding: 28px 36px;
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-sm);
+}

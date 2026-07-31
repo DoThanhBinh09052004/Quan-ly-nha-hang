@@ -6,7 +6,7 @@ import { Restaurant } from "../model/restaurant.model";
 import { Role } from "../model/role.model";
 import { Status } from "../model/status.model";
 import { GuestTable } from "../model/guesttable.model";
-import { CreateOrderRequest, Order } from "../model/order.model";
+import { CreateOrderRequest, Order, UpdateOrderRequest } from "../model/order.model";
 import { OrderListQuery, OrderListResponse } from "../model/order-list.model";
 import { Item } from "../model/item.model";
 import { OrderItem } from "../model/orderitem.model";
@@ -68,25 +68,7 @@ export class MyData {
     })
   };
 
-  constructor(private httpClient: HttpClient) {}
-
-  // ===== NHÀ HÀNG =====
-  public getAllRestaurants(): Observable<Restaurant[]> {
-    const url = `${this.REST_API_SERVER}/restaurant`;
-    return this.httpClient.get<Restaurant[]>(url, this.httpOptions);
-  }
-  public createRestaurant(restaurant: Omit<Restaurant, 'id'>): Observable<Restaurant> {
-    const url = `${this.REST_API_SERVER}/restaurant`;
-    return this.httpClient.post<Restaurant>(url, restaurant, this.httpOptions);
-  }
-  public updateRestaurant(id: number, restaurant: Partial<Restaurant>): Observable<Restaurant> {
-    const url = `${this.REST_API_SERVER}/restaurant/${id}`;
-    return this.httpClient.put<Restaurant>(url, restaurant, this.httpOptions);
-  }
-  public deleteRestaurant(id: number): Observable<void> {
-    const url = `${this.REST_API_SERVER}/restaurant/${id}`;
-    return this.httpClient.delete<void>(url, this.httpOptions);
-  }
+  constructor(private httpClient: HttpClient) { }
 
   // ===== VAI TRÒ =====
   public getAllRoles(): Observable<Role[]> {
@@ -228,7 +210,7 @@ export class MyData {
     const url = `${this.REST_API_SERVER}/order`;
     return this.httpClient.post<Order>(url, order, this.httpOptions);
   }
-  public updateOrder(id: number, order: Partial<Order>): Observable<Order> {
+  public updateOrder(id: number, order: UpdateOrderRequest): Observable<Order> {
     const url = `${this.REST_API_SERVER}/order/${id}`;
     return this.httpClient.put<Order>(url, order, this.httpOptions);
   }
@@ -592,7 +574,7 @@ export class MyData {
   }
   usePoints(orderId: number, pointsToUse: number): Observable<any> {
     const url = `${this.REST_API_SERVER}/order/${orderId}/use-points`;
-    return this.httpClient.put<any>(url, { pointsToUse }, this.httpOptions);
+    return this.httpClient.post<any>(url, { pointsToUse }, this.httpOptions);
   }
 
   // ===== NGUYÊN LIỆU (INGREDIENT) =====

@@ -3,21 +3,21 @@
   max-width: 1600px;
   margin: 0 auto;
   padding: 20px;
-  background: #0f172a;
+  background: var(--app-bg);
   min-height: 100vh;
 }
 
 /* Management Card - Dark Cards */
 .management-card {
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
+  background: var(--app-surface-gradient);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
   box-shadow: 
     0 4px 6px -1px rgba(0, 0, 0, 0.3),
     0 2px 4px -1px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    inset 0 1px 0 var(--app-translucent-05);
 }
 
 /* Header Section - Dark Header */
@@ -26,7 +26,7 @@
   flex-direction: column;
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--app-border);
   
   @media (min-width: 768px) {
     flex-direction: row;
@@ -39,7 +39,7 @@
   h1 {
     font-size: 28px;
     font-weight: 700;
-    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+    background: var(--app-heading-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0 0 8px 0;
@@ -48,7 +48,7 @@
   
   p {
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     margin: 0;
   }
 }
@@ -67,20 +67,20 @@
   padding: 20px;
   border-radius: 12px;
   min-width: 220px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid var(--app-translucent-10);
+  background: var(--app-surface-gradient);
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   
   &:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--app-translucent-20);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
   
   i {
     font-size: 28px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--app-translucent-10);
     width: 56px;
     height: 56px;
     display: flex;
@@ -97,7 +97,7 @@
 
 .stat-label {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -107,7 +107,7 @@
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--app-text-strong);
 }
 
 .stat-blue {
@@ -165,9 +165,9 @@
     
     :host ::ng-deep .p-autocomplete {
       .p-autocomplete-input {
-        background: #1e293b;
-        border: 1px solid #475569;
-        color: #e2e8f0;
+        background: var(--app-surface);
+        border: 1px solid var(--app-border-strong);
+        color: var(--app-text);
         padding: 8px 12px;
         border-radius: 8px;
         font-size: 14px;
@@ -178,7 +178,7 @@
         }
         
         &::placeholder {
-          color: #64748b;
+          color: var(--app-text-subtle);
         }
       }
     }
@@ -187,14 +187,14 @@
 
 :host ::ng-deep .toolbar-section {
   .p-button {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-    color: #e2e8f0;
+    border: 1px solid var(--app-translucent-20);
+    background: var(--app-surface-gradient);
+    color: var(--app-text);
     transition: all 0.3s ease;
     
     &:hover {
-      background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
-      border-color: rgba(255, 255, 255, 0.3);
+      background: linear-gradient(145deg, var(--app-border) 0%, var(--app-surface) 100%);
+      border-color: var(--app-translucent-30);
       transform: translateY(-1px);
     }
     
@@ -222,22 +222,22 @@
     
     &.p-button-outlined {
       background: transparent;
-      color: #e2e8f0;
-      border-color: rgba(255, 255, 255, 0.3);
+      color: var(--app-text);
+      border-color: var(--app-translucent-30);
       
       &:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--app-translucent-10);
       }
     }
     
     &.p-button-text {
       background: transparent;
       border: none;
-      color: #94a3b8;
+      color: var(--app-text-muted);
       
       &:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #e2e8f0;
+        background: var(--app-translucent-05);
+        color: var(--app-text);
       }
     }
   }
@@ -249,9 +249,9 @@
   flex-direction: column;
   margin-bottom: 20px;
   padding: 16px;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--app-surface-muted);
   border-radius: 8px;
-  border: 1px solid #334155;
+  border: 1px solid var(--app-border);
   
   @media (min-width: 768px) {
     flex-direction: row;
@@ -278,15 +278,15 @@
   input {
     width: 300px;
     padding: 10px 16px;
-    border: 1px solid #475569;
+    border: 1px solid var(--app-border-strong);
     border-radius: 8px;
     font-size: 14px;
-    background: #1e293b;
-    color: #e2e8f0;
+    background: var(--app-surface);
+    color: var(--app-text);
     transition: all 0.3s ease;
     
     &::placeholder {
-      color: #64748b;
+      color: var(--app-text-subtle);
     }
     
     &:focus {
@@ -299,28 +299,28 @@
 
 .selection-info {
   font-size: 14px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--app-translucent-05);
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--app-translucent-10);
 }
 
 /* PrimeNG Table Customization */
 :host ::ng-deep .custom-table {
   width: 100%;
-  border: 1px solid #334155;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   overflow: hidden;
   
   .p-datatable-thead {
-    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    background: var(--app-surface-gradient);
     
     > tr > th {
-      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      background: var(--app-surface-gradient);
       font-weight: 600;
-      color: #e2e8f0;
-      border-color: #334155;
+      color: var(--app-text);
+      border-color: var(--app-border);
       padding: 16px 12px;
       text-transform: uppercase;
       font-size: 12px;
@@ -333,27 +333,27 @@
   }
   
   .p-datatable-tbody > tr {
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
+    background: var(--app-surface);
+    border-bottom: 1px solid var(--app-border);
     transition: all 0.2s ease;
     
     &:hover {
-      background: #2d3748;
+      background: var(--app-surface-hover);
       transform: translateX(2px);
     }
     
     &:nth-child(even) {
-      background: #1a2438;
+      background: var(--app-surface-alt);
       
       &:hover {
-        background: #2d3748;
+        background: var(--app-surface-hover);
       }
     }
     
     > td {
       padding: 16px 12px;
-      border-color: #334155;
-      color: #e2e8f0;
+      border-color: var(--app-border);
+      color: var(--app-text);
     }
   }
 }
@@ -380,12 +380,12 @@
 /* Custom Table Cells */
 .item-name {
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--app-text);
   margin-bottom: 4px;
 }
 
 .item-description {
-  color: #94a3b8;
+  color: var(--app-text-muted);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -402,7 +402,7 @@
       height: 100%;
       object-fit: cover;
       border-radius: 8px;
-      border: 1px solid #475569;
+      border: 1px solid var(--app-border-strong);
       transition: all 0.3s ease;
       
       &:hover {
@@ -431,19 +431,19 @@
     justify-content: center;
     width: 60px;
     height: 60px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--app-translucent-05);
     border-radius: 8px;
-    border: 1px dashed #475569;
+    border: 1px dashed var(--app-border-strong);
     
     i {
-      color: #94a3b8;
+      color: var(--app-text-muted);
       font-size: 20px;
       margin-bottom: 4px;
     }
     
     span {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--app-text-muted);
     }
   }
 }
@@ -461,7 +461,7 @@
 }
 
 .no-discount {
-  color: #94a3b8;
+  color: var(--app-text-muted);
   font-size: 13px;
 }
 
@@ -473,7 +473,7 @@
   
   small {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     margin-top: 2px;
     font-weight: 400;
   }
@@ -504,12 +504,12 @@
   
   span {
     font-weight: 500;
-    color: #e2e8f0;
+    color: var(--app-text);
   }
   
   small {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     margin-top: 2px;
   }
 }
@@ -523,8 +523,8 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--app-translucent-20);
+    background: var(--app-translucent-05);
     transition: all 0.3s ease;
     
     &:hover {
@@ -564,7 +564,7 @@
 .empty-state {
   text-align: center;
   padding: 60px 16px !important;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--app-surface-muted);
   border-radius: 0 0 12px 12px;
 }
 
@@ -580,22 +580,22 @@
 
 .empty-icon {
   font-size: 72px;
-  color: rgba(255, 255, 255, 0.1);
+  color: var(--app-translucent-10);
   opacity: 0.5;
 }
 
 .empty-content h3 {
   font-size: 24px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--app-text);
   margin: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+  background: var(--app-heading-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .empty-content p {
-  color: #94a3b8;
+  color: var(--app-text-muted);
   margin: 0;
   font-size: 15px;
 }
@@ -603,39 +603,39 @@
 /* Dialog Styles - Dark Dialogs */
 :host ::ng-deep .p-dialog {
   .p-dialog-header {
-    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-    border-bottom: 1px solid #334155;
+    background: var(--app-surface-gradient);
+    border-bottom: 1px solid var(--app-border);
     padding: 24px 32px;
-    color: #e2e8f0;
+    color: var(--app-text);
     
     .p-dialog-title {
       font-weight: 700;
       font-size: 20px;
-      background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+      background: var(--app-heading-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     
     .p-dialog-header-icon {
-      color: #94a3b8;
+      color: var(--app-text-muted);
       transition: all 0.3s ease;
       
       &:hover {
-        color: #e2e8f0;
-        background: rgba(255, 255, 255, 0.1);
+        color: var(--app-text);
+        background: var(--app-translucent-10);
       }
     }
   }
   
   .p-dialog-content {
-    background: #0f172a;
+    background: var(--app-bg);
     padding: 0;
-    color: #e2e8f0;
+    color: var(--app-text);
   }
   
   .p-dialog-footer {
-    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-    border-top: 1px solid #334155;
+    background: var(--app-surface-gradient);
+    border-top: 1px solid var(--app-border);
     padding: 20px 32px;
   }
 }
@@ -658,8 +658,8 @@
 }
 
 .item-info-section {
-  border-right: 1px solid #334155;
-  background: rgba(15, 23, 42, 0.8);
+  border-right: 1px solid var(--app-border);
+  background: var(--app-surface-muted);
 }
 
 .info-card,
@@ -673,9 +673,9 @@
   margin-bottom: 24px;
   font-size: 18px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--app-text);
   padding-bottom: 12px;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--app-border);
 }
 
 /* Form Fields */
@@ -685,7 +685,7 @@
   label {
     display: block;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     margin-bottom: 8px;
     font-size: 13px;
     text-transform: uppercase;
@@ -701,10 +701,10 @@
   .p-autocomplete,
   .p-inputnumber {
     width: 100%;
-    background: #1e293b;
-    border: 1px solid #475569;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border-strong);
     border-radius: 8px;
-    color: #e2e8f0;
+    color: var(--app-text);
     padding: 10px 14px;
     transition: all 0.3s ease;
     
@@ -714,7 +714,7 @@
     }
     
     &::placeholder {
-      color: #64748b;
+      color: var(--app-text-subtle);
     }
   }
   
@@ -727,9 +727,9 @@
 /* AutoComplete Customization */
 :host ::ng-deep .p-autocomplete {
   .p-autocomplete-input {
-    background: #1e293b;
-    border: 1px solid #475569;
-    color: #e2e8f0;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border-strong);
+    color: var(--app-text);
     
     &:focus {
       border-color: #60a5fa;
@@ -738,18 +738,18 @@
   }
   
   .p-autocomplete-panel {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     
     .p-autocomplete-items {
       .p-autocomplete-item {
-        color: #e2e8f0;
-        background: #1e293b;
-        border-bottom: 1px solid #334155;
+        color: var(--app-text);
+        background: var(--app-surface);
+        border-bottom: 1px solid var(--app-border);
         
         &:hover {
-          background: #2d3748;
+          background: var(--app-surface-hover);
           color: #ffffff;
         }
       }
@@ -760,9 +760,9 @@
 /* InputNumber Customization */
 :host ::ng-deep .p-inputnumber {
   .p-inputnumber-input {
-    background: #1e293b;
-    border: 1px solid #475569;
-    color: #e2e8f0;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border-strong);
+    color: var(--app-text);
     
     &:focus {
       border-color: #60a5fa;
@@ -771,12 +771,12 @@
   }
   
   .p-inputnumber-button {
-    background: #334155;
-    border: 1px solid #475569;
-    color: #e2e8f0;
+    background: var(--app-border);
+    border: 1px solid var(--app-border-strong);
+    color: var(--app-text);
     
     &:hover {
-      background: #475569;
+      background: var(--app-border-strong);
     }
     
     &:focus {
@@ -787,11 +787,11 @@
 
 /* Summary Box */
 .summary-box {
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  background: var(--app-surface-gradient);
   border-radius: 10px;
   padding: 20px;
   margin-top: 24px;
-  border: 1px solid #334155;
+  border: 1px solid var(--app-border);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -801,7 +801,7 @@
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--app-border);
   
   &:last-child {
     margin-bottom: 0;
@@ -811,14 +811,14 @@
   
   span:first-child {
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     font-size: 14px;
   }
 }
 
 .original-price {
   text-decoration: line-through;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   font-family: 'Courier New', monospace;
 }
 
@@ -878,7 +878,7 @@
           height: 100px;
           border-radius: 8px;
           overflow: hidden;
-          border: 1px solid #475569;
+          border: 1px solid var(--app-border-strong);
           
           img {
             width: 100%;
@@ -920,7 +920,7 @@
         
         .image-name {
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--app-text-muted);
           text-align: center;
           margin-top: 4px;
           overflow: hidden;
@@ -937,25 +937,25 @@
     align-items: center;
     justify-content: center;
     padding: 40px 20px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--app-translucent-05);
     border-radius: 10px;
-    border: 2px dashed #334155;
+    border: 2px dashed var(--app-border);
     
     i {
       font-size: 48px;
-      color: rgba(255, 255, 255, 0.1);
+      color: var(--app-translucent-10);
       margin-bottom: 16px;
       opacity: 0.5;
     }
     
     p {
-      color: #e2e8f0;
+      color: var(--app-text);
       margin: 0 0 8px 0;
       font-weight: 600;
     }
     
     small {
-      color: #94a3b8;
+      color: var(--app-text-muted);
       font-size: 13px;
     }
   }
@@ -965,7 +965,7 @@
 .additional-info {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--app-border);
   
   .info-grid {
     display: grid;
@@ -991,14 +991,14 @@
       
       .info-label {
         font-size: 12px;
-        color: #94a3b8;
+        color: var(--app-text-muted);
         margin-bottom: 2px;
       }
       
       .info-value {
         font-size: 14px;
         font-weight: 600;
-        color: #e2e8f0;
+        color: var(--app-text);
       }
     }
   }
@@ -1020,15 +1020,15 @@
 }
 
 .btn-cancel {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #94a3b8;
+  background: var(--app-translucent-05);
+  border: 1px solid var(--app-translucent-20);
+  color: var(--app-text-muted);
   transition: all 0.3s ease;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #e2e8f0;
+    background: var(--app-translucent-10);
+    border-color: var(--app-translucent-30);
+    color: var(--app-text);
   }
 }
 
@@ -1040,9 +1040,9 @@
     align-items: center;
     margin-bottom: 20px;
     padding: 16px;
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--app-surface-muted);
     border-radius: 8px;
-    border: 1px solid #334155;
+    border: 1px solid var(--app-border);
     
     .search-library {
       display: flex;
@@ -1056,13 +1056,13 @@
       input {
         width: 300px;
         padding: 8px 12px;
-        background: #1e293b;
-        border: 1px solid #475569;
+        background: var(--app-surface);
+        border: 1px solid var(--app-border-strong);
         border-radius: 6px;
-        color: #e2e8f0;
+        color: var(--app-text);
         
         &::placeholder {
-          color: #64748b;
+          color: var(--app-text-subtle);
         }
         
         &:focus {
@@ -1074,9 +1074,9 @@
     
     .library-info {
       font-size: 14px;
-      color: #94a3b8;
+      color: var(--app-text-muted);
       padding: 6px 12px;
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--app-translucent-05);
       border-radius: 4px;
     }
   }
@@ -1150,18 +1150,18 @@
       
       .image-details {
         padding: 12px;
-        background: #1e293b;
+        background: var(--app-surface);
         
         .image-name {
           font-weight: 600;
-          color: #e2e8f0;
+          color: var(--app-text);
           margin-bottom: 4px;
           font-size: 13px;
         }
         
         .image-date {
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--app-text-muted);
         }
       }
     }
@@ -1170,13 +1170,13 @@
   .empty-library {
     text-align: center;
     padding: 60px 20px;
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--app-surface-muted);
     border-radius: 10px;
-    border: 2px dashed #334155;
+    border: 2px dashed var(--app-border);
     
     i {
       font-size: 56px;
-      color: rgba(255, 255, 255, 0.1);
+      color: var(--app-translucent-10);
       margin-bottom: 20px;
       opacity: 0.5;
     }
@@ -1184,12 +1184,12 @@
     h4 {
       font-size: 20px;
       font-weight: 700;
-      color: #e2e8f0;
+      color: var(--app-text);
       margin: 0 0 12px 0;
     }
     
     p {
-      color: #94a3b8;
+      color: var(--app-text-muted);
       margin: 0;
       font-size: 15px;
     }
@@ -1203,16 +1203,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: var(--app-surface);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: var(--app-border-strong);
   border-radius: 4px;
   
   &:hover {
-    background: #64748b;
+    background: var(--app-text-subtle);
   }
 }
 
@@ -1254,7 +1254,7 @@
   
   .item-info-section {
     border-right: none;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid var(--app-border);
   }
   
   .image-grid-container {
@@ -1287,7 +1287,7 @@
 
 /* Loading States */
 :host ::ng-deep .p-datatable-loading-overlay {
-  background: rgba(15, 23, 42, 0.9) !important;
+  background: var(--app-overlay) !important;
   
   .p-datatable-loading-icon {
     color: #60a5fa;

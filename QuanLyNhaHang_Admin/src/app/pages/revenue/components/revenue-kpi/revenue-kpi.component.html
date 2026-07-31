@@ -16,3 +16,4 @@
   <div class="stat-card stat-green" style="flex: 1;"><i class="pi pi-chart-bar"></i><div class="stat-info"><span class="stat-label">Lợi nhuận</span><span class="stat-value">{{ formatMoney(kpiProfit) }}</span></div></div>
   <div class="stat-card stat-purple" style="flex: 1;"><i class="pi pi-percentage"></i><div class="stat-info"><span class="stat-label">Biên lợi nhuận</span><span class="stat-value">{{ formatMargin(kpiMargin) }}%</span></div></div>
 </div>
+<div *ngIf="!hasRevenue" class="revenue-period-empty"><i class="pi pi-info-circle"></i>{{ statusMessage }}</div>

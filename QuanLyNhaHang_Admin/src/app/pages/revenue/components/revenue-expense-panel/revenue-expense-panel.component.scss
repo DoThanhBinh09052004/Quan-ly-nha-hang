@@ -1,12 +1,12 @@
 @import '../../../_shared.scss';
 
 .expense-panel-card {
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
+  background: var(--app-surface-gradient);
+  border: 1px solid var(--app-border);
   border-radius: 14px;
   padding: 24px;
   margin-bottom: 28px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 var(--app-translucent-05);
 }
 
 .expense-header {
@@ -15,7 +15,7 @@
   gap: 16px;
   padding-bottom: 20px;
   margin-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--app-translucent-08);
 
   @media (min-width: 768px) {
     flex-direction: row;
@@ -46,13 +46,13 @@
     margin: 0 0 4px 0;
     font-size: 20px;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--app-text-strong);
   }
 
   p {
     margin: 0;
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
   }
 }
 
@@ -67,8 +67,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #0f172a;
-  border: 1px solid #475569;
+  background: var(--app-bg);
+  border: 1px solid var(--app-border-strong);
   border-radius: 8px;
   padding: 6px 12px;
 
@@ -80,7 +80,7 @@
   .month-input {
     background: transparent;
     border: none;
-    color: #e2e8f0;
+    color: var(--app-text);
     font-size: 14px;
     font-weight: 500;
     outline: none;
@@ -123,8 +123,8 @@
 }
 
 .stat-box {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--app-panel-translucent-60);
+  border: 1px solid var(--app-translucent-07);
   border-radius: 10px;
   padding: 16px;
   display: flex;
@@ -133,7 +133,7 @@
   .stat-label {
     font-size: 11px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     letter-spacing: 0.5px;
     text-transform: uppercase;
     margin-bottom: 6px;
@@ -142,7 +142,7 @@
   .stat-value {
     font-size: 20px;
     font-weight: 700;
-    color: #e2e8f0;
+    color: var(--app-text);
     margin-bottom: 4px;
 
     &.highlight { color: #38bdf8; }
@@ -153,7 +153,7 @@
 
   .stat-sub {
     font-size: 12px;
-    color: #64748b;
+    color: var(--app-text-subtle);
   }
 }
 
@@ -169,8 +169,8 @@
 }
 
 .chart-card {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--app-panel-translucent-70);
+  border: 1px solid var(--app-translucent-08);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -190,23 +190,23 @@
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: #f1f5f9;
+    color: var(--app-text-strong);
   }
 
   .chart-subtitle {
     display: block;
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     margin-top: 2px;
   }
 
   .badge-tag {
     font-size: 11px;
     padding: 4px 8px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--app-translucent-06);
+    border: 1px solid var(--app-translucent-10);
     border-radius: 6px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
   }
 }
 
@@ -232,7 +232,7 @@
     align-items: center;
     gap: 6px;
     background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--app-translucent-06);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 11px;
@@ -245,11 +245,11 @@
     }
 
     .chip-name {
-      color: #94a3b8;
+      color: var(--app-text-muted);
     }
 
     .chip-val {
-      color: #f1f5f9;
+      color: var(--app-text-strong);
     }
   }
 }
@@ -259,13 +259,13 @@
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: #64748b;
+  color: var(--app-text-subtle);
   font-size: 13px;
 }
 
 .expense-tables-section {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--app-panel-translucent-70);
+  border: 1px solid var(--app-translucent-08);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -273,7 +273,7 @@
 .tables-header {
   padding: 14px 16px;
   background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--app-translucent-08);
 }
 
 .tab-buttons {
@@ -286,7 +286,7 @@
     gap: 8px;
     background: transparent;
     border: 1px solid transparent;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 13px;
@@ -295,8 +295,8 @@
     transition: all 0.2s ease;
 
     &:hover {
-      color: #e2e8f0;
-      background: rgba(255, 255, 255, 0.04);
+      color: var(--app-text);
+      background: var(--app-translucent-04);
     }
 
     &.active {
@@ -320,13 +320,13 @@
 
   th {
     padding: 12px 16px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: rgba(15, 23, 42, 0.9);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--app-overlay);
+    border-bottom: 1px solid var(--app-translucent-08);
     position: sticky;
     top: 0;
     z-index: 1;
@@ -334,17 +334,17 @@
 
   td {
     padding: 12px 16px;
-    color: #e2e8f0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--app-text);
+    border-bottom: 1px solid var(--app-translucent-05);
     vertical-align: middle;
   }
 
   tr:hover td {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--app-translucent-03);
   }
 
   .stt-cell {
-    color: #64748b;
+    color: var(--app-text-subtle);
     font-family: monospace;
     width: 50px;
   }
@@ -361,7 +361,7 @@
   }
 
   .percentage-cell {
-    color: #94a3b8;
+    color: var(--app-text-muted);
     font-weight: 600;
   }
 
@@ -372,7 +372,7 @@
   .progress-track {
     width: 100%;
     height: 8px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--app-translucent-06);
     border-radius: 4px;
     overflow: hidden;
   }
@@ -396,7 +396,7 @@
 
   .empty-row {
     text-align: center;
-    color: #64748b;
+    color: var(--app-text-subtle);
     padding: 30px;
   }
 }

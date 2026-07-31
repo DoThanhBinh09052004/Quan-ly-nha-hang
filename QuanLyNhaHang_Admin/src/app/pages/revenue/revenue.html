@@ -28,6 +28,8 @@
           [kpiCost]="kpiCost"
           [kpiProfit]="kpiProfit"
           [kpiMargin]="kpiMargin"
+          [hasRevenue]="kpiPeriodHasRevenue"
+          [statusMessage]="kpiStatusMessage"
           (periodChange)="setPeriod($event)">
         </app-revenue-kpi>
 
@@ -82,7 +84,7 @@
       (mainViewChange)="setMainView($event)">
     </app-revenue-detailed-panels>
 
-    <app-revenue-analysis
+    <!-- <app-revenue-analysis
       [activeTab]="activeTab"
       [kpiRevenue]="kpiRevenue"
       [kpiCost]="kpiCost"
@@ -92,7 +94,7 @@
       [bestSellersData]="bestSellersData"
       [tableTurnover]="tableTurnover"
       [totalCategoryRevenue]="totalCategoryRevenue">
-    </app-revenue-analysis>
+    </app-revenue-analysis> -->
 
   </ng-container>
 

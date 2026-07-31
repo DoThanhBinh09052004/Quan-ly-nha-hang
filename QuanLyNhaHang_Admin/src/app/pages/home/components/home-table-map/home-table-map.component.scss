@@ -6,13 +6,13 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--app-translucent-08);
 
   .card-title {
     margin: 0 0 4px 0;
     font-size: 17px;
     font-weight: 700;
-    color: #e2e8f0;
+    color: var(--app-text);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -23,7 +23,7 @@
   .card-subtitle {
     margin: 0;
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
   }
 
   .btn-action {
@@ -51,8 +51,8 @@
 }
 
 .table-item {
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: var(--app-bg);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   padding: 12px 10px;
   text-align: center;
@@ -64,13 +64,13 @@
   .table-name {
     font-weight: 700;
     font-size: 14px;
-    color: #f1f5f9;
+    color: var(--app-text-strong);
     margin-bottom: 4px;
   }
 
   .table-capacity {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     margin-bottom: 8px;
   }
 

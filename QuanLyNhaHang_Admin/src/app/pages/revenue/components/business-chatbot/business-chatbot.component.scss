@@ -20,9 +20,9 @@
 .chat-panel {
   width: min(390px, calc(100vw - 32px));
   overflow: hidden;
-  color: #d7e4f3;
-  background: #111b2b;
-  border: 1px solid #37506f;
+  color: var(--app-text);
+  background: var(--chat-panel-background);
+  border: 1px solid var(--chat-panel-border);
   border-radius: 12px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
 }
@@ -75,7 +75,7 @@
   flex: 0 0 25px;
   place-items: center;
   font-size: 12px;
-  background: #263a55;
+  background: var(--chat-avatar-background);
   border-radius: 50%;
 }
 .msg-bubble {
@@ -83,7 +83,7 @@
   padding: 9px 11px;
   font-size: 12px;
   line-height: 1.45;
-  background: #1a2a40;
+  background: var(--chat-message-background);
   border-radius: 4px 10px 10px;
 }
 .user .msg-bubble {
@@ -125,7 +125,7 @@
 }
 .chat-panel-footer {
   padding: 10px;
-  border-top: 1px solid #2b405b;
+  border-top: 1px solid var(--chat-footer-border);
 }
 .suggestion-chip {
   width: auto;
@@ -139,7 +139,7 @@
 .chat-input-area textarea {
   flex: 1;
   resize: none;
-  color: #dbeafe;
+  color: var(--app-text);
   font: inherit;
   background: transparent;
   border: 0;

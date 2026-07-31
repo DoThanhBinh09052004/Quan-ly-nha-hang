@@ -6,13 +6,13 @@
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--app-translucent-08);
 
   .card-title {
     margin: 0 0 4px 0;
     font-size: 17px;
     font-weight: 700;
-    color: #e2e8f0;
+    color: var(--app-text);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -23,7 +23,7 @@
   .card-subtitle {
     margin: 0;
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
   }
 
   .btn-action {
@@ -51,8 +51,8 @@
 }
 
 .counter-chip {
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: var(--app-bg);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 8px;
   text-align: center;
@@ -66,26 +66,26 @@
 
   .count-lbl {
     font-size: 10px;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     text-transform: uppercase;
   }
 
   &.orange { .count-val { color: #fb923c; } }
   &.blue { .count-val { color: #60a5fa; } }
   &.green { .count-val { color: #34d399; } }
-  &.gray { .count-val { color: #94a3b8; } }
+  &.gray { .count-val { color: var(--app-text-muted); } }
 }
 
 .pending-list {
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: var(--app-bg);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 12px;
 
   .list-title {
     font-size: 11px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--app-text-muted);
     margin-bottom: 8px;
     text-transform: uppercase;
   }
@@ -95,7 +95,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 6px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--app-translucent-05);
 
     &:last-child {
       border-bottom: none;
@@ -104,13 +104,13 @@
     .item-name {
       font-weight: 600;
       font-size: 13px;
-      color: #e2e8f0;
+      color: var(--app-text);
       display: block;
     }
 
     .item-table {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--app-text-muted);
     }
 
     .item-qty {

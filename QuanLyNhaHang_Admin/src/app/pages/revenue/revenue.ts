@@ -77,6 +77,8 @@ export class RevenueComponent implements OnInit {
   kpiCost = 0;
   kpiProfit = 0;
   kpiMargin = 0;
+  kpiPeriodHasRevenue = false;
+  kpiStatusMessage = '';
 
   // Existing Data
   byHourData: any[] = [];
@@ -347,18 +349,27 @@ export class RevenueComponent implements OnInit {
   }
 
   private applyKpis() {
+    this.kpiRevenue = 0;
+    this.kpiCost = 0;
+    this.kpiProfit = 0;
+    this.kpiMargin = 0;
+    this.kpiPeriodHasRevenue = false;
+    this.kpiStatusMessage = '';
+
     if (this.activeTab === 'gross' && this.grossReport) {
       const data = this.grossReport[this.reportPeriod] || [];
       // Get the latest one depending on period
       let latest: GrossProfitMarginReportItem | undefined;
       if (this.reportPeriod === 'daily') {
-        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth && i.day === this.currentDay) || data[data.length - 1];
+        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth && i.day === this.currentDay);
       } else if (this.reportPeriod === 'monthly') {
-        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth) || data[data.length - 1];
+        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth);
       } else {
-        latest = data.find(i => i.year === this.currentYear) || data[data.length - 1];
+        latest = data.find(i => i.year === this.currentYear);
       }
 
+      this.kpiPeriodHasRevenue = !!latest;
+      this.kpiStatusMessage = latest ? '' : (data.length ? `Không có doanh thu trong ${this.currentPeriodLabel}.` : 'Chưa có dữ liệu báo cáo.');
       this.kpiRevenue = latest?.totalRevenue ?? 0;
       this.kpiCost = latest?.totalCost ?? 0;
       this.kpiProfit = latest?.grossProfit ?? 0;
@@ -367,23 +378,37 @@ export class RevenueComponent implements OnInit {
       const data = this.netReport[this.reportPeriod] || [];
       let latest: NetProfitReportItem | undefined;
       if (this.reportPeriod === 'daily') {
-        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth && i.day === this.currentDay) || data[data.length - 1];
+        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth && i.day === this.currentDay);
       } else if (this.reportPeriod === 'monthly') {
-        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth) || data[data.length - 1];
+        latest = data.find(i => i.year === this.currentYear && i.month === this.currentMonth);
       } else {
-        latest = data.find(i => i.year === this.currentYear) || data[data.length - 1];
+        latest = data.find(i => i.year === this.currentYear);
       }
 
+      this.kpiPeriodHasRevenue = !!latest;
+      this.kpiStatusMessage = latest ? '' : (data.length ? `Không có doanh thu trong ${this.currentPeriodLabel}.` : 'Chưa có dữ liệu báo cáo.');
       this.kpiRevenue = latest?.totalRevenue ?? 0;
       this.kpiCost = (latest?.ingredientCost ?? 0) + (latest?.operatingExpense ?? 0);
       this.kpiProfit = latest?.netProfit ?? 0;
       this.kpiMargin = latest?.netProfitMargin ?? 0;
+    } else {
+      this.kpiStatusMessage = 'Chưa có dữ liệu báo cáo.';
     }
     this.updateChartInputs();
   }
 
   setMainView(isDaily: boolean) {
     this.isDaily = isDaily;
+  }
+
+  get currentPeriodLabel(): string {
+    if (this.reportPeriod === 'daily') {
+      return `ngày ${this.currentDay}/${this.currentMonth}/${this.currentYear}`;
+    }
+    if (this.reportPeriod === 'monthly') {
+      return `tháng ${this.currentMonth}/${this.currentYear}`;
+    }
+    return `năm ${this.currentYear}`;
   }
 
   get topSeller(): any | null {
