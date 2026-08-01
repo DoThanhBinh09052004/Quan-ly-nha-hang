@@ -40,7 +40,6 @@ export class OrderFormDialogComponent {
   @Input() maxPoints = 0;
   @Input() minPoints = 50;
   @Input() pointsDiscount = 0;
-  @Input() usePointsButtonDisabled = false;
 
   @Input() finalPrice = 0;
   @Input() recommendations: any[] = [];
@@ -56,7 +55,6 @@ export class OrderFormDialogComponent {
   @Output() paidAmountChange = new EventEmitter<number>();
   @Output() pointsToUseChange = new EventEmitter<number>();
   @Output() onPointsChange = new EventEmitter<void>();
-  @Output() usePoints = new EventEmitter<void>();
   
   @Output() openAddItemDialog = new EventEmitter<void>();
   @Output() updateQuantity = new EventEmitter<{item: OrderItem, event: any}>();

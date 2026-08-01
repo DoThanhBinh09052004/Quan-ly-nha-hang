@@ -1,0 +1,202 @@
+:host {
+  --ready-success: #047857;
+  --ready-info: #2563eb;
+  --ready-danger: #b91c1c;
+}
+
+:host-context(.p-dark) {
+  --ready-success: #6ee7b7;
+  --ready-info: #93c5fd;
+  --ready-danger: #fca5a5;
+}
+
+.completed-dishes-card {
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 12px;
+  background: var(--app-surface-gradient);
+  box-shadow: var(--app-shadow-md);
+}
+
+.completed-dishes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--app-border);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), transparent 65%);
+}
+
+.title-group,
+.title-line,
+.header-actions,
+.table-badge {
+  display: flex;
+  align-items: center;
+}
+
+.title-group {
+  gap: 14px;
+}
+
+.ready-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--ready-success);
+  font-size: 21px;
+}
+
+.title-line {
+  gap: 10px;
+}
+
+h2 {
+  margin: 0;
+  color: var(--app-text-strong);
+  font-size: 20px;
+}
+
+p {
+  margin: 5px 0 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+}
+
+.ready-count,
+.quantity-badge {
+  display: inline-grid;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  place-items: center;
+  border-radius: 999px;
+  background: #10b981;
+  color: #fff;
+  font-weight: 700;
+}
+
+.header-actions {
+  gap: 12px;
+}
+
+.last-updated {
+  color: var(--app-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.table-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 24px;
+}
+
+.error-message {
+  color: var(--ready-danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.error-message button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--ready-danger);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+:host ::ng-deep .completed-dishes-table {
+  .p-datatable-thead > tr > th {
+    padding: 13px 16px;
+    border-color: var(--app-border);
+    background: var(--app-surface-muted);
+    color: var(--app-text-muted);
+    font-size: 12px;
+    letter-spacing: 0.45px;
+    text-transform: uppercase;
+  }
+
+  .p-datatable-tbody > tr {
+    background: var(--app-surface);
+
+    > td {
+      padding: 14px 16px;
+      border-color: var(--app-border);
+      color: var(--app-text);
+    }
+
+    &:hover {
+      background: var(--app-surface-hover);
+    }
+  }
+
+  .p-paginator {
+    border: 0;
+    border-top: 1px solid var(--app-border);
+    background: var(--app-surface);
+  }
+}
+
+.order-number {
+  color: var(--ready-info);
+}
+
+.dish-name {
+  color: var(--app-text-strong);
+}
+
+.table-badge {
+  width: fit-content;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(96, 165, 250, 0.12);
+  color: var(--ready-info);
+  font-weight: 600;
+}
+
+.quantity-badge {
+  min-width: 32px;
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--ready-success);
+}
+
+.empty-ready-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 16px;
+  color: var(--app-text-muted);
+  text-align: center;
+
+  i {
+    color: var(--ready-success);
+    font-size: 32px;
+  }
+
+  strong {
+    color: var(--app-text);
+  }
+}
+
+@media (max-width: 768px) {
+  .completed-dishes-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

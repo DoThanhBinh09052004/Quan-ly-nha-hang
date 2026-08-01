@@ -12,6 +12,8 @@
         (reload)="loadData()">
     </app-order-toolbar>
 
+    <app-completed-dishes-table></app-completed-dishes-table>
+
     <app-order-list 
         [orders]="orders" 
         [selectedOrders]="selectedOrders" 
@@ -44,7 +46,6 @@
         [maxPoints]="maxPoints"
         [minPoints]="minPoints" 
         [pointsDiscount]="pointsDiscount" 
-        [usePointsButtonDisabled]="usePointsButtonDisabled"
         [finalPrice]="finalPrice" 
         [recommendations]="recommendations"
         (selectedGuestTableChange)="selectedGuestTable = $event" 
@@ -54,7 +55,6 @@
         (paidAmountChange)="order.paidAmount = $event; calculateChangeAmount()"
         (pointsToUseChange)="pointsToUse = $event" 
         (onPointsChange)="onPointsChange()" 
-        (usePoints)="usePoints()"
         (openAddItemDialog)="openAddItemDialog()" 
         (updateQuantity)="updateQuantity($event.item, $event.event)"
         (removeOrderItem)="removeOrderItem($event)" 

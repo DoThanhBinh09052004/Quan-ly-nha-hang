@@ -1,0 +1,83 @@
+<section class="completed-dishes-card" aria-labelledby="completed-dishes-title">
+  <header class="completed-dishes-header">
+    <div class="title-group">
+      <span class="ready-icon"><i class="pi pi-bell"></i></span>
+      <div>
+        <div class="title-line">
+          <h2 id="completed-dishes-title">Món đã hoàn thành</h2>
+          <span class="ready-count">{{ completedItems.length }}</span>
+        </div>
+        <p>Món bếp đã làm xong và đang chờ mang ra bàn.</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span *ngIf="lastUpdated" class="last-updated">
+        Cập nhật {{ lastUpdated | date:'HH:mm:ss' }}
+      </span>
+      <p-button
+        icon="pi pi-refresh"
+        label="Tải lại"
+        [outlined]="true"
+        [loading]="isLoading"
+        (onClick)="loadCompletedItems()">
+      </p-button>
+    </div>
+  </header>
+
+  <div *ngIf="errorMessage" class="table-message error-message" role="alert">
+    <i class="pi pi-exclamation-circle"></i>
+    <span>{{ errorMessage }}</span>
+    <button type="button" (click)="loadCompletedItems()">Thử lại</button>
+  </div>
+
+  <p-table
+    *ngIf="!errorMessage"
+    [value]="completedItems"
+    [loading]="isLoading"
+    [rowTrackBy]="trackItem"
+    [paginator]="completedItems.length > 5"
+    [rows]="5"
+    [rowsPerPageOptions]="[5, 10, 20]"
+    styleClass="custom-table completed-dishes-table"
+    responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Số đơn</th>
+        <th>Bàn</th>
+        <th>Món ăn</th>
+        <th>Số lượng</th>
+        <th>Hoàn thành lúc</th>
+        <th>Ghi chú bếp</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td><strong class="order-number">{{ item.orderNumber || ('#' + item.orderId) }}</strong></td>
+        <td>
+          <span class="table-badge">
+            <i class="pi pi-table"></i>
+            {{ item.tableName || 'Mang đi' }}
+          </span>
+        </td>
+        <td><strong class="dish-name">{{ item.name }}</strong></td>
+        <td><span class="quantity-badge">{{ item.quantity }}</span></td>
+        <td>{{ item.completedAt ? (item.completedAt | date:'HH:mm:ss dd/MM/yyyy') : '—' }}</td>
+        <td>{{ item.kitchenNote || '—' }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">
+          <div class="empty-ready-state">
+            <i class="pi pi-check-circle"></i>
+            <strong>Chưa có món chờ mang ra</strong>
+            <span>Bảng sẽ tự cập nhật khi bếp hoàn thành món.</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

@@ -319,6 +319,11 @@ export class MyData {
     return this.httpClient.get<KitchenOrderItem[]>(url, this.httpOptions);
   }
 
+  public getCompletedKitchenItems(): Observable<KitchenOrderItem[]> {
+    const url = `${this.REST_API_SERVER}/orderitem/kitchen/completed`;
+    return this.httpClient.get<KitchenOrderItem[]>(url, this.httpOptions);
+  }
+
   public updateKitchenItemStatus(request: UpdateKitchenItemStatusRequest): Observable<void> {
     const url = `${this.REST_API_SERVER}/orderitem/kitchen/update-status`;
     return this.httpClient.put<void>(url, request, this.httpOptions);
@@ -572,11 +577,6 @@ export class MyData {
     const url = `${this.REST_API_SERVER}/guest/search?phone=${encodeURIComponent(phone)}`;
     return this.httpClient.get<Guest>(url, this.httpOptions);
   }
-  usePoints(orderId: number, pointsToUse: number): Observable<any> {
-    const url = `${this.REST_API_SERVER}/order/${orderId}/use-points`;
-    return this.httpClient.post<any>(url, { pointsToUse }, this.httpOptions);
-  }
-
   // ===== NGUYÊN LIỆU (INGREDIENT) =====
   public getAllIngredients(): Observable<Ingredient[]> {
     const url = `${this.REST_API_SERVER}/ingredient`;

@@ -111,9 +111,6 @@
                                           [min]="0" [max]="maxPoints" (onInput)="onPointsChange.emit()"
                                           [step]="50" showButtons mode="decimal" [showClear]="true">
                             </p-inputNumber>
-                            <button pButton icon="pi pi-check" label="Áp dụng điểm" (click)="usePoints.emit()" 
-                                    [disabled]="usePointsButtonDisabled" severity="help">
-                            </button>
                         </div>
                         
                         <div *ngIf="pointsToUse > 0" class="points-preview">

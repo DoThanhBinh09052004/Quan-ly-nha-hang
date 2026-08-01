@@ -24,6 +24,7 @@ import { OrderToolbarComponent } from './components/order-toolbar/order-toolbar.
 import { OrderListComponent } from './components/order-list/order-list.component';
 import { OrderFormDialogComponent } from './components/order-form-dialog/order-form-dialog.component';
 import { OrderQrDialogComponent } from './components/order-qr-dialog/order-qr-dialog.component';
+import { CompletedDishesTableComponent } from './components/completed-dishes-table/completed-dishes-table.component';
 
 interface Column {
   field: string;
@@ -47,7 +48,8 @@ interface ExportColumn {
     OrderToolbarComponent,
     OrderListComponent,
     OrderFormDialogComponent,
-    OrderQrDialogComponent
+    OrderQrDialogComponent,
+    CompletedDishesTableComponent
   ],
   providers: [MessageService, ConfirmationService, MyData],
   templateUrl: './order.html',
@@ -149,7 +151,6 @@ maxPoints: number = 0;
 pointsAvailable: number = 0;
 exchangeRate: number = 500; // 1 điểm = 500 VND
 minPoints: number = 50; // Tối thiểu 50 điểm
-usePointsButtonDisabled: boolean = false;
 
 // Phương thức tính giảm giá và thành tiền
 calculateDiscountAndFinal() {
@@ -199,7 +200,6 @@ onPointsChange() {
   if (!this.pointsToUse || this.pointsToUse <= 0) {
     this.pointsToUse = 0;
     this.calculateDiscountAndFinal();
-    this.updateUsePointsButtonState();
     return;
   }
 
@@ -218,84 +218,6 @@ onPointsChange() {
   }
   
   this.calculateDiscountAndFinal();
-  this.updateUsePointsButtonState();
-}
-
-// Cập nhật trạng thái nút sử dụng điểm
-updateUsePointsButtonState() {
-  const isClearingAppliedPoints =
-    !!this.order.id &&
-    (this.order.usedPoint || 0) > 0 &&
-    this.pointsToUse === 0;
-
-  this.usePointsButtonDisabled =
-    !isClearingAppliedPoints &&
-    (this.pointsToUse < this.minPoints ||
-      this.pointsToUse % 50 !== 0 ||
-      this.pointsToUse > this.maxPoints ||
-      this.pointsToUse > this.pointsAvailable);
-}
-
-// Phương thức sử dụng điểm
-usePoints() {
-  if (!this.order.id || this.order.id <= 0) {
-    if (this.pointsToUse > 0 && !this.usePointsButtonDisabled) {
-      this.calculateDiscountAndFinal();
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Đã chọn điểm',
-        detail: `Điểm sẽ được áp dụng khi lưu đơn hàng (${this.pointsToUse} điểm).`
-      });
-    }
-    return;
-  }
-
-  if (this.order.id && this.order.id > 0 &&
-      (this.pointsToUse > 0 || (this.order.usedPoint || 0) > 0)) {
-    this.usePointsButtonDisabled = true;
-    
-    this.mydata.usePoints(this.order.id, this.pointsToUse).subscribe({
-      next: (response) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Thành công',
-          detail: response.message || `Đã sử dụng ${this.pointsToUse} điểm để giảm giá`
-        });
-        
-        // Cập nhật thông tin
-        if (response.remainingPoints !== undefined) {
-          this.guestPoints = response.remainingPoints;
-        }
-        
-        if (response.order) {
-          this.order.discount = response.order.discount;
-          this.order.finalPrice = response.order.finalPrice;
-          this.order.usedPoint = response.order.usedPoint || 0;
-          this.discount = response.order.discount;
-          this.finalPrice = response.order.finalPrice;
-          this.pointsToUse = this.order.usedPoint || 0;
-          this.pointsDiscount = this.pointsToUse * this.exchangeRate;
-          this.pointsAvailable = this.guestPoints + this.pointsToUse;
-        }
-        
-        // Cập nhật lại max points
-        this.calculateMaxPoints();
-        this.updateUsePointsButtonState();
-        
-        // Load lại dữ liệu đơn hàng
-        this.loadData();
-      },
-      error: (err) => {
-        console.error('Lỗi khi sử dụng điểm:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Lỗi',
-          detail: err.error?.message || 'Không thể sử dụng điểm. Vui lòng thử lại.'
-        });
-        this.usePointsButtonDisabled = false;
-      }
-    });
-  }
 }
 
 searchGuestByPhone() {
@@ -323,7 +245,6 @@ searchGuestByPhone() {
       // Tính toán lại
       this.calculateDiscountAndFinal();
       this.calculateMaxPoints();
-      this.updateUsePointsButtonState();
       
       this.messageService.add({
         severity: 'success',
@@ -340,7 +261,6 @@ searchGuestByPhone() {
       // Tính toán lại
       this.calculateDiscountAndFinal();
       this.calculateMaxPoints();
-      this.updateUsePointsButtonState();
       
       // Không hiển thị lỗi nếu không tìm thấy
       if (err.status !== 404) {
