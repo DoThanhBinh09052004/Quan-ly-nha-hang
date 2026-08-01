@@ -510,6 +510,56 @@ namespace QLNH_API.Controllers
         }
 
         // 3. Phục vụ lấy danh sách món đã hoàn thành theo order (để lên đồ)
+        [HttpGet("kitchen/completed")]
+        [Authorize(Roles = "Manager, Service Staff, Kitchen")]
+        public async Task<ActionResult<IEnumerable<OrderItemStatusDTO>>> GetCompletedKitchenItems()
+        {
+            try
+            {
+                var completedStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemCompleted);
+                var unpaidOrderStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderUnpaid);
+
+                var completedItems = await _context.OrderItem
+                    .AsNoTracking()
+                    .Include(oi => oi.Order)
+                        .ThenInclude(order => order!.GuestTable)
+                    .Include(oi => oi.CookingStatus)
+                    .Where(oi => !oi.Deleted
+                        && !oi.Voided
+                        && oi.CookingStatusId == completedStatusId
+                        && oi.Order != null
+                        && !oi.Order.Deleted
+                        && !oi.Order.Voided
+                        && oi.Order.StatusId == unpaidOrderStatusId)
+                    .OrderByDescending(oi => oi.CompletedAt)
+                    .ThenByDescending(oi => oi.Updated)
+                    .Select(oi => new OrderItemStatusDTO
+                    {
+                        Id = oi.Id,
+                        Name = oi.Name,
+                        Quantity = oi.Quantity,
+                        CookingStatusId = oi.CookingStatusId ?? completedStatusId,
+                        CookingStatusCode = oi.CookingStatus != null ? oi.CookingStatus.Code : null,
+                        CompletedAt = oi.CompletedAt,
+                        KitchenNote = oi.KitchenNote,
+                        OrderId = oi.OrderId,
+                        OrderNumber = oi.Order != null ? oi.Order.OrderNumber : null,
+                        GuestTableId = oi.Order != null ? oi.Order.GuestTableId : null,
+                        TableName = oi.Order != null && oi.Order.GuestTable != null
+                            ? oi.Order.GuestTable.Name
+                            : null,
+                        GuestPhone = oi.Order != null ? oi.Order.GuestPhone : null
+                    })
+                    .ToListAsync();
+
+                return Ok(completedItems);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpGet("kitchen/completed-by-order/{orderId}")]
         [Authorize(Roles = "Manager, Service Staff, Kitchen")]
         public async Task<ActionResult<IEnumerable<OrderItemStatusDTO>>> GetCompletedItemsByOrder(int orderId)
