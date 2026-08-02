@@ -33,6 +33,10 @@
             "styles": [
               "src/styles.scss"
               
+            ],
+            "allowedCommonJsDependencies": [
+              "exceljs",
+              "file-saver"
             ]
           },
           "configurations": {
@@ -40,8 +44,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "3MB",
-                  "maximumError": "4MB"
+                  "maximumWarning": "5MB",
+                  "maximumError": "7MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -61,6 +65,17 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "deploy": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.deploy.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -73,6 +88,9 @@
             },
             "development": {
               "buildTarget": "QuanLyNhaHang_Admin:build:development"
+            },
+            "deploy": {
+              "buildTarget": "QuanLyNhaHang_Admin:build:deploy"
             }
           },
           "defaultConfiguration": "development"
@@ -104,5 +122,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "621b2cf0-e90e-44b8-96d5-1b2929d31a49"
   }
 }
