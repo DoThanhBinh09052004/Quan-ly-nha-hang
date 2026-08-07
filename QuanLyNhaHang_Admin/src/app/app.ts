@@ -55,15 +55,14 @@ export class App {
     }
 
     return [
+      this.menuItem('Trang chủ', 'pi pi-home', '/home'),
       this.menuItem('Nhân sự', 'pi pi-user', '/user'),
       this.menuItem('Bàn ăn', 'pi pi-table', '/guesttable'),
       this.menuItem('Đơn hàng', 'pi pi-shopping-cart', '/order'),
       this.menuItem('Bếp', 'pi pi-receipt', '/kitchen'),
-      this.menuItem('Món ăn', 'pi pi-calendar', '/items'),
       this.menuItem('Doanh thu', 'pi pi-chart-bar', '/revenue-chart'),
       this.menuItem('Khách hàng', 'pi pi-users', '/guest'),
       this.menuItem('Nguyên liệu', 'pi pi-box', '/ingredient'),
-      this.menuItem('Công thức', 'pi pi-book', '/recipe'),
       {
         label: 'Chung',
         icon: 'pi pi-cog',
@@ -73,6 +72,10 @@ export class App {
           this.menuItem('Tình trạng', 'pi pi-flag', '/status'),
           this.menuItem('Vai trò', 'pi pi-shield', '/role'),
           this.menuItem('Thư viện', 'pi pi-image', '/item-image'),
+          this.menuItem('Công thức', 'pi pi-book', '/recipe'),
+          this.menuItem('Món ăn', 'pi pi-calendar', '/items'),
+
+
         ],
       },
       this.menuItem('Lịch làm của tôi', 'pi pi-calendar-clock', '/my-schedule'),

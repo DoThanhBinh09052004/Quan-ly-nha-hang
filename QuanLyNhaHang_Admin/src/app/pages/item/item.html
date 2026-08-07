@@ -132,12 +132,12 @@
                                 <p-sortIcon field="discount" />
                             </div>
                         </th>
-                        <th pSortableColumn="quantity" style="width: 100px">
+                        <!-- <th pSortableColumn="quantity" style="width: 100px">
                             <div class="column-header">
                                 <span>Số lượng</span>
                                 <p-sortIcon field="quantity" />
                             </div>
-                        </th>
+                        </th> -->
                         <th style="width: 120px">
                             <div class="column-header">
                                 <span>Giá khuyến mãi</span>
@@ -195,13 +195,13 @@
                                   class="discount-tag" />
                             <span *ngIf="item.discount === 0" class="no-discount">0%</span>
                         </td>
-                        <td>
+                        <!-- <td>
                             <div class="quantity-cell" [class.low-stock]="item.quantity < 10 && item.quantity > 0"
                                  [class.out-of-stock]="item.quantity === 0">
                                 {{item.quantity}}
                                 <small>{{item.unit?.name || ''}}</small>
                             </div>
-                        </td>
+                        </td> -->
                         <td class="sale-price-cell">
                             {{formatCurrency(item.price * (1 - item.discount/100))}}
                         </td>
