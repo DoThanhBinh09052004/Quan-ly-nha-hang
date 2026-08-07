@@ -243,10 +243,22 @@ namespace QLNH_API.Controllers
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
-                var orderItem = await _context.OrderItem.FindAsync(id);
+                var orderItem = await _context.OrderItem
+                    .FirstOrDefaultAsync(oi => oi.Id == id && !oi.Deleted);
                 if (orderItem == null)
                 {
                     return NotFound();
+                }
+
+                var pendingStatusId = await _statusResolver.GetIdAsync(StatusResolver.OrderItemPending);
+                var isPending = !orderItem.CookingStatusId.HasValue ||
+                    orderItem.CookingStatusId == pendingStatusId;
+                if (!isPending)
+                {
+                    return BadRequest(new
+                    {
+                        message = $"Món '{orderItem.Name}' đã bắt đầu chế biến nên không thể xóa khỏi đơn."
+                    });
                 }
 
                 await _ingredientInventoryService.ReleaseForDeletionAsync(orderItem);

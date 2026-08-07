@@ -600,6 +600,14 @@ namespace QLNH_API.Controllers
             {
                 if (!requestedById.TryGetValue(existingItem.Id, out var requestedItem))
                 {
+                    var canBeDeleted = !existingItem.CookingStatusId.HasValue ||
+                        existingItem.CookingStatusId == pendingStatusId;
+                    if (!canBeDeleted)
+                    {
+                        throw new IngredientInventoryException(
+                            $"Món '{existingItem.Name}' đã bắt đầu chế biến nên không thể xóa khỏi đơn.");
+                    }
+
                     await _ingredientInventoryService.ReleaseForDeletionAsync(existingItem);
                     existingItem.Deleted = true;
                     existingItem.Updated = DateTime.Now;
