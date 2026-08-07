@@ -16,6 +16,7 @@ namespace QLNH_API.Data
         public DbSet<Guest> Guest { get; set; }
         public DbSet<GuestTable> GuestTable { get; set; }
         public DbSet<Ingredient> Ingredient { get; set; }
+        public DbSet<IngredientBatch> IngredientBatch { get; set; }
         public DbSet<Item> Item { get; set; }
         public DbSet<ItemImage> ItemImage { get; set; }
         public DbSet<Order> Order { get; set; }
@@ -41,6 +42,7 @@ namespace QLNH_API.Data
             modelBuilder.Entity<Guest>().ToTable("guest");
             modelBuilder.Entity<GuestTable>().ToTable("guesttable");
             modelBuilder.Entity<Ingredient>().ToTable("ingredient");
+            modelBuilder.Entity<IngredientBatch>().ToTable("ingredientbatch");
             modelBuilder.Entity<Item>().ToTable("item");
             modelBuilder.Entity<ItemImage>().ToTable("itemimage");
             modelBuilder.Entity<Order>().ToTable("order");
@@ -310,16 +312,39 @@ namespace QLNH_API.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<OrderItemIngredientAllocation>()
-                .HasIndex(a => new { a.OrderItemId, a.IngredientId })
+                .HasOne(a => a.IngredientBatch)
+                .WithMany(b => b.Allocations)
+                .HasForeignKey(a => a.IngredientBatchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrderItemIngredientAllocation>()
+                .HasIndex(a => new { a.OrderItemId, a.IngredientId, a.IngredientBatchId })
                 .IsUnique();
+
+            modelBuilder.Entity<OrderItemIngredientAllocation>()
+                .Property(a => a.UnitCost)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<Ingredient>()
                 .Property(i => i.Unit)
                 .IsRequired();
 
-            modelBuilder.Entity<Ingredient>()
-                .Property(i => i.RawMaterialCost)
+            modelBuilder.Entity<IngredientBatch>()
+                .HasOne(b => b.Ingredient)
+                .WithMany(i => i.Batches)
+                .HasForeignKey(b => b.IngredientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<IngredientBatch>()
+                .Property(b => b.UnitCost)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<IngredientBatch>()
+                .HasIndex(b => new { b.IngredientId, b.BatchCode })
+                .IsUnique();
+
+            modelBuilder.Entity<IngredientBatch>()
+                .HasIndex(b => new { b.IngredientId, b.ExpirationDate, b.RemainingQuantity });
 
         }
     }

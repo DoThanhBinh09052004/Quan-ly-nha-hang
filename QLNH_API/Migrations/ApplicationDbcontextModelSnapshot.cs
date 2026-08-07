@@ -229,10 +229,6 @@ namespace QLNH_API.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("RawMaterialCost")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<double>("StockQuantity")
                         .HasColumnType("double");
 
@@ -246,6 +242,57 @@ namespace QLNH_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ingredient", (string)null);
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.IngredientBatch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BatchCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("ExpirationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ReceivedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double>("ReceivedQuantity")
+                        .HasColumnType("double");
+
+                    b.Property<double>("RemainingQuantity")
+                        .HasColumnType("double");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId", "BatchCode")
+                        .IsUnique();
+
+                    b.HasIndex("IngredientId", "ExpirationDate", "RemainingQuantity");
+
+                    b.ToTable("ingredientbatch", (string)null);
                 });
 
             modelBuilder.Entity("QLNH_API.Model.Item", b =>
@@ -529,6 +576,9 @@ namespace QLNH_API.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("IngredientBatchId")
+                        .HasColumnType("int");
+
                     b.Property<int>("IngredientId")
                         .HasColumnType("int");
 
@@ -541,14 +591,20 @@ namespace QLNH_API.Migrations
                     b.Property<double>("ReturnedQuantity")
                         .HasColumnType("double");
 
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("Updated")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IngredientBatchId");
+
                     b.HasIndex("IngredientId");
 
-                    b.HasIndex("OrderItemId", "IngredientId")
+                    b.HasIndex("OrderItemId", "IngredientId", "IngredientBatchId")
                         .IsUnique();
 
                     b.ToTable("orderitemingredientallocation", (string)null);
@@ -993,6 +1049,17 @@ namespace QLNH_API.Migrations
                     b.Navigation("Status");
                 });
 
+            modelBuilder.Entity("QLNH_API.Model.IngredientBatch", b =>
+                {
+                    b.HasOne("QLNH_API.Model.Ingredient", "Ingredient")
+                        .WithMany("Batches")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+                });
+
             modelBuilder.Entity("QLNH_API.Model.Item", b =>
                 {
                     b.HasOne("QLNH_API.Model.Category", "Category")
@@ -1092,6 +1159,11 @@ namespace QLNH_API.Migrations
 
             modelBuilder.Entity("QLNH_API.Model.OrderItemIngredientAllocation", b =>
                 {
+                    b.HasOne("QLNH_API.Model.IngredientBatch", "IngredientBatch")
+                        .WithMany("Allocations")
+                        .HasForeignKey("IngredientBatchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("QLNH_API.Model.Ingredient", "Ingredient")
                         .WithMany()
                         .HasForeignKey("IngredientId")
@@ -1105,6 +1177,8 @@ namespace QLNH_API.Migrations
                         .IsRequired();
 
                     b.Navigation("Ingredient");
+
+                    b.Navigation("IngredientBatch");
 
                     b.Navigation("OrderItem");
                 });
@@ -1234,6 +1308,16 @@ namespace QLNH_API.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Reservations");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.Ingredient", b =>
+                {
+                    b.Navigation("Batches");
+                });
+
+            modelBuilder.Entity("QLNH_API.Model.IngredientBatch", b =>
+                {
+                    b.Navigation("Allocations");
                 });
 
             modelBuilder.Entity("QLNH_API.Model.Item", b =>

@@ -83,7 +83,13 @@ namespace QLNH_API.Mapppings
             CreateMap<Expense, ExpenseDTO>()
                 .ForMember(dest => dest.ExpenseCategory, opt => opt.MapFrom(src => src.ExpenseCategory));
             CreateMap<ExpenseRequestDTO, Expense>();
-            CreateMap<Ingredient, IngredientDTO>();
+            CreateMap<Ingredient, IngredientDTO>()
+                .ForMember(dest => dest.BatchCount, opt => opt.Ignore())
+                .ForMember(dest => dest.ExpiringSoonBatchCount, opt => opt.Ignore())
+                .ForMember(dest => dest.EarliestExpirationDate, opt => opt.Ignore());
+            CreateMap<IngredientBatch, IngredientBatchDTO>()
+                .ForMember(dest => dest.IsExpired, opt => opt.Ignore())
+                .ForMember(dest => dest.IsExpiringSoon, opt => opt.Ignore());
             CreateMap<Payment, PaymentDTO>();
             CreateMap<ItemImage, ItemImageDTO>();
             CreateMap<ItemImage, CreateItemImageDTO>().ReverseMap();

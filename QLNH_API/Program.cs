@@ -90,11 +90,13 @@ builder.Services.AddScoped<AiClientService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<StatusResolver>();
 builder.Services.AddScoped<IngredientInventoryService>();
+builder.Services.AddScoped<IngredientBatchService>();
 builder.Services.AddScoped<OrderPointsService>();
 builder.Services.Configure<ReservationPolicyOptions>(
     builder.Configuration.GetSection(ReservationPolicyOptions.SectionName));
 builder.Services.AddHostedService<PaymentExpiryService>();
 builder.Services.AddHostedService<ReservationExpiryService>();
+builder.Services.AddHostedService<IngredientStockSyncService>();
 
 // ---------------- SWAGGER ----------------
 builder.Services.AddEndpointsApiExplorer();

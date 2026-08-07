@@ -9,6 +9,8 @@ namespace QLNH_API.Model
         public int Id { get; set; }
         public int OrderItemId { get; set; }
         public int IngredientId { get; set; }
+        public int? IngredientBatchId { get; set; }
+        public decimal UnitCost { get; set; }
         public double ReservedQuantity { get; set; }
         public double ConsumedQuantity { get; set; }
         public double ReturnedQuantity { get; set; }
@@ -20,5 +22,8 @@ namespace QLNH_API.Model
 
         [ForeignKey("IngredientId")]
         public virtual Ingredient? Ingredient { get; set; }
+
+        [ForeignKey(nameof(IngredientBatchId))]
+        public virtual IngredientBatch? IngredientBatch { get; set; }
     }
 }

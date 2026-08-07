@@ -777,30 +777,9 @@ namespace QLNH_API.Controllers
 
         private async Task ApplyOrderActualProfitAsync(Order order)
         {
-            decimal actualCost = 0;
-
-            if (order.OrderItems != null && order.OrderItems.Any())
-            {
-                foreach (var orderItem in order.OrderItems.Where(oi => !oi.Deleted && !oi.Voided && oi.ItemId.HasValue))
-                {
-                    var recipeRows = await (
-                        from r in _context.Recipe
-                        join i in _context.Ingredient on r.IngredientId equals i.Id
-                        where r.ItemId == orderItem.ItemId.Value && !i.Deleted
-                        select new
-                        {
-                            r.QuantityNeeded,
-                            i.RawMaterialCost
-                        }
-                    ).ToListAsync();
-
-                    var recipeCost = recipeRows.Sum(row => (decimal)row.QuantityNeeded * row.RawMaterialCost);
-
-                    Console.WriteLine($"[Order Profit] OrderId={order.Id}, ItemId={orderItem.ItemId}, Quantity={orderItem.Quantity}, RecipeRowCount={recipeRows.Count}, UnitRecipeCost={recipeCost}");
-
-                    actualCost += recipeCost * orderItem.Quantity;
-                }
-            }
+            var calculatedCost = await _ingredientInventoryService.CalculateOrderIngredientCostAsync(order.Id);
+            var hasActiveItems = order.OrderItems?.Any(oi => !oi.Deleted && !oi.Voided) == true;
+            var actualCost = calculatedCost ?? (hasActiveItems ? order.ActualCost : 0m);
 
             order.ActualCost = actualCost;
             order.ActualProfit = order.FinalPrice - actualCost;

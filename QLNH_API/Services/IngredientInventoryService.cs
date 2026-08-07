@@ -67,6 +67,26 @@ namespace QLNH_API.Services
                 }
             }
 
+            if (requiredByIngredient.Count == 0)
+                return;
+
+            var ingredientIds = requiredByIngredient.Keys.ToList();
+            var today = DateTime.Today;
+            var batches = await _context.IngredientBatch
+                .Include(b => b.Ingredient)
+                .Where(b => ingredientIds.Contains(b.IngredientId) &&
+                            !b.Deleted &&
+                            b.RemainingQuantity > QuantityTolerance &&
+                            b.ExpirationDate >= today)
+                .OrderBy(b => b.ExpirationDate)
+                .ThenBy(b => b.ReceivedDate)
+                .ThenBy(b => b.Id)
+                .ToListAsync();
+
+            var availableByIngredient = batches
+                .GroupBy(b => b.IngredientId)
+                .ToDictionary(g => g.Key, g => g.Sum(b => b.RemainingQuantity));
+
             var shortages = requiredByIngredient
                 .Select(pair =>
                 {
@@ -77,7 +97,7 @@ namespace QLNH_API.Services
                         IngredientName = ingredient.Name,
                         Unit = ingredient.Unit,
                         Required = pair.Value,
-                        Available = ingredient.StockQuantity
+                        Available = availableByIngredient.GetValueOrDefault(pair.Key)
                     };
                 })
                 .Where(row => row.Available + QuantityTolerance < row.Required)
@@ -85,19 +105,18 @@ namespace QLNH_API.Services
 
             if (shortages.Count > 0)
             {
-                throw new IngredientInventoryException("Không đủ nguyên liệu để lưu đơn hàng", shortages);
+                throw new IngredientInventoryException("Không đủ lô nguyên liệu còn hạn sử dụng để lưu đơn hàng", shortages);
             }
 
-            foreach (var pair in requiredByIngredient)
+            // StockQuantity is a compatibility aggregate for existing consumers such as the AI service.
+            foreach (var ingredientId in ingredientIds)
             {
-                var ingredient = recipes.First(r => r.IngredientId == pair.Key).Ingredient!;
-                ingredient.StockQuantity -= pair.Value;
-                ingredient.Updated = DateTime.Now;
+                var ingredient = recipes.First(r => r.IngredientId == ingredientId).Ingredient!;
+                ingredient.StockQuantity = availableByIngredient.GetValueOrDefault(ingredientId);
             }
 
             var orderItemIds = validReservations.Select(r => r.OrderItem.Id).Distinct().ToList();
-            var ingredientIds = requiredByIngredient.Keys.ToList();
-            var existingAllocations = await _context.OrderItemIngredientAllocation
+            var allocations = await _context.OrderItemIngredientAllocation
                 .Where(a => orderItemIds.Contains(a.OrderItemId) && ingredientIds.Contains(a.IngredientId))
                 .ToListAsync();
 
@@ -108,27 +127,50 @@ namespace QLNH_API.Services
 
                 foreach (var recipe in itemRecipes)
                 {
-                    var quantity = recipe.QuantityNeeded * reservation.Quantity;
-                    var allocation = existingAllocations.FirstOrDefault(a =>
-                        a.OrderItemId == reservation.OrderItem.Id && a.IngredientId == recipe.IngredientId);
+                    var quantityToReserve = recipe.QuantityNeeded * reservation.Quantity;
+                    var ingredientBatches = batches.Where(b => b.IngredientId == recipe.IngredientId);
 
-                    if (allocation == null)
+                    foreach (var batch in ingredientBatches)
                     {
-                        allocation = new OrderItemIngredientAllocation
+                        if (quantityToReserve <= QuantityTolerance)
+                            break;
+
+                        var quantityFromBatch = Math.Min(batch.RemainingQuantity, quantityToReserve);
+                        if (quantityFromBatch <= QuantityTolerance)
+                            continue;
+
+                        batch.RemainingQuantity -= quantityFromBatch;
+                        batch.Updated = DateTime.Now;
+                        batch.Ingredient!.StockQuantity -= quantityFromBatch;
+                        batch.Ingredient.Updated = DateTime.Now;
+
+                        var allocation = allocations.FirstOrDefault(a =>
+                            a.OrderItemId == reservation.OrderItem.Id &&
+                            a.IngredientId == recipe.IngredientId &&
+                            a.IngredientBatchId == batch.Id);
+
+                        if (allocation == null)
                         {
-                            OrderItemId = reservation.OrderItem.Id,
-                            IngredientId = recipe.IngredientId,
-                            ReservedQuantity = quantity,
-                            Created = DateTime.Now,
-                            Updated = DateTime.Now
-                        };
-                        existingAllocations.Add(allocation);
-                        _context.OrderItemIngredientAllocation.Add(allocation);
-                    }
-                    else
-                    {
-                        allocation.ReservedQuantity += quantity;
-                        allocation.Updated = DateTime.Now;
+                            allocation = new OrderItemIngredientAllocation
+                            {
+                                OrderItemId = reservation.OrderItem.Id,
+                                IngredientId = recipe.IngredientId,
+                                IngredientBatchId = batch.Id,
+                                UnitCost = batch.UnitCost,
+                                ReservedQuantity = quantityFromBatch,
+                                Created = DateTime.Now,
+                                Updated = DateTime.Now
+                            };
+                            allocations.Add(allocation);
+                            _context.OrderItemIngredientAllocation.Add(allocation);
+                        }
+                        else
+                        {
+                            allocation.ReservedQuantity += quantityFromBatch;
+                            allocation.Updated = DateTime.Now;
+                        }
+
+                        quantityToReserve -= quantityFromBatch;
                     }
                 }
             }
@@ -141,37 +183,22 @@ namespace QLNH_API.Services
 
             var removedQuantity = orderItem.Quantity - newQuantity;
             var releaseRatio = (double)removedQuantity / orderItem.Quantity;
-            var allocations = await GetAllocationsWithIngredientsAsync(orderItem.Id);
+            var allocations = await GetAllocationsWithInventoryAsync(orderItem.Id);
 
             foreach (var allocation in allocations)
             {
                 var returned = allocation.ReservedQuantity * releaseRatio;
-                if (returned <= QuantityTolerance)
-                    continue;
-
-                allocation.ReservedQuantity -= returned;
-                allocation.ReturnedQuantity += returned;
-                allocation.Updated = DateTime.Now;
-                allocation.Ingredient!.StockQuantity += returned;
-                allocation.Ingredient.Updated = DateTime.Now;
+                ReturnReservedQuantity(allocation, returned);
             }
         }
 
         public async Task ReleaseAllReservedAsync(OrderItem orderItem)
         {
-            var allocations = await GetAllocationsWithIngredientsAsync(orderItem.Id);
+            var allocations = await GetAllocationsWithInventoryAsync(orderItem.Id);
 
             foreach (var allocation in allocations)
             {
-                var returned = allocation.ReservedQuantity;
-                if (returned <= QuantityTolerance)
-                    continue;
-
-                allocation.ReservedQuantity = 0;
-                allocation.ReturnedQuantity += returned;
-                allocation.Updated = DateTime.Now;
-                allocation.Ingredient!.StockQuantity += returned;
-                allocation.Ingredient.Updated = DateTime.Now;
+                ReturnReservedQuantity(allocation, allocation.ReservedQuantity);
             }
         }
 
@@ -187,6 +214,25 @@ namespace QLNH_API.Services
                 allocation.ReservedQuantity = 0;
                 allocation.Updated = DateTime.Now;
             }
+        }
+
+        public async Task<decimal?> CalculateOrderIngredientCostAsync(int orderId)
+        {
+            var rows = await _context.OrderItemIngredientAllocation
+                .Where(a => a.OrderItem != null &&
+                            a.OrderItem.OrderId == orderId &&
+                            !a.OrderItem.Deleted &&
+                            !a.OrderItem.Voided)
+                .Select(a => new
+                {
+                    a.UnitCost,
+                    Quantity = a.ReservedQuantity + a.ConsumedQuantity
+                })
+                .ToListAsync();
+
+            return rows.Count == 0
+                ? null
+                : rows.Sum(row => row.UnitCost * (decimal)row.Quantity);
         }
 
         public async Task ReleaseForDeletionAsync(OrderItem orderItem)
@@ -243,10 +289,39 @@ namespace QLNH_API.Services
             }
         }
 
-        private async Task<List<OrderItemIngredientAllocation>> GetAllocationsWithIngredientsAsync(int orderItemId)
+        private void ReturnReservedQuantity(OrderItemIngredientAllocation allocation, double quantity)
+        {
+            if (quantity <= QuantityTolerance)
+                return;
+
+            allocation.ReservedQuantity -= quantity;
+            allocation.ReturnedQuantity += quantity;
+            allocation.Updated = DateTime.Now;
+
+            if (allocation.IngredientBatch != null)
+            {
+                allocation.IngredientBatch.RemainingQuantity += quantity;
+                allocation.IngredientBatch.Updated = DateTime.Now;
+
+                if (!allocation.IngredientBatch.Deleted && allocation.IngredientBatch.ExpirationDate >= DateTime.Today)
+                {
+                    allocation.Ingredient!.StockQuantity += quantity;
+                    allocation.Ingredient.Updated = DateTime.Now;
+                }
+            }
+            else
+            {
+                // Supports allocations created before batch tracking was introduced.
+                allocation.Ingredient!.StockQuantity += quantity;
+                allocation.Ingredient.Updated = DateTime.Now;
+            }
+        }
+
+        private async Task<List<OrderItemIngredientAllocation>> GetAllocationsWithInventoryAsync(int orderItemId)
         {
             return await _context.OrderItemIngredientAllocation
                 .Include(a => a.Ingredient)
+                .Include(a => a.IngredientBatch)
                 .Where(a => a.OrderItemId == orderItemId)
                 .ToListAsync();
         }
