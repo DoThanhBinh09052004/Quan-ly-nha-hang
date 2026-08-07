@@ -15,3 +15,65 @@
 .analysis-loading { display: flex; min-height: 12rem; align-items: center; justify-content: center; gap: .75rem; color: var(--app-text-muted); }
 .analysis-loading i { color: #60a5fa; font-size: 1.5rem; }
 @media (max-width: 600px) { .feature-table { display: block; overflow-x: auto; white-space: nowrap; } }
+
+/* The dialog uses the dark application palette on screen. Print it as a
+   high-contrast report so browser print settings cannot fade its text. */
+@media print {
+  @page { margin: 12mm; }
+
+  :host ::ng-deep .guest-analysis-dialog,
+  :host ::ng-deep .guest-analysis-dialog .p-dialog-header,
+  :host ::ng-deep .guest-analysis-dialog .p-dialog-content {
+    background: #ffffff !important;
+    color: #111111 !important;
+    border-color: #64748b !important;
+    box-shadow: none !important;
+  }
+
+  :host ::ng-deep .guest-analysis-dialog .p-dialog-title {
+    background: none !important;
+    -webkit-text-fill-color: #111111 !important;
+    color: #111111 !important;
+  }
+
+  :host ::ng-deep .guest-analysis-dialog .p-dialog-header-close,
+  :host ::ng-deep .guest-analysis-dialog .p-dialog-footer {
+    display: none !important;
+  }
+
+  .ai-analysis,
+  .ai-analysis strong,
+  .ai-analysis p,
+  .ai-analysis h3,
+  .ai-analysis th,
+  .ai-analysis td {
+    color: #111111 !important;
+    opacity: 1 !important;
+  }
+
+  .cluster-card,
+  .behavior-card,
+  .behavior-card.unavailable,
+  .feature-table th,
+  .feature-table td {
+    background: #ffffff !important;
+    border-color: #64748b !important;
+  }
+
+  .feature-table th {
+    background: #e2e8f0 !important;
+    font-weight: 700 !important;
+  }
+
+  :host ::ng-deep .guest-analysis-dialog .p-tag {
+    background: #e2e8f0 !important;
+    border: 1px solid #64748b !important;
+    color: #111111 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  :host ::ng-deep .guest-analysis-dialog .p-tag * {
+    color: #111111 !important;
+  }
+}

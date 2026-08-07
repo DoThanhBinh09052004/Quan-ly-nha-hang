@@ -1,4 +1,4 @@
-<p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width: 'min(90vw, 760px)'}" header="Phân tích AI - Khách hàng" [closable]="!loading">
+<p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width: 'min(90vw, 760px)'}" styleClass="guest-analysis-dialog" header="Phân tích AI - Khách hàng" [closable]="!loading">
   <div class="ai-analysis" *ngIf="!loading; else loadingTemplate">
     <section class="cluster-card">
       <div>

@@ -7,7 +7,13 @@
     <div class="selection-info">Đã chọn: {{ selectedGuests.length }}</div>
   </div>
   
-  <p-table #dt [value]="guests" [(selection)]="selectedGuests" (selectionChange)="onSelectionChange($event)" dataKey="id" [loading]="loading" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25]" [globalFilterFields]="['name','phone','points']" styleClass="custom-table">
+  <p-table #dt [value]="guests" 
+    [(selection)]="selectedGuests" 
+    (selectionChange)="onSelectionChange($event)" 
+    dataKey="id" [loading]="loading" [paginator]="true" 
+    [rows]="10" [rowsPerPageOptions]="[5,10,25]" 
+    [globalFilterFields]="['name','phone','points']" 
+    styleClass="custom-table">
     <ng-template pTemplate="header">
       <tr>
         <th style="width:3rem"><p-tableHeaderCheckbox /></th>
