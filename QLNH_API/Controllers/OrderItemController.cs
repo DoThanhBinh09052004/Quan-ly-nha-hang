@@ -405,7 +405,8 @@ namespace QLNH_API.Controllers
                         .ThenInclude(o => o.GuestTable)
                     .Include(oi => oi.CookingStatus)
                     .Where(oi => !oi.Deleted && !oi.Voided
-                        && cookingStatusIds.Contains(oi.CookingStatusId ?? cookingStatusIds[0])
+                        && oi.CookingStatusId.HasValue
+                        && cookingStatusIds.Contains(oi.CookingStatusId.Value)
                         && oi.CookingStatusId != completedStatusId)
                     .OrderBy(oi => oi.Created)
                     .Select(oi => new OrderItemStatusDTO
@@ -618,7 +619,7 @@ namespace QLNH_API.Controllers
                     StatusResolver.OrderItemPending, StatusResolver.OrderItemProcessing,
                     StatusResolver.OrderItemCompleted, StatusResolver.OrderItemCancelled);
                 var pendingCount = await _context.OrderItem
-                    .CountAsync(oi => !oi.Deleted && !oi.Voided && (oi.CookingStatusId == kitchenStatusIds[0] || oi.CookingStatusId == null));
+                    .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == kitchenStatusIds[0]);
 
                 var processingCount = await _context.OrderItem
                     .CountAsync(oi => !oi.Deleted && !oi.Voided && oi.CookingStatusId == kitchenStatusIds[1]);
