@@ -76,6 +76,7 @@ export class OrderComponent implements OnInit, OnDestroy {
   guesttables: GuestTable[] = [];
   selectedGuestTable: GuestTable | null = null;
   filterGuestTable: GuestTable[] = [];
+  private guestTableLoadVersion = 0;
 
   // Quản lý items với AutoComplete
   items: Item[] = [];
@@ -440,31 +441,68 @@ searchGuestByPhone() {
   }
   
   loadAvailableGuestTables() {
+    const loadVersion = ++this.guestTableLoadVersion;
+
     this.mydata.getAllAvailableGuestTables().subscribe({
       next: (data) => {
+        if (loadVersion !== this.guestTableLoadVersion) {
+          return;
+        }
+
         this.guesttables = Array.isArray(data) ? data : [];
         this.filterGuestTable = [...this.guesttables]; // Cập nhật filterGuestTable
         console.log('Available guest tables loaded:', this.guesttables);
       },
       error: (err) => {
+        if (loadVersion !== this.guestTableLoadVersion) {
+          return;
+        }
+
         console.error('Lỗi khi tải danh sách bàn trống:', err);
         this.guesttables = [];
         this.filterGuestTable = [];
       }
     });
   }
-  
-  loadAllGuestTables() {
-    this.mydata.getAllGuestTables().subscribe({
-      next: (data) => {
-        this.guesttables = Array.isArray(data) ? data : [];
-        this.filterGuestTable = [...this.guesttables]; // Cập nhật filterGuestTable
-        console.log('All guest tables loaded:', this.guesttables);
+
+  private loadGuestTablesForEdit(order: Order) {
+    const currentTableId = order.guestTableId ?? order.guestTable?.id;
+
+    if (!currentTableId) {
+      this.selectedGuestTable = null;
+      this.loadAvailableGuestTables();
+      return;
+    }
+
+    const loadVersion = ++this.guestTableLoadVersion;
+
+    forkJoin({
+      availableTables: this.mydata.getAllAvailableGuestTables(),
+      currentTable: this.mydata.getGuestTableById(currentTableId)
+    }).subscribe({
+      next: ({ availableTables, currentTable }) => {
+        if (loadVersion !== this.guestTableLoadVersion) {
+          return;
+        }
+
+        const available = Array.isArray(availableTables) ? availableTables : [];
+        this.guesttables = [
+          currentTable,
+          ...available.filter((table) => table.id !== currentTable.id)
+        ];
+        this.filterGuestTable = [...this.guesttables];
+        this.selectedGuestTable = currentTable;
+        this.cd.markForCheck();
       },
       error: (err) => {
-        console.error('Lỗi khi tải danh sách tất cả bàn:', err);
+        if (loadVersion !== this.guestTableLoadVersion) {
+          return;
+        }
+
+        this.handleError(err, 'Không thể tải danh sách bàn cho đơn hàng');
         this.guesttables = [];
         this.filterGuestTable = [];
+        this.selectedGuestTable = null;
       }
     });
   }
@@ -934,7 +972,7 @@ searchGuestByPhone() {
     }
 
     this.order = { ...order };
-    this.loadAllGuestTables(); // Tải tất cả bàn khi edit
+    this.loadGuestTablesForEdit(this.order);
     
     // KHÔNG reset các biến điểm ở đây!
     // Thay vào đó, tính toán từ dữ liệu đơn hàng
@@ -966,11 +1004,6 @@ searchGuestByPhone() {
         this.calculateTotal();
         this.cd.markForCheck();
         
-        // Tìm bàn tương ứng sau khi đã tải dữ liệu
-        setTimeout(() => {
-          this.selectedGuestTable = this.guesttables.find(t => t.id === order.guestTable?.id) || null;
-          console.log('Selected table:', this.selectedGuestTable);
-        }, 100);
       },
       error: (err) => {
         console.error('Lỗi khi tải chi tiết đơn hàng:', err);
