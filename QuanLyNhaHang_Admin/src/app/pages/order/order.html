@@ -23,6 +23,7 @@
         [rows]="rows" 
         [qrLoading]="qrLoading" 
         [qrOrderId]="qrOrder?.id"
+        [isManager]="isManager"
         (selectedOrdersChange)="selectedOrders = $event" 
         (lazyLoad)="onLazyLoad($event)"
         (globalFilter)="onGlobalFilter($event)" 

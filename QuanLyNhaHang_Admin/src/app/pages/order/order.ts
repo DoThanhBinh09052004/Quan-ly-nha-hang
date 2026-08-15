@@ -25,6 +25,7 @@ import { OrderListComponent } from './components/order-list/order-list.component
 import { OrderFormDialogComponent } from './components/order-form-dialog/order-form-dialog.component';
 import { OrderQrDialogComponent } from './components/order-qr-dialog/order-qr-dialog.component';
 import { CompletedDishesTableComponent } from './components/completed-dishes-table/completed-dishes-table.component';
+import { AuthService } from '../../service/authservice';
 
 interface Column {
   field: string;
@@ -65,6 +66,7 @@ export class OrderComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
   ) {}
   
   orderDialog: boolean = false;
@@ -114,6 +116,10 @@ export class OrderComponent implements OnInit, OnDestroy {
   private paymentPollingTimer?: ReturnType<typeof setInterval>;
   private paymentCountdownTimer?: ReturnType<typeof setInterval>;
   private paymentCompletionHandled = false;
+
+  get isManager(): boolean {
+    return this.authService.getRole() === 'Manager';
+  }
 
   ngOnInit() {
     this.searchTerms.pipe(
@@ -963,6 +969,15 @@ searchGuestByPhone() {
   }
 
   editOrder(order: Order | OrderListItem) {
+    if (!this.canEditOrder(order)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Không thể chỉnh sửa',
+        detail: 'Đơn hàng đã thanh toán. Chỉ quản lý được phép chỉnh sửa.'
+      });
+      return;
+    }
+
     if (!('description' in order)) {
       this.mydata.getOrderById(order.id).subscribe({
         next: (fullOrder) => this.editOrder(fullOrder),
@@ -1013,6 +1028,17 @@ searchGuestByPhone() {
     this.orderDialog = true;
     // KHÔNG gọi calculateTotal() ở đây vì sẽ reset discount
   }
+
+  private canEditOrder(order: Order | OrderListItem): boolean {
+    if (this.isManager) {
+      return true;
+    }
+
+    const finalPrice = Number(order.finalPrice ?? order.totalPrice) || 0;
+    const paidAmount = Number(order.paidAmount) || 0;
+    return finalPrice <= 0 || paidAmount < finalPrice;
+  }
+
   saveOrder() {
     console.log(' Saving order:', this.order);
     console.log(' Order items:', this.orderItems);
@@ -1129,6 +1155,7 @@ searchGuestByPhone() {
       });
     }
   }
+
 
   createOrderItems(orderId: number) {
     if (!orderId || orderId <= 0) {

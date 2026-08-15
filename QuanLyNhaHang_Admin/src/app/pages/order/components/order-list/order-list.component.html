@@ -100,7 +100,10 @@
                       <button pButton pRipple icon="pi pi-qrcode" class="btn-qr" pTooltip="Thanh toán QR"
                               [disabled]="!canPayByQr(order) || (qrLoading && qrOrderId === order.id)"
                               (click)="payQr.emit(order)"></button>
-                      <button pButton pRipple icon="pi pi-pencil" class="btn-edit" (click)="edit.emit(order)"></button>
+                      <button pButton pRipple icon="pi pi-pencil" class="btn-edit"
+                              [disabled]="!canEditOrder(order)"
+                              [pTooltip]="canEditOrder(order) ? 'Chỉnh sửa đơn hàng' : 'Đơn đã thanh toán, chỉ quản lý được chỉnh sửa'"
+                              (click)="edit.emit(order)"></button>
                       <button pButton pRipple icon="pi pi-trash" class="btn-delete" (click)="delete.emit(order)"></button>
                   </div>
               </td>

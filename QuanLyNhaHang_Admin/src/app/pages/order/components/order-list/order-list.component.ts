@@ -21,6 +21,7 @@ export class OrderListComponent {
   @Input() loading = false;
   @Input() first = 0;
   @Input() rows = 10;
+  @Input() isManager = false;
 
   @Output() selectedOrdersChange = new EventEmitter<OrderListItem[]>();
   @Output() lazyLoad = new EventEmitter<TableLazyLoadEvent>();
@@ -49,5 +50,15 @@ export class OrderListComponent {
 
   canPayByQr(order: OrderListItem): boolean {
     return (order.finalPrice || 0) > (order.paidAmount || 0);
+  }
+
+  canEditOrder(order: OrderListItem): boolean {
+    if (this.isManager) {
+      return true;
+    }
+
+    const finalPrice = Number(order.finalPrice) || 0;
+    const paidAmount = Number(order.paidAmount) || 0;
+    return finalPrice <= 0 || paidAmount < finalPrice;
   }
 }
