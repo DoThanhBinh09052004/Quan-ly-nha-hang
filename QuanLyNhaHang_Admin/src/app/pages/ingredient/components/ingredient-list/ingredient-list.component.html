@@ -2,43 +2,190 @@
   <div class="table-header">
     <div class="search-section">
       <i class="pi pi-search"></i>
-      <input pInputText placeholder="Tìm kiếm nguyên liệu..." (input)="filter($event)">
+      <input pInputText placeholder="Tìm theo tên hoặc đơn vị..." (input)="filter($event)">
     </div>
-    <div class="selection-info">Đã chọn: {{ selectedIngredients.length }}</div>
+    <div class="selection-info">
+      <i class="pi pi-list"></i>
+      Mỗi dòng là một nguyên liệu · Bấm <i class="pi pi-chevron-right"></i> để xem các lô
+    </div>
   </div>
-  
-  <p-table #dt [value]="ingredients" [(selection)]="selectedIngredients" (selectionChange)="onSelectionChange($event)" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25]" [loading]="loading" [globalFilterFields]="['name','unit']" styleClass="custom-table">
+
+  <p-table
+    #dt
+    [value]="ingredients"
+    [(selection)]="selectedIngredients"
+    (selectionChange)="onSelectionChange($event)"
+    (onRowExpand)="onRowExpand($event)"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[5, 10, 25]"
+    [loading]="loading"
+    [globalFilterFields]="['name', 'unit']"
+    styleClass="custom-table ingredient-table">
     <ng-template pTemplate="header">
       <tr>
-        <th><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
-        <th pSortableColumn="name">Tên <p-sortIcon field="name"></p-sortIcon></th>
-        <th>Đơn vị</th>
-        <th pSortableColumn="stockQuantity">Tồn kho <p-sortIcon field="stockQuantity"></p-sortIcon></th>
+        <th class="expand-column"></th>
+        <th class="select-column"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+        <th pSortableColumn="name">Nguyên liệu <p-sortIcon field="name"></p-sortIcon></th>
+        <th pSortableColumn="stockQuantity">Tồn khả dụng <p-sortIcon field="stockQuantity"></p-sortIcon></th>
         <th>Mức tối thiểu</th>
-        <th>Giá/đơn vị</th>
+        <th>Số lô</th>
+        <th>Hạn gần nhất</th>
         <th>Trạng thái</th>
-        <th>Thao tác</th>
+        <th class="actions-column">Thao tác</th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-row>
+
+    <ng-template pTemplate="body" let-row let-expanded="expanded">
       <tr>
+        <td>
+          <button
+            pButton
+            type="button"
+            [pRowToggler]="row"
+            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            [text]="true"
+            class="row-toggler"
+            [attr.aria-label]="expanded ? 'Thu gọn danh sách lô' : 'Mở danh sách lô'">
+          </button>
+        </td>
         <td><p-tableCheckbox [value]="row"></p-tableCheckbox></td>
-        <td><b>{{ row.name }}</b></td>
-        <td>{{ row.unit }}</td>
-        <td>{{ row.stockQuantity | number:'1.0-2' }}</td>
-        <td>{{ row.minStock | number:'1.0-2' }}</td>
-        <td>{{ row.rawMaterialCost | number:'1.0-0' }} ₫</td>
-        <td><p-tag [value]="statusText(row)" [severity]="status(row)"></p-tag></td>
-        <td class="actions">
-          <p-button icon="pi pi-chart-line" [text]="true" (onClick)="showForecast.emit(row)"></p-button>
-          <p-button icon="pi pi-pencil" [text]="true" (onClick)="edit.emit(row)"></p-button>
-          <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="delete.emit(row)"></p-button>
+        <td>
+          <div class="ingredient-name-cell">
+            <span class="ingredient-icon"><i class="pi pi-box"></i></span>
+            <div>
+              <strong>{{ row.name }}</strong>
+              <small>Đơn vị: {{ row.unit }}</small>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="stock-value" [class.low-stock-value]="row.stockQuantity <= row.minStock">
+            {{ row.stockQuantity | number:'1.0-3' }}
+          </span>
+          <small class="cell-unit">{{ row.unit }}</small>
+        </td>
+        <td>{{ row.minStock | number:'1.0-3' }} {{ row.unit }}</td>
+        <td>
+          <div class="batch-summary">
+            <strong>{{ row.batchCount }}</strong>
+            <span>lô còn hàng</span>
+            <small *ngIf="row.expiringSoonBatchCount > 0">
+              {{ row.expiringSoonBatchCount }} lô sắp hết hạn
+            </small>
+          </div>
+        </td>
+        <td>
+          <span *ngIf="row.earliestExpirationDate; else noExpiration" class="expiration-cell">
+            <i class="pi pi-calendar"></i>
+            {{ row.earliestExpirationDate | date:'dd/MM/yyyy' }}
+          </span>
+          <ng-template #noExpiration><span class="muted-value">Chưa có lô</span></ng-template>
+        </td>
+        <td>
+          <p-tag
+            [value]="ingredientStatusText(row)"
+            [severity]="ingredientStatus(row)">
+          </p-tag>
+        </td>
+        <td>
+          <div class="action-buttons compact-actions">
+            <button pButton icon="pi pi-plus" [text]="true" class="btn-add-batch" title="Nhập lô mới" (click)="addBatch.emit(row)"></button>
+            <button pButton icon="pi pi-chart-line" [text]="true" class="btn-view" title="Xem dự đoán" (click)="showForecast.emit(row)"></button>
+            <button pButton icon="pi pi-pencil" [text]="true" class="btn-edit" title="Sửa nguyên liệu" (click)="edit.emit(row)"></button>
+            <button pButton icon="pi pi-trash" [text]="true" class="btn-delete" title="Xóa nguyên liệu" (click)="delete.emit(row)"></button>
+          </div>
         </td>
       </tr>
     </ng-template>
+
+    <ng-template pTemplate="expandedrow" let-row>
+      <tr class="expanded-batch-row">
+        <td colspan="9">
+          <div class="batch-panel">
+            <div class="batch-panel-header">
+              <div>
+                <h3>Danh sách lô</h3>
+                <p>Ưu tiên trừ kho theo lô hết hạn sớm nhất (FEFO).</p>
+              </div>
+              <button pButton icon="pi pi-plus" label="Nhập lô mới" severity="primary" (click)="addBatch.emit(row)"></button>
+            </div>
+
+            <div *ngIf="batchLoading[row.id]" class="batch-loading">
+              <i class="pi pi-spin pi-spinner"></i>
+              Đang tải danh sách lô...
+            </div>
+
+            <div *ngIf="!batchLoading[row.id] && batchesByIngredient[row.id] as batches" class="batch-table-wrap">
+              <table class="batch-table">
+                <thead>
+                  <tr>
+                    <th>Mã lô</th>
+                    <th>Ngày nhập</th>
+                    <th>Hạn sử dụng</th>
+                    <th>Giá nhập</th>
+                    <th>Đã nhập</th>
+                    <th>Đã dùng</th>
+                    <th>Còn lại</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let batch of batches" [class.expired-batch]="batch.isExpired">
+                    <td><code>{{ batch.batchCode }}</code></td>
+                    <td>{{ batch.receivedDate | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ batch.expirationDate | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ batch.unitCost | number:'1.0-0' }} ₫</td>
+                    <td>{{ batch.receivedQuantity | number:'1.0-3' }} {{ row.unit }}</td>
+                    <td>{{ usedQuantity(batch) | number:'1.0-3' }} {{ row.unit }}</td>
+                    <td><strong>{{ batch.remainingQuantity | number:'1.0-3' }} {{ row.unit }}</strong></td>
+                    <td><p-tag [value]="batchStatusText(batch)" [severity]="batchStatus(batch)"></p-tag></td>
+                    <td>
+                      <div class="action-buttons batch-actions">
+                        <button
+                          pButton
+                          icon="pi pi-pencil"
+                          [text]="true"
+                          class="btn-edit"
+                          title="Sửa lô"
+                          (click)="editBatch.emit({ ingredient: row, batch: batch })">
+                        </button>
+                        <button
+                          pButton
+                          icon="pi pi-trash"
+                          [text]="true"
+                          class="btn-delete"
+                          title="Xóa lô chưa sử dụng"
+                          [disabled]="!canDeleteBatch(batch)"
+                          (click)="deleteBatch.emit({ ingredient: row, batch: batch })">
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr *ngIf="batches.length === 0">
+                    <td colspan="9" class="batch-empty">
+                      Chưa có lô nào. Hãy nhập lô đầu tiên để bắt đầu quản lý tồn kho.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="8" class="empty-state">Chưa có nguyên liệu nào.</td>
+        <td colspan="9" class="empty-state">
+          <div class="empty-content">
+            <i class="pi pi-box empty-icon"></i>
+            <h3>Chưa có nguyên liệu</h3>
+            <p>Thêm nguyên liệu trước, sau đó nhập các lô hàng tương ứng.</p>
+          </div>
+        </td>
       </tr>
     </ng-template>
   </p-table>

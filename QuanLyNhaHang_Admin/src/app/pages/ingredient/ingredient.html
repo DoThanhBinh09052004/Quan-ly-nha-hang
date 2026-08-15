@@ -5,7 +5,8 @@
   <app-ingredient-toolbar
     [totalIngredients]="ingredients.length"
     [lowStockCount]="lowStockCount"
-    [totalStock]="totalStock"
+    [totalBatchCount]="totalBatchCount"
+    [expiringSoonBatchCount]="expiringSoonBatchCount"
     [selectedCount]="selectedIngredients.length"
     (create)="openNew()"
     (forecast)="openRestockForecast()"
@@ -16,8 +17,14 @@
   <app-ingredient-list
     [ingredients]="ingredients"
     [selectedIngredients]="selectedIngredients"
+    [batchesByIngredient]="batchesByIngredient"
+    [batchLoading]="batchLoading"
     [loading]="loading"
     (selectedIngredientsChange)="onSelectionChange($event)"
+    (requestBatches)="loadBatches($event)"
+    (addBatch)="openBatch($event)"
+    (editBatch)="editBatch($event)"
+    (deleteBatch)="deleteBatch($event)"
     (edit)="edit($event)"
     (delete)="delete($event)"
     (showForecast)="showForecast($event)">
@@ -26,10 +33,20 @@
 
 <app-ingredient-form-dialog
   [visible]="dialogVisible"
+  [saving]="savingIngredient"
   [ingredient]="ingredient"
   (visibleChange)="closeDialog($event)"
   (save)="save($event)">
 </app-ingredient-form-dialog>
+
+<app-ingredient-batch-dialog
+  [visible]="batchDialogVisible"
+  [saving]="savingBatch"
+  [ingredient]="batchIngredient"
+  [batch]="selectedBatch"
+  (visibleChange)="closeBatchDialog($event)"
+  (save)="saveBatch($event)">
+</app-ingredient-batch-dialog>
 
 <app-ingredient-forecast-dialog
   [visible]="forecastVisible"

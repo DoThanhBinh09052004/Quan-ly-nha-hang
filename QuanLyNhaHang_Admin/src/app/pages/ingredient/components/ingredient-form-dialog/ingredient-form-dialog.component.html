@@ -1,30 +1,69 @@
-<p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width:'34rem'}" [header]="ingredient.id ? 'Cập nhật nguyên liệu' : 'Thêm nguyên liệu'">
+<p-dialog
+  [(visible)]="visible"
+  (onHide)="closeDialog()"
+  [modal]="true"
+  [closable]="!saving"
+  [style]="{ width: '34rem' }"
+  [header]="ingredient.id ? 'Cập nhật nguyên liệu' : 'Thêm nguyên liệu'">
   <div class="dialog-form form-grid">
-    <div class="form-field">
+    <div class="form-field full-width-field">
       <label for="ingredient-name">Tên nguyên liệu <span class="required">*</span></label>
-      <input pInputText id="ingredient-name" [(ngModel)]="ingredient.name" placeholder="Nhập tên nguyên liệu...">
+      <input
+        pInputText
+        id="ingredient-name"
+        [(ngModel)]="ingredient.name"
+        maxlength="150"
+        placeholder="Ví dụ: Thịt bò"
+        (keyup.enter)="saveIngredient()">
     </div>
+
     <div class="form-field">
       <label for="ingredient-unit">Đơn vị <span class="required">*</span></label>
-      <input pInputText id="ingredient-unit" [(ngModel)]="ingredient.unit" placeholder="kg, lít, chai...">
+      <input
+        pInputText
+        id="ingredient-unit"
+        [(ngModel)]="ingredient.unit"
+        maxlength="50"
+        placeholder="kg, lít, thùng...">
     </div>
-    <div class="form-field">
-      <label for="ingredient-cost">Giá/đơn vị</label>
-      <p-inputNumber inputId="ingredient-cost" [(ngModel)]="ingredient.rawMaterialCost" mode="currency" currency="VND" locale="vi-VN"></p-inputNumber>
-    </div>
-    <div class="form-field">
-      <label for="ingredient-stock">Tồn kho</label>
-      <p-inputNumber inputId="ingredient-stock" [(ngModel)]="ingredient.stockQuantity" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="3"></p-inputNumber>
-    </div>
+
     <div class="form-field">
       <label for="ingredient-min-stock">Mức tồn tối thiểu</label>
-      <p-inputNumber inputId="ingredient-min-stock" [(ngModel)]="ingredient.minStock" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="3"></p-inputNumber>
+      <p-inputNumber
+        inputId="ingredient-min-stock"
+        [(ngModel)]="ingredient.minStock"
+        [min]="0"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="3">
+      </p-inputNumber>
     </div>
+
+    <p class="form-note full-width-field">
+      <i class="pi pi-info-circle"></i>
+      Giá nhập, số lượng tồn, ngày nhập và hạn sử dụng được quản lý riêng trong từng lô.
+    </p>
   </div>
+
   <ng-template pTemplate="footer">
     <div class="dialog-footer">
-      <button pButton pRipple icon="pi pi-times" label="Hủy" class="btn-cancel" (click)="closeDialog()"></button>
-      <button pButton pRipple icon="pi pi-check" label="Lưu" severity="primary" (click)="saveIngredient()"></button>
+      <button
+        pButton
+        pRipple
+        icon="pi pi-times"
+        label="Hủy"
+        class="btn-cancel"
+        [disabled]="saving"
+        (click)="closeDialog()">
+      </button>
+      <button
+        pButton
+        pRipple
+        [icon]="saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+        [label]="saving ? 'Đang lưu...' : 'Lưu'"
+        severity="primary"
+        [disabled]="invalid || saving"
+        (click)="saveIngredient()">
+      </button>
     </div>
   </ng-template>
 </p-dialog>

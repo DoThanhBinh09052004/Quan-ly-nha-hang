@@ -1,17 +1,24 @@
 <section class="management-card">
   <div class="header-section">
     <div class="header-title">
-      <h1>Quản lý Nguyên liệu</h1>
-      <p>Theo dõi tồn kho, định mức và nhu cầu nhập hàng.</p>
+      <h1>Quản lý nguyên liệu</h1>
+      <p>Theo dõi tồn kho theo từng lô, hạn sử dụng và nhu cầu nhập hàng.</p>
     </div>
 
     <div class="header-stats">
-      <div class="stats-grid">
+      <div class="stats-grid inventory-stats">
         <div class="stat-card stat-blue">
           <i class="pi pi-box"></i>
           <div class="stat-info">
-            <span class="stat-label">Tổng nguyên liệu</span>
+            <span class="stat-label">Nguyên liệu</span>
             <span class="stat-value">{{ totalIngredients }}</span>
+          </div>
+        </div>
+        <div class="stat-card stat-green">
+          <i class="pi pi-clone"></i>
+          <div class="stat-info">
+            <span class="stat-label">Lô còn hàng</span>
+            <span class="stat-value">{{ totalBatchCount }}</span>
           </div>
         </div>
         <div class="stat-card stat-orange">
@@ -21,11 +28,11 @@
             <span class="stat-value">{{ lowStockCount }}</span>
           </div>
         </div>
-        <div class="stat-card stat-green">
-          <i class="pi pi-database"></i>
+        <div class="stat-card stat-purple">
+          <i class="pi pi-clock"></i>
           <div class="stat-info">
-            <span class="stat-label">Tổng tồn kho</span>
-            <span class="stat-value">{{ totalStock | number:'1.0-2' }}</span>
+            <span class="stat-label">Sắp hết hạn</span>
+            <span class="stat-value">{{ expiringSoonBatchCount }}</span>
           </div>
         </div>
       </div>

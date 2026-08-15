@@ -1,5 +1,5 @@
 <p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width:'38rem'}" header="Dự báo nhu cầu nguyên liệu">
-  <p><b>{{ ingredient?.name }}</b> — {{ forecastDays }} ngày tới</p>
+  <p class="forecast-description"><b>{{ ingredient?.name }}</b> — {{ forecastDays }} ngày tới</p>
   <p-table [value]="forecastRows">
     <ng-template pTemplate="header">
       <tr>
@@ -14,9 +14,7 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="2">Chưa có đủ dữ liệu dự báo.</td>
-      </tr>
+      <tr><td colspan="2">Chưa có đủ dữ liệu dự báo.</td></tr>
     </ng-template>
   </p-table>
 </p-dialog>

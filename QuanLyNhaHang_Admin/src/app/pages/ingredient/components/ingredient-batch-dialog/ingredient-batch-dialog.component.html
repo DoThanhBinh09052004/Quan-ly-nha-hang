@@ -1,0 +1,105 @@
+<p-dialog
+  [(visible)]="visible"
+  (onHide)="closeDialog()"
+  [modal]="true"
+  [closable]="!saving"
+  [style]="{ width: 'min(92vw, 680px)' }"
+  [header]="isEditing ? 'Cập nhật lô nguyên liệu' : 'Nhập lô nguyên liệu'">
+  <div class="batch-dialog-heading">
+    <div class="ingredient-avatar"><i class="pi pi-box"></i></div>
+    <div>
+      <strong>{{ ingredient?.name }}</strong>
+      <span>Đơn vị quản lý: {{ ingredient?.unit }}</span>
+    </div>
+  </div>
+
+  <div class="dialog-form batch-form-grid">
+    <div class="form-field full-width-field">
+      <label for="batch-code">Mã lô</label>
+      <input
+        pInputText
+        id="batch-code"
+        [(ngModel)]="form.batchCode"
+        maxlength="50"
+        placeholder="Để trống để hệ thống tự tạo">
+    </div>
+
+    <div class="form-field">
+      <label for="received-date">Ngày nhập <span class="required">*</span></label>
+      <input
+        pInputText
+        id="received-date"
+        type="date"
+        [(ngModel)]="form.receivedDate"
+        [max]="today">
+    </div>
+
+    <div class="form-field">
+      <label for="expiration-date">Hạn sử dụng <span class="required">*</span></label>
+      <input
+        pInputText
+        id="expiration-date"
+        type="date"
+        [(ngModel)]="form.expirationDate"
+        [min]="today">
+    </div>
+
+    <div class="form-field">
+      <label for="batch-cost">Giá nhập / {{ ingredient?.unit }} <span class="required">*</span></label>
+      <p-inputNumber
+        inputId="batch-cost"
+        [(ngModel)]="form.unitCost"
+        mode="currency"
+        currency="VND"
+        locale="vi-VN"
+        [min]="0">
+      </p-inputNumber>
+    </div>
+
+    <div class="form-field">
+      <label for="batch-quantity">Số lượng nhập <span class="required">*</span></label>
+      <p-inputNumber
+        inputId="batch-quantity"
+        [(ngModel)]="form.quantity"
+        [suffix]="ingredient?.unit ? ' ' + ingredient?.unit : ''"
+        [min]="0"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="3">
+      </p-inputNumber>
+      <small *ngIf="isEditing && usedQuantity > 0" class="text-gray-500">
+        Đã giữ hoặc đã sử dụng: {{ usedQuantity | number:'1.0-3' }} {{ ingredient?.unit }}.
+      </small>
+    </div>
+
+    <p *ngIf="validationMessage" class="validation-message full-width-field">
+      <i class="pi pi-exclamation-circle"></i>
+      {{ validationMessage }}
+    </p>
+
+    <p *ngIf="isEditing" class="form-note full-width-field">
+      <i class="pi pi-info-circle"></i>
+      Giá nhập của lô đã được dùng trong đơn hàng sẽ không thể thay đổi.
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button
+        pButton
+        icon="pi pi-times"
+        label="Hủy"
+        class="btn-cancel"
+        [disabled]="saving"
+        (click)="closeDialog()">
+      </button>
+      <button
+        pButton
+        [icon]="saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+        [label]="saving ? 'Đang lưu...' : (isEditing ? 'Cập nhật lô' : 'Nhập lô')"
+        severity="primary"
+        [disabled]="!!validationMessage || saving"
+        (click)="saveBatch()">
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

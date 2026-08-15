@@ -14,7 +14,16 @@ import { Unit } from "../model/unit.model";
 import { Category } from "../model/category.model";
 import { User } from "../model/user.model";
 import { Guest } from "../model/guest.model";
-import { AiIngredientDailyForecastRow, AiIngredientRestockRow, Ingredient } from "../model/ingredient.model";
+import {
+  AiIngredientDailyForecastRow,
+  AiIngredientRestockRow,
+  CreateIngredientBatchRequest,
+  CreateIngredientRequest,
+  Ingredient,
+  IngredientBatch,
+  UpdateIngredientBatchRequest,
+  UpdateIngredientRequest,
+} from "../model/ingredient.model";
 import { Recipe } from "../model/recipe.model";
 import { PaymentStatus, VietQrPayment } from "../model/payment.model";
 import { BusinessChatRequest, BusinessChatResponse } from "../model/business-chat.model";
@@ -588,14 +597,14 @@ export class MyData {
     return this.httpClient.get<Ingredient>(url, this.httpOptions);
   }
 
-  public createIngredient(ingredient: Omit<Ingredient, 'id'>): Observable<Ingredient> {
+  public createIngredient(ingredient: CreateIngredientRequest): Observable<Ingredient> {
     const url = `${this.REST_API_SERVER}/ingredient`;
     return this.httpClient.post<Ingredient>(url, ingredient, this.httpOptions);
   }
 
-  public updateIngredient(id: number, ingredient: Partial<Ingredient>): Observable<Ingredient> {
+  public updateIngredient(id: number, ingredient: UpdateIngredientRequest): Observable<void> {
     const url = `${this.REST_API_SERVER}/ingredient/${id}`;
-    return this.httpClient.put<Ingredient>(url, ingredient, this.httpOptions);
+    return this.httpClient.put<void>(url, ingredient, this.httpOptions);
   }
 
   public deleteIngredient(id: number): Observable<void> {
@@ -606,6 +615,33 @@ export class MyData {
   public getLowStockIngredients(): Observable<Ingredient[]> {
     const url = `${this.REST_API_SERVER}/ingredient/low-stock`;
     return this.httpClient.get<Ingredient[]>(url, this.httpOptions);
+  }
+
+  public getIngredientBatches(id: number, includeDepleted = true): Observable<IngredientBatch[]> {
+    const url = `${this.REST_API_SERVER}/ingredient/${id}/batches?includeDepleted=${includeDepleted}`;
+    return this.httpClient.get<IngredientBatch[]>(url, this.httpOptions);
+  }
+
+  public createIngredientBatch(
+    ingredientId: number,
+    batch: CreateIngredientBatchRequest,
+  ): Observable<IngredientBatch> {
+    const url = `${this.REST_API_SERVER}/ingredient/${ingredientId}/batches`;
+    return this.httpClient.post<IngredientBatch>(url, batch, this.httpOptions);
+  }
+
+  public updateIngredientBatch(
+    ingredientId: number,
+    batchId: number,
+    batch: UpdateIngredientBatchRequest,
+  ): Observable<IngredientBatch> {
+    const url = `${this.REST_API_SERVER}/ingredient/${ingredientId}/batches/${batchId}`;
+    return this.httpClient.put<IngredientBatch>(url, batch, this.httpOptions);
+  }
+
+  public deleteIngredientBatch(ingredientId: number, batchId: number): Observable<void> {
+    const url = `${this.REST_API_SERVER}/ingredient/${ingredientId}/batches/${batchId}`;
+    return this.httpClient.delete<void>(url, this.httpOptions);
   }
 
   // ===== CÔNG THỨC (RECIPE) =====

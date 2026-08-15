@@ -19,7 +19,6 @@ import { Recipe } from '../../../model/recipe.model';
 interface RecipeTicket {
   item: Item;
   rows: Recipe[];
-  cost: number;
 }
 
 @Component({
@@ -104,24 +103,13 @@ export class RecipeComponent implements OnInit {
       : this.recipes;
   }
 
-  get recipeCost(): number {
-    return this.displayedRecipes.reduce(
-      (total, recipe) => total + recipe.quantityNeeded * (this.getIngredient(recipe.ingredientId)?.rawMaterialCost || 0),
-      0,
-    );
-  }
-
   get tickets(): RecipeTicket[] {
     const term = this.searchText.trim().toLocaleLowerCase();
 
     return this.items
       .map((item) => {
         const rows = this.displayedRecipes.filter((recipe) => recipe.itemId === item.id);
-        const cost = rows.reduce(
-          (total, recipe) => total + recipe.quantityNeeded * (this.getIngredient(recipe.ingredientId)?.rawMaterialCost || 0),
-          0,
-        );
-        return { item, rows, cost };
+        return { item, rows };
       })
       .filter((ticket) => {
         if (!ticket.rows.length) return false;

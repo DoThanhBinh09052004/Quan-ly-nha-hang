@@ -12,7 +12,8 @@ import { ButtonModule } from 'primeng/button';
 export class IngredientToolbarComponent {
   @Input() totalIngredients = 0;
   @Input() lowStockCount = 0;
-  @Input() totalStock = 0;
+  @Input() totalBatchCount = 0;
+  @Input() expiringSoonBatchCount = 0;
   @Input() selectedCount = 0;
 
   @Output() create = new EventEmitter<void>();

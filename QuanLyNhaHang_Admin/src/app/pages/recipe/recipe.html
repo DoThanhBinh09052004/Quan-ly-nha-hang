@@ -20,10 +20,10 @@
           </div>
 
           <div class="stat-card stat-green">
-            <i class="pi pi-wallet"></i>
+            <i class="pi pi-box"></i>
             <div class="stat-info">
-              <span class="stat-label">Chi phí nguyên liệu/phần</span>
-              <span class="stat-value">{{ recipeCost | number:'1.0-0' }} ₫</span>
+              <span class="stat-label">Dòng định lượng</span>
+              <span class="stat-value">{{ displayedRecipes.length }}</span>
             </div>
           </div>
         </div>
@@ -64,7 +64,7 @@
           <div class="ticket-icon"><i class="pi pi-receipt"></i></div>
           <div class="ticket-title">
             <h2>{{ ticket.item.name }}</h2>
-            <span>{{ ticket.rows.length }} nguyên liệu · Chi phí {{ ticket.cost | number:'1.0-0' }} ₫/phần</span>
+            <span>{{ ticket.rows.length }} nguyên liệu · Chi phí được tính theo lô khi đặt món</span>
           </div>
           <i class="pi" [class.pi-chevron-down]="!isExpanded(ticket.item.id)" [class.pi-chevron-up]="isExpanded(ticket.item.id)"></i>
         </header>
@@ -76,7 +76,7 @@
               <small>{{ getIngredient(row.ingredientId)?.unit }}</small>
             </div>
             <div class="quantity">{{ row.quantityNeeded | number:'1.0-3' }} {{ getIngredient(row.ingredientId)?.unit }}</div>
-            <div class="cost">{{ row.quantityNeeded * (getIngredient(row.ingredientId)?.rawMaterialCost || 0) | number:'1.0-0' }} ₫</div>
+            <div class="cost">Tính theo lô FEFO</div>
             <div class="actions" (click)="$event.stopPropagation()">
               <p-button icon="pi pi-pencil" [text]="true" (click)="edit(row)"></p-button>
               <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="delete(row)"></p-button>
