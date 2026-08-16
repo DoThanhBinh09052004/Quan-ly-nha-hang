@@ -38,6 +38,7 @@ export class App {
         this.menuItem('Đơn hàng & thanh toán', 'pi pi-shopping-cart', '/order'),
         this.menuItem('Bàn & lịch hẹn', 'pi pi-calendar', '/guesttable'),
         this.menuItem('Lịch làm của tôi', 'pi pi-calendar-clock', '/my-schedule'),
+        this.menuItem('Khách hàng', 'pi pi-users', '/guest'),
         this.logoutItem(),
       ];
     }
