@@ -1,6 +1,12 @@
 <p-dialog [(visible)]="visible" (onHide)="closeDialog()" [modal]="true" [style]="{width:'38rem'}" header="Dự báo nhu cầu nguyên liệu">
   <p class="forecast-description"><b>{{ ingredient?.name }}</b> — {{ forecastDays }} ngày tới</p>
-  <p-table [value]="forecastRows">
+
+  <div class="forecast-loading" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner"></i>
+    Đang tạo dự báo...
+  </div>
+
+  <p-table *ngIf="!loading" [value]="forecastRows">
     <ng-template pTemplate="header">
       <tr>
         <th>Ngày</th>

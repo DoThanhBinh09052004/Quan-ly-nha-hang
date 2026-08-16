@@ -15,6 +15,7 @@ export class IngredientForecastDialogComponent {
   @Input() visible = false;
   @Input() ingredient?: Ingredient;
   @Input() forecastDays = 14;
+  @Input() loading = false;
   @Input() forecastRows: AiIngredientDailyForecastRow[] = [];
 
   @Output() visibleChange = new EventEmitter<boolean>();

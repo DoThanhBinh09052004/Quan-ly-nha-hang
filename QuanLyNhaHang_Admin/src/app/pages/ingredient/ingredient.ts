@@ -65,6 +65,7 @@ export class IngredientComponent implements OnInit {
   savingIngredient = false;
   savingBatch = false;
   restockLoading = false;
+  forecastLoading = false;
   forecastDays = 14;
 
   constructor(
@@ -331,17 +332,22 @@ export class IngredientComponent implements OnInit {
   showForecast(row: Ingredient): void {
     this.ingredient = { ...row };
     this.forecastRows = [];
+    this.forecastLoading = true;
     this.forecastVisible = true;
 
     this.data.getAiIngredientForecast(row.id, this.forecastDays).subscribe({
       next: (rows: unknown[]) => {
         this.forecastRows = rows.map((forecast) => this.normalizeDailyForecastRow(forecast));
+        this.forecastLoading = false;
       },
-      error: () => this.messages.add({
-        severity: 'warn',
-        summary: 'Chưa có dự báo',
-        detail: 'Cần thêm dữ liệu đơn hàng hoàn tất để huấn luyện.',
-      }),
+      error: () => {
+        this.forecastLoading = false;
+        this.messages.add({
+          severity: 'warn',
+          summary: 'Chưa có dự báo',
+          detail: 'Cần thêm dữ liệu đơn hàng hoàn tất để huấn luyện.',
+        });
+      },
     });
   }
 
