@@ -7,6 +7,7 @@ import { MenubarModule } from 'primeng/menubar';
 
 import { ThemeSwitcher } from '../../themeswitcher';
 import { AuthService } from './service/authservice';
+import { WarmupService } from './service/warmup.service';
 
 @Component({
   selector: 'app-root',
@@ -23,7 +24,13 @@ export class App {
     return this.router.url !== '/login' && this.router.url !== '/change-password';
   }
 
-  constructor(public router: Router, private readonly auth: AuthService) {}
+  constructor(
+    public router: Router,
+    private readonly auth: AuthService,
+    private readonly warmupService: WarmupService,
+  ) {
+    this.warmupService.warmup();
+  }
 
   ngOnInit(): void {
     this.router.events.subscribe(() => (this.items = this.buildMenu()));

@@ -1,5 +1,5 @@
 // app.config.ts
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, ENVIRONMENT_INITIALIZER, importProvidersFrom } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
@@ -11,6 +11,7 @@ import { HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from './service/authservice';
+import { WarmupService } from './service/warmup.service';
 
 // Interceptor dạng hàm
 export const authInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
@@ -45,6 +46,13 @@ export const appConfig: ApplicationConfig = {
           darkModeSelector: '.p-dark'
         }
       }
-    })
+    }),
+    {
+      provide: ENVIRONMENT_INITIALIZER,
+      multi: true,
+      useValue: () => {
+        inject(WarmupService).warmup();
+      }
+    }
   ]
 };
