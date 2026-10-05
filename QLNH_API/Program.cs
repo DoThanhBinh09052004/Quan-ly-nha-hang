@@ -148,6 +148,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapGet("/", () => Results.Redirect("/swagger"));
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 // ---------------- FIX 401/403 JSON RESPONSE ----------------
 app.Use(async (context, next) =>
